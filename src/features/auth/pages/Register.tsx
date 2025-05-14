@@ -1,0 +1,281 @@
+import React, { useState } from "react";
+import { useAppDispatch } from "../../../app/hooks";
+import { registerUser, verifyOtp } from "../authSlice";
+import { useNavigate, Link } from "react-router-dom";
+import AuthLayout from "./AuthLayout";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+
+const Register = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  //   const { loading, error } = useAppSelector((state) => state.auth);
+
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "", // Added confirmPassword field
+    phoneNumber: "",
+    role: "tenant",
+    gender: "male",
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [otpMode, setOtpMode] = useState(false); // Toggle OTP input
+  const [otp, setOtp] = useState(""); // OTP input field
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Toggle for password visibility
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Toggle for confirm password visibility
+
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  // Check if the form is valid
+  const isFormValid =
+    form.username.trim() !== "" &&
+    form.email.trim() !== "" &&
+    form.phoneNumber.trim() !== "" &&
+    form.password.trim() !== "" &&
+    form.confirmPassword.trim() !== "" &&
+    passwordRegex.test(form.password) &&
+    form.password === form.confirmPassword;
+
+  
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" }); // Clear field-specific errors
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrors({}); // Clear previous errors
+
+    if (form.password !== form.confirmPassword) {
+      setErrors({ confirmPassword: "Passwords do not match" });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await dispatch(registerUser(form)).unwrap();
+      setOtpMode(true); // Enable OTP input mode
+    } catch (err: any) {
+      if (err.errors) {
+        // Map server errors to form fields
+        const fieldErrors: Record<string, string> = {};
+        err.errors.forEach((error: any) => {
+          fieldErrors[error.path] = error.msg;
+        });
+        setErrors(fieldErrors);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await dispatch(
+        verifyOtp({ otp: parseInt(otp, 10), email: form.email })
+      ).unwrap();
+      navigate("/dashboard"); // Redirect to dashboard on success
+    } catch (err: any) {
+      console.error("OTP verification failed:", err);
+      alert(err || "Invalid OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AuthLayout>
+      <div>
+        {!otpMode ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              name="username"
+              placeholder="Name"
+              value={form.username}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            {errors.username && (
+              <p className="text-red-500 text-sm">{errors.username}</p>
+            )}
+
+            <input
+              name="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email}</p>
+            )}
+
+            <input
+              name="phoneNumber"
+              placeholder="Phone"
+              value={form.phoneNumber}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            {errors.phoneNumber && (
+              <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
+            )}
+
+            <div className="relative">
+              <input
+                name="password"
+                placeholder="Password"
+                type={showPassword ? "text" : "password"} // Toggle password visibility
+                value={form.password}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center text-gray-900 bg-transparent"
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-red-500 text-sm">{errors.password}</p>
+            )}
+
+            <div className="relative">
+              <input
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                type={showConfirmPassword ? "text" : "password"} // Toggle confirm password visibility
+                value={form.confirmPassword}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 flex items-center text-gray-500 bg-transparent"
+              >
+                {showConfirmPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+            )}
+
+            <div className="space-y-2">
+              <p className="text-gray-700 font-medium">Select Role:</p>
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, role: "tenant" })}
+                  className={`px-4 py-2 rounded-half border ${
+                    form.role === "tenant"
+                      ? "bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-full border-purple-600"
+                      : "bg-gray-200 text-gray-700 rounded-half border-gray-300"
+                  }`}
+                >
+                  Tenant
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, role: "owner" })}
+                  className={`px-4 py-2 rounded-half border ${
+                    form.role === "owner"
+                      ? "bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-full border-purple-600"
+                      : "bg-gray-200 text-gray-700 rounded-half border-gray-300"
+                  }`}
+                >
+                  Owner
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-gray-700 font-medium">Select Gender:</p>
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, gender: "male" })}
+                  className={`px-4 py-2 rounded-half border ${
+                    form.gender === "male"
+                      ? "bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-full border-purple-600"
+                      : "bg-gray-200 text-gray-700 rounded-half border-gray-300"
+                  }`}
+                >
+                  Male
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, gender: "female" })}
+                  className={`px-4 py-2 rounded-half border ${
+                    form.gender === "female"
+                      ? "bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-full border-purple-600"
+                      : "bg-gray-200 text-gray-700 rounded-half border-gray-300"
+                  }`}
+                >
+                  Female
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={!isFormValid || loading}
+              className="w-full bg-gradient-to-br from-purple-600 to-indigo-700 text-white py-2 rounded-lg hover:bg-purple-700 transition disabled:opacity-50"
+            >
+              {loading ? "Registering..." : "Register"}
+            </button>
+            <div className="text-sm text-gray-600 mt-4 text-center">
+              Already have an account?{" "}
+              <Link to="/" className="text-purple-600 hover:underline">
+                Login
+              </Link>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleOtpSubmit} className="space-y-4">
+            <h3 className="text-lg font-semibold text-center text-gray-800">
+              Enter OTP
+            </h3>
+            <input
+              name="otp"
+              placeholder="Enter OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-br from-purple-600 to-indigo-700 text-white py-2 rounded-lg hover:bg-purple-700 transition disabled:opacity-50"
+            >
+              {loading ? "Verifying..." : "Verify OTP"}
+            </button>
+          </form>
+        )}
+      </div>
+    </AuthLayout>
+  );
+};
+
+export default Register;
