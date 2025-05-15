@@ -4,6 +4,13 @@ import { registerUser, verifyOtp } from "../authSlice";
 import { useNavigate, Link } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
+import { useRef } from "react";
+import {
+  checkUsernameAvailability,
+  checkEmailAvailability,
+  checkPhoneAvailability,
+} from "../services/apiServices";
 
 const Register = () => {
   const dispatch = useAppDispatch();
@@ -26,27 +33,150 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // Toggle for password visibility
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Toggle for confirm password visibility
+  const [usernameAvailable, setUsernameAvailable] = useState<null | boolean>(
+    null
+  );
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const [emailAvailable, setEmailAvailable] = useState<null | boolean>(null);
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
+  const [phoneAvailable, setPhoneAvailable] = useState<null | boolean>(null);
+  const [checkingPhone, setCheckingPhone] = useState(false);
 
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^[0-9]{10}$/; // Adjust as per your phone format
+  const usernameRegex = /^[A-Za-z0-9._]{4,18}$/;
 
   // Check if the form is valid
   const isFormValid =
     form.username.trim() !== "" &&
+    usernameRegex.test(form.username) &&
     form.email.trim() !== "" &&
     form.phoneNumber.trim() !== "" &&
     form.password.trim() !== "" &&
     form.confirmPassword.trim() !== "" &&
+    form.password === form.confirmPassword &&
     passwordRegex.test(form.password) &&
-    form.password === form.confirmPassword;
+    emailRegex.test(form.email) && // Email regex check
+    phoneRegex.test(form.phoneNumber) &&
+    usernameAvailable !== false &&
+    emailAvailable !== false &&
+    phoneAvailable !== false;
 
-  
+  const usernameCheckTimeout = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+
+  const checkUsername = (username: string) => {
+    if (usernameCheckTimeout.current)
+      clearTimeout(usernameCheckTimeout.current);
+
+    if (!username.trim()) {
+      setUsernameAvailable(null);
+      return;
+    }
+
+    setCheckingUsername(true);
+    usernameCheckTimeout.current = setTimeout(async () => {
+      try {
+        const data = await checkUsernameAvailability(username);
+        setUsernameAvailable(data.available);
+      } catch {
+        setUsernameAvailable(null);
+      } finally {
+        setCheckingUsername(false);
+      }
+    }, 500);
+  };
+
+  const emailCheckTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const phoneCheckTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkEmail = (email: string) => {
+    if (emailCheckTimeout.current) clearTimeout(emailCheckTimeout.current);
+
+    if (!email.trim()) {
+      setEmailAvailable(null);
+      return;
+    }
+
+    setCheckingEmail(true);
+    emailCheckTimeout.current = setTimeout(async () => {
+      try {
+        const data = await checkEmailAvailability(email);
+        setEmailAvailable(data.available);
+      } catch {
+        setEmailAvailable(null);
+      } finally {
+        setCheckingEmail(false);
+      }
+    }, 500);
+  };
+
+  const checkPhone = (phone: string) => {
+    if (phoneCheckTimeout.current) clearTimeout(phoneCheckTimeout.current);
+
+    if (!phone.trim()) {
+      setPhoneAvailable(null);
+      return;
+    }
+
+    setCheckingPhone(true);
+    phoneCheckTimeout.current = setTimeout(async () => {
+      try {
+        const data = await checkPhoneAvailability(phone);
+        setPhoneAvailable(data.available);
+      } catch {
+        setPhoneAvailable(null);
+      } finally {
+        setCheckingPhone(false);
+      }
+    }, 500);
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" }); // Clear field-specific errors
+
+    if (e.target.name === "username") {
+      if (e.target.value && !usernameRegex.test(e.target.value)) {
+        setErrors((prev) => ({
+          ...prev,
+          username:
+            "Username must be 4-18 chars and only letters, numbers, . or _",
+        }));
+        setUsernameAvailable(null); // Reset availability if invalid
+      } else {
+        setErrors((prev) => ({ ...prev, username: "" }));
+        if (e.target.value) checkUsername(e.target.value);
+      }
+    }
+    if (e.target.name === "email") checkEmail(e.target.value);
+    if (e.target.name === "phoneNumber") checkPhone(e.target.value);
+
+    if (e.target.name === "email") {
+      if (e.target.value && !emailRegex.test(e.target.value)) {
+        setErrors((prev) => ({ ...prev, email: "Invalid email format" }));
+        setEmailAvailable(null); // Reset availability if invalid
+      } else {
+        setErrors((prev) => ({ ...prev, email: "" }));
+        if (e.target.value) checkEmail(e.target.value); // Only check if valid
+      }
+    }
+
+    if (e.target.name === "phoneNumber") {
+      if (e.target.value && !phoneRegex.test(e.target.value)) {
+        setErrors((prev) => ({ ...prev, phoneNumber: "Invalid phone number" }));
+        setPhoneAvailable(null); // Reset availability if invalid
+      } else {
+        setErrors((prev) => ({ ...prev, phoneNumber: "" }));
+        if (e.target.value) checkPhone(e.target.value); // Only check if valid
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,35 +229,92 @@ const Register = () => {
       <div>
         {!otpMode ? (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              name="username"
-              placeholder="Name"
-              value={form.username}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
+            <div className="relative">
+              <input
+                name="username"
+                placeholder="Name"
+                value={form.username}
+                onChange={handleChange}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10 ${
+                  usernameAvailable === false
+                    ? "border-red-500 focus:ring-red-500"
+                    : ""
+                }`}
+                autoComplete="off"
+              />
+              {errors.username === "" &&
+                form.username.trim() !== "" &&
+                usernameAvailable !== null && (
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {usernameAvailable ? (
+                      <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircleIcon className="h-5 w-5 text-red-500" />
+                    )}
+                  </span>
+                )}
+            </div>
             {errors.username && (
               <p className="text-red-500 text-sm">{errors.username}</p>
             )}
 
-            <input
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
+            <div className="relative">
+              <input
+                name="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={handleChange}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10 ${
+                  emailAvailable === false
+                    ? "border-red-500 focus:ring-red-500"
+                    : ""
+                }`}
+                autoComplete="off"
+              />
+              {errors.email === "" &&
+                form.email.trim() !== "" &&
+                emailRegex.test(form.email) &&
+                emailAvailable !== null && (
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {emailAvailable ? (
+                      <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircleIcon className="h-5 w-5 text-red-500" />
+                    )}
+                  </span>
+                )}
+            </div>
             {errors.email && (
               <p className="text-red-500 text-sm">{errors.email}</p>
             )}
 
-            <input
-              name="phoneNumber"
-              placeholder="Phone"
-              value={form.phoneNumber}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
+            <div className="relative">
+              <input
+                name="phoneNumber"
+                placeholder="Phone"
+                value={form.phoneNumber}
+                onChange={handleChange}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10 ${
+                  phoneAvailable === false
+                    ? "border-red-500 focus:ring-red-500"
+                    : ""
+                }`}
+                autoComplete="off"
+                maxLength={10}
+              />
+              {errors.phoneNumber === "" &&
+                form.phoneNumber.trim() !== "" &&
+                phoneRegex.test(form.phoneNumber) &&
+                phoneAvailable !== null && (
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {phoneAvailable ? (
+                      <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircleIcon className="h-5 w-5 text-red-500" />
+                    )}
+                  </span>
+                )}
+            </div>
             {errors.phoneNumber && (
               <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
             )}

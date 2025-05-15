@@ -1,33 +1,17 @@
 import React from "react";
-import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import { logoutUser } from "../../auth/authSlice";
-import { useNavigate } from "react-router-dom";
+import OwnerDashboard from "../../dashboard/pages/ownerDashboard";
+import TenantDashboard from "../../dashboard/pages/tenantDashboard";
+import { useAppSelector } from "../../../app/hooks";
 
 const Dashboard = () => {
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
+  // Get user role from Redux or localStorage
+  // Example: from Redux
+  const role =
+    useAppSelector((state) => state.auth.user?.role) ||
+    localStorage.getItem("role");
 
-  const handleLogout = async () => {
-    try {
-      await dispatch(logoutUser()).unwrap(); // Wait for the logout to complete
-      navigate("/"); // Redirect to login page
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
-  return (
-    <div style={{ padding: "2rem", textAlign: "center" }}>
-      <h1>Welcome, {user?.username || "Guest"} 👋</h1>
-      <p>
-        You are logged in as: <strong>{user?.role}</strong>
-      </p>
-      <button onClick={handleLogout} style={{ marginTop: "1rem" }}>
-        Logout
-      </button>
-    </div>
-  );
+  if (role === "owner") return <OwnerDashboard />;
+  return <TenantDashboard />;
 };
 
 export default Dashboard;

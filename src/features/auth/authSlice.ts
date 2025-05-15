@@ -15,13 +15,11 @@ export const loginUser = createAsyncThunk<User, { credential: string; password: 
                     withCredentials: true
                 }
             );
-            const token = res.data.authToken;
-            const refreshToken = res.data.refreshToken;
-            Cookies.set('token', token);
+            const { authToken, refreshToken, user } = res.data;
+            Cookies.set('token', authToken);
             Cookies.set('refreshToken', refreshToken);
-            console.log("Login API Response: ", res.data);
+            return { ...user, token: authToken, refreshToken }; // return user object with tokens
 
-            return res.data;
         } catch (err: any) {
             const message = err?.response?.data?.message || err.message || "Login failed";
             return thunkAPI.rejectWithValue(message);
@@ -43,7 +41,12 @@ export const registerUser = createAsyncThunk<User, {
             const res = await axios.post(`${API_BASE}/register`, payload, {
                 withCredentials: true
             });
-            return res.data;
+
+            const { authToken, refreshToken, user } = res.data;
+            Cookies.set('token', authToken);
+            Cookies.set('refreshToken', refreshToken);
+            return { ...user, token: authToken, refreshToken };
+
         } catch (err: any) {
             return thunkAPI.rejectWithValue(err.response?.data?.message || "Register failed");
         }
@@ -83,11 +86,10 @@ export const verifyOtp = createAsyncThunk<
             { withCredentials: true }
         );
 
-        const token = res.data.authToken;
-        const refreshToken = res.data.refreshToken;
-        Cookies.set('token', token);
+        const { authToken, refreshToken, user } = res.data;
+        Cookies.set('token', authToken);
         Cookies.set('refreshToken', refreshToken);
-        console.log("OTP Verification Response: ", res.data);
+        return { ...user, token: authToken, refreshToken };
 
         return res.data; // Return the response data
     } catch (err: any) {
@@ -126,12 +128,13 @@ const authSlice = createSlice({
                     // Update the state with the extracted payload
                     state.user = {
                         _id: decoded._id,
-                        username: decoded.name,
+                        name: decoded.name,
                         pgpalId: decoded.pgpalId,
                         role: decoded.role,
                         token, // Include the token if needed
                         email: "", // Provide a default or decoded value for email
-                        phoneNumber: "", // Provide a default or decoded value for phoneNumber
+                        phone: "", // Provide a default or decoded value for phoneNumber
+                        gender: "", // Provide a default or decoded value for gender
                     };
                 } catch (error) {
                     console.error("Failed to decode token:", error);
@@ -150,7 +153,7 @@ const authSlice = createSlice({
                 state.error = null;
             })
             .addCase(loginUser.fulfilled, (state, action) => {
-                console.log("State.user ", state.user);
+                console.log("State.user ", action.payload);
                 state.user = action.payload;
                 state.loading = false;
 
@@ -167,22 +170,8 @@ const authSlice = createSlice({
                 state.error = null;
             })
             .addCase(registerUser.fulfilled, (state, action) => {
-                const { token, refreshToken, ...userDetails } = action.payload;
-
-                // Update the user state
-                state.user = {
-                    ...userDetails,
-                    token,
-                };
-
-                if (token) {
-                    Cookies.set("token", token, { secure: true, sameSite: "None" });
-                }
-                if (refreshToken) {
-                    Cookies.set("refreshToken", refreshToken, { secure: true, sameSite: "None" });
-                }
-
-                state.loading = false;
+                state.user = action.payload;
+                state.loading = false;               
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.error = action.payload as string;

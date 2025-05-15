@@ -5,12 +5,16 @@ import { useNavigate, Link } from "react-router-dom";
 import AuthLayout from "./AuthLayout";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import Modal from "../components/Modal";
-import axios from "axios";
+import {
+  forgotPasswordRequest,
+  forgotPasswordVerify,
+} from "../services/apiServices";
+
 
 const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { loading, error, user } = useAppSelector((state) => state.auth);
+  const { loading, error } = useAppSelector((state) => state.auth);
 
   const [credential, setCredential] = useState("");
   const [password, setPassword] = useState("");
@@ -39,13 +43,8 @@ const Login = () => {
 
   const handleForgotPasswordRequest = async () => {
     try {
-      await axios.post(
-        "http://localhost:4000/api/auth-service/forgot-password-request",
-        {
-          credential,
-        }
-      );
-      setOtpStep(true); // Move to OTP step
+      await forgotPasswordRequest(credential);
+      setOtpStep(true);
     } catch (err: any) {
       console.error("Error requesting OTP:", err.response?.data?.message);
       alert(err.response?.data?.message || "Failed to request OTP.");
@@ -57,18 +56,14 @@ const Login = () => {
       alert("Passwords do not match!");
       return;
     }
-
     try {
-      await axios.post(
-        "http://localhost:4000/api/auth-service/forgot-password-verify-otp",
-        {
-          otp: parseInt(otp, 10),
-          newPassword,
-          confirmPassword,
-        }
+      await forgotPasswordVerify(
+        parseInt(otp, 10),
+        newPassword,
+        confirmPassword
       );
       alert("Password reset successful!");
-      setIsModalOpen(false); // Close modal
+      setIsModalOpen(false);
     } catch (err: any) {
       console.error("Error verifying OTP:", err.response?.data?.message);
       alert(err.response?.data?.message || "Failed to reset password.");
