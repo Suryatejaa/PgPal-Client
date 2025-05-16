@@ -1,7 +1,8 @@
-import axios from "axios";
+import axiosInstance from "../../../services/axiosInstance";
+
 
 export const forgotPasswordRequest = async (credential: string) => {
-  return axios.post("http://localhost:4000/api/auth-service/forgot-password-request", { credential });
+  return axiosInstance.post("http://localhost:4000/api/auth-service/forgot-password-request", { credential });
 };
 
 export const forgotPasswordVerify = async (
@@ -9,7 +10,7 @@ export const forgotPasswordVerify = async (
   newPassword: string,
   confirmPassword: string
 ) => {
-  return axios.post("http://localhost:4000/api/auth-service/forgot-password-verify-otp", {
+  return axiosInstance.post("http://localhost:4000/api/auth-service/forgot-password-verify-otp", {
     otp,
     newPassword,
     confirmPassword,

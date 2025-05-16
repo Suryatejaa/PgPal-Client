@@ -6,16 +6,32 @@ import {
   getPropertyById,
 } from "../services/propertyService";
 import PropertyForm from "../components/PropertyForm";
+import Modal from "../components/Modal";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import PropertyCard from "../components/PropertyCard";
-import PropertyOverview from "../../dashboard/components/PropertyOverview"
+import PropertyOverview from "../../dashboard/components/PropertyOverview";
 import PropertyStats from "../../dashboard/components/StatsComponent";
+import OverviewSection from "../components/sections/OverviewSection";
+import AddressSection from "../components/sections/AddressSection";
+import RoomsSection from "../../room/components/sections/RoomSection";
+import TenantsSection from "../components/sections/TenantSection";
+import KitchenSection from "../components/sections/KitchenSection";
+import ComplaintsSection from "../components/sections/ComplaintsSection";
 
+const SECTION_LIST = [
+  { key: "overview", label: "Overview" },
+  { key: "rooms", label: "Rooms" },
+  { key: "tenants", label: "Tenants" },
+  { key: "kitchen", label: "Kitchen" },
+  { key: "complaints", label: "Complaints" },
+  { key: "address", label: "Address" },
+];
 
 const OwnerProperties: React.FC = () => {
   const [properties, setProperties] = useState<any[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
+  const [selectedSection, setSelectedSection] = useState("overview");
 
   // Fetch properties on mount
   useEffect(() => {
@@ -44,6 +60,7 @@ const OwnerProperties: React.FC = () => {
 
   // Handle form submit
   const handleFormSubmit = async (data: any) => {
+    console.log(data);
     await addProperty(data);
     setShowForm(false);
     await fetchProperties();
@@ -68,15 +85,16 @@ const OwnerProperties: React.FC = () => {
               Add Property
             </span>
           </button>
-        ) : (
-          <div className="bg-white rounded-xl shadow-lg p-6 w-96">
+        ) : null}
+        {showForm && (
+          <Modal onClose={handleFormCancel}>
             <h3 className="text-xl font-semibold mb-2">Add New Property</h3>
             <PropertyForm
               initial={null}
               onSubmit={handleFormSubmit}
               onCancel={handleFormCancel}
             />
-          </div>
+          </Modal>
         )}
       </div>
     );
@@ -106,45 +124,63 @@ const OwnerProperties: React.FC = () => {
         </button>
       </div>
       {showForm && (
-        <div className="mt-6 bg-white rounded-xl shadow-lg p-6 w-full max-w-lg">
-          <h3 className="text-xl font-semibold mb-2">Add New Property</h3>
+        <Modal onClose={handleFormCancel}>
+          <div className="sticky top-0 z-10 bg-white flex items-center justify-between mb-4 pb-2">
+            <h3 className="text-2xl text-purple-700 font-bold">
+              Add New Property
+            </h3>
+            <button
+              onClick={handleFormCancel}
+              className="text-gray-500 hover:text-gray-700 text-2xl bg-transparent border-none cursor-pointer"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
           <PropertyForm
             initial={null}
             onSubmit={handleFormSubmit}
             onCancel={handleFormCancel}
           />
-        </div>
+        </Modal>
       )}
       {/* Property dashboard/metrics section */}
       {!showForm && selectedProperty && (
         <div className="mt-8">
+          {/* Section bar */}
           <h3 className="text-xl font-semibold mb-2">
             {selectedProperty.name} Dashboard
           </h3>
-          <PropertyOverview pgpalId={selectedProperty.pgpalId} />
-          <PropertyStats pgpalId={selectedProperty.pgpalId} />
-          {/* Replace below with your actual metrics/components */}
-          <div className="bg-white rounded-xl shadow p-4 text-gray-800">
-            <div>
-              <strong>Address:</strong> {selectedProperty.address?.street},{" "}
-              {selectedProperty.address?.city},{" "}
-              {selectedProperty.address?.state} -{" "}
-              {selectedProperty.address?.zip}
-            </div>
-            <div>
-              <strong>Contact:</strong> {selectedProperty.contact?.phone} |{" "}
-              {selectedProperty.contact?.email}
-            </div>
-            <div>
-              <strong>Total Rooms:</strong> {selectedProperty.totalRooms}
-            </div>
-            <div>
-              <strong>Total Beds:</strong> {selectedProperty.totalBeds}
-            </div>
-            <div>
-              <strong>Occupied Beds:</strong> {selectedProperty.occupiedBeds}
-            </div>
+          <div className="flex space-x-4 overflow-x-auto pb-2 mb-4 border-b border-gray-200">
+            {SECTION_LIST.map((section) => (
+              <button
+                key={section.key}
+                onClick={() => setSelectedSection(section.key)}
+                className={`px-4 py-2 whitespace-nowrap rounded-t-md font-semibold transition
+            ${
+              selectedSection === section.key
+                ? "bg-purple-600 text-white"
+                : "bg-gray-100 text-purple-700 hover:bg-purple-100"
+            }`}
+              >
+                {section.label}
+              </button>
+            ))}
           </div>
+
+          {/* Section content */}
+          {selectedSection === "overview" && (
+            <OverviewSection property={selectedProperty} />
+          )}
+          {selectedSection === "rooms" && (
+            <RoomsSection property={selectedProperty} />
+          )}
+          {selectedSection === "tenants" && <TenantsSection />}
+          {selectedSection === "kitchen" && <KitchenSection />}
+          {selectedSection === "complaints" && <ComplaintsSection />}
+          {selectedSection === "address" && (
+            <AddressSection property={selectedProperty} />
+          )}
         </div>
       )}
     </div>

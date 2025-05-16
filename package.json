@@ -12,7 +12,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@reduxjs/toolkit": "^2.8.1",
-    "axios": "^1.9.0",
+    "axiosInstance": "^1.9.0",
     "dayjs": "^1.11.13",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
