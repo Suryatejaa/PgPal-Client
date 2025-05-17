@@ -1,0 +1,46 @@
+import React from "react";
+
+const BedCard = ({
+  bed,
+  onTenantClick,
+}: {
+  bed: any;
+  onTenantClick?: (ppid: string) => void;
+}) => (
+  <div
+    className={`border rounded p-2 mb-1 cursor-pointer transition hover:shadow-md ${
+      bed.status === "occupied"
+        ? "bg-red-50 border-red-200"
+        : "bg-green-50 border-green-200"
+    }`}
+    onClick={
+      bed.status === "occupied" && bed.tenantPpt
+        ? () => onTenantClick && onTenantClick(bed.tenantPpt)
+        : undefined
+    }
+    title={
+      bed.status === "occupied" && bed.tenantPpt
+        ? "Click to view tenant details"
+        : undefined
+    }
+  >
+    <div>
+      <span className="font-semibold text-purple-800">{bed.bedId}:</span>{" "}
+      <span
+        className={
+          bed.status === "occupied" ? "text-red-700" : "text-green-700"
+        }
+      >
+        {bed.status}
+      </span>
+    </div>
+    {bed.status === "occupied" && (
+      <div className="ml-2 text-xs text-gray-700">
+        <div>Tenant Phone: {bed.tenantNo || "N/A"}</div>
+        <div>Tenant PPT: {bed.tenantPpt || "N/A"}</div>
+      </div>
+    )}
+  </div>
+);
+
+export default BedCard;

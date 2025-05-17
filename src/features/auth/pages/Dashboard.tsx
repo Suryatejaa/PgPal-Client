@@ -6,11 +6,20 @@ import { useAppSelector } from "../../../app/hooks";
 const Dashboard = () => {
   // Get user role from Redux or localStorage
   // Example: from Redux
-  const role =
-    useAppSelector((state) => state.auth.user?.role) ||
-    localStorage.getItem("role");
+  const user =
+    useAppSelector((state) => state.auth.user) ||
+    JSON.parse(localStorage.getItem("user") || "null");
+  
+  console.log(user.role)
 
-  if (role === "owner") return <OwnerDashboard />;
+  if (user?.role === "owner")
+    return (
+      <OwnerDashboard
+        userId={user._id}
+        userName={user.name}
+        userRole={user.role}
+      />
+    );
   return <TenantDashboard />;
 };
 

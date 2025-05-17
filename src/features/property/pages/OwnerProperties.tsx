@@ -1,16 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   getOwnProperties,
-  addProperty,
-  updateProperty,
-  getPropertyById,
+  addProperty, 
 } from "../services/propertyService";
 import PropertyForm from "../components/PropertyForm";
 import Modal from "../components/Modal";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import PropertyCard from "../components/PropertyCard";
-import PropertyOverview from "../../dashboard/components/PropertyOverview";
-import PropertyStats from "../../dashboard/components/StatsComponent";
 import OverviewSection from "../components/sections/OverviewSection";
 import AddressSection from "../components/sections/AddressSection";
 import RoomsSection from "../../room/components/sections/RoomSection";
@@ -27,11 +23,32 @@ const SECTION_LIST = [
   { key: "address", label: "Address" },
 ];
 
-const OwnerProperties: React.FC = () => {
+const OwnerProperties: React.FC<{
+  userId: string;
+  userName: string;
+  userRole: string;
+}> = ({ userId, userName, userRole }) => {
   const [properties, setProperties] = useState<any[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedSection, setSelectedSection] = useState("overview");
+
+  const [isSticky, setIsSticky] = useState(false);
+  const stickyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (stickyRef.current) {
+        const rect = stickyRef.current.getBoundingClientRect();
+        setIsSticky(rect.top <= 0);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // check on mount
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Fetch properties on mount
   useEffect(() => {
@@ -48,6 +65,8 @@ const OwnerProperties: React.FC = () => {
 
   // Handle property card click (just select, don't open form)
   const handleCardClick = (property: any) => {
+    console.log(property.ownerId)
+    console.log(userId)
     setSelectedProperty(property);
     setShowForm(false);
   };
@@ -103,8 +122,8 @@ const OwnerProperties: React.FC = () => {
   // If properties exist, show cards and add card
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Your PGs</h2>
-      <div className="flex space-x-4 overflow-x-auto pb-4">
+      <h2 className="text-2xl font-bold mb-2 ms-2 mt-2">Your PGs:</h2>
+      <div className="flex space-x-4 rounded-xl overflow-x-auto">
         {properties.map((property) => (
           <PropertyCard
             key={property._id}
@@ -115,7 +134,7 @@ const OwnerProperties: React.FC = () => {
         ))}
         <button
           onClick={handleAddCardClick}
-          className="min-w-[220px] w-56 h-40 bg-white/80 rounded-xl shadow-lg border-2 border-dashed border-purple-400 flex flex-col items-center justify-center hover:bg-purple-50 transition"
+          className="min-w-[220px] w-56 h-40 bg-white/80 rounded-xl mt-1 -ml-1 shadow-lg border-2 border-dashed border-purple-400 flex flex-col items-center justify-center hover:bg-purple-50 transition"
         >
           <PlusIcon className="h-10 w-10 text-purple-600 mb-2" />
           <span className="text-lg font-semibold text-purple-700">
@@ -146,31 +165,47 @@ const OwnerProperties: React.FC = () => {
       )}
       {/* Property dashboard/metrics section */}
       {!showForm && selectedProperty && (
-        <div className="mt-8">
+        <div className="mt-1 rounded-t-m">
           {/* Section bar */}
-          <h3 className="text-xl font-semibold mb-2">
-            {selectedProperty.name} Dashboard
-          </h3>
-          <div className="flex space-x-4 overflow-x-auto pb-2 mb-4 border-b border-gray-200">
-            {SECTION_LIST.map((section) => (
-              <button
-                key={section.key}
-                onClick={() => setSelectedSection(section.key)}
-                className={`px-4 py-2 whitespace-nowrap rounded-t-md font-semibold transition
-            ${
-              selectedSection === section.key
-                ? "bg-purple-600 text-white"
-                : "bg-gray-100 text-purple-700 hover:bg-purple-100"
+          <div
+            style={{ height: 1, margin: 0, padding: 0 }}
+            ref={stickyRef}
+          ></div>
+          <div
+            className={`sticky z-10  transition-colors duration-500 bg-purple-100 ${
+              isSticky ? "from-purple-600 to-indigo-600" : ""
             }`}
-              >
-                {section.label}
-              </button>
-            ))}
+            style={{ top: "48px" }}
+          >
+            <h3 className="text-xl font-semibold text-purple-700 mb-2 ms-2">
+              {selectedProperty.name} Dashboard
+            </h3>
+            <div className="flex space-x-2 overflow-x-auto">
+              {SECTION_LIST.map((section) => (
+                <button
+                  key={section.key}
+                  onClick={() => setSelectedSection(section.key)}
+                  className={`px-4 py-2 whitespace-nowrap mt-1 ms-2 font-semibold transition focus:outline-none bg-transparent border-none focus:outline-none focus:border-none 
+                    ${
+                      selectedSection === section.key
+                        ? "bg-purple-300 text-black rounded-t-md rounded-b-none border-b-2 border-purple-700 focus:outline-none focus:border-none "
+                        : "text-purple-700 hover:text-purple-400 rounded-t-md"
+                    }`}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
           </div>
-
           {/* Section content */}
           {selectedSection === "overview" && (
-            <OverviewSection property={selectedProperty} />
+            <OverviewSection
+              property={selectedProperty}
+              userId={userId}
+              userName={userName}
+              userRole={userRole}
+              isOwner={selectedProperty?.ownerId === userId}
+            />
           )}
           {selectedSection === "rooms" && (
             <RoomsSection property={selectedProperty} />
