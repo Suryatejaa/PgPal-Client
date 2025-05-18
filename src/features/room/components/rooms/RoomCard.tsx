@@ -84,10 +84,11 @@ const RoomCard = ({
       const res = await axiosInstance.get(
         `/tenant-service/tenants?ppid=${ppid}`
       );
+      console.log(res.data[0])
       setTenantModal({
         open: true,
         loading: false,
-        data: res.data,
+        data: res.data[0],
         error: null,
       });
     } catch (err: any) {

@@ -1,8 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  getOwnProperties,
-  addProperty, 
-} from "../services/propertyService";
+import { getOwnProperties, addProperty } from "../services/propertyService";
 import PropertyForm from "../components/PropertyForm";
 import Modal from "../components/Modal";
 import { PlusIcon } from "@heroicons/react/24/solid";
@@ -10,7 +7,7 @@ import PropertyCard from "../components/PropertyCard";
 import OverviewSection from "../components/sections/OverviewSection";
 import AddressSection from "../components/sections/AddressSection";
 import RoomsSection from "../../room/components/sections/RoomSection";
-import TenantsSection from "../components/sections/TenantSection";
+import TenantsSection from "../../tenant/components/sections/TenantSection";
 import KitchenSection from "../components/sections/KitchenSection";
 import ComplaintsSection from "../components/sections/ComplaintsSection";
 
@@ -65,8 +62,8 @@ const OwnerProperties: React.FC<{
 
   // Handle property card click (just select, don't open form)
   const handleCardClick = (property: any) => {
-    console.log(property.ownerId)
-    console.log(userId)
+    console.log(property.ownerId);
+    console.log(userId);
     setSelectedProperty(property);
     setShowForm(false);
   };
@@ -165,19 +162,19 @@ const OwnerProperties: React.FC<{
       )}
       {/* Property dashboard/metrics section */}
       {!showForm && selectedProperty && (
-        <div className="mt-1 rounded-t-m">
+        <div className="mt-1 rounded-t-md w-full">
           {/* Section bar */}
           <div
             style={{ height: 1, margin: 0, padding: 0 }}
             ref={stickyRef}
           ></div>
           <div
-            className={`sticky z-10  transition-colors duration-500 bg-purple-100 ${
-              isSticky ? "from-purple-600 to-indigo-600" : ""
+            className={`sticky z-10 w-full transition-colors duration-500 bg-purple-100 border-t-2 border-purple-600 ${
+              isSticky ? "from-purple-600 to-indigo-600 rounded-t-none" : ""
             }`}
             style={{ top: "48px" }}
           >
-            <h3 className="text-xl font-semibold text-purple-700 mb-2 ms-2">
+            <h3 className="text-xl font-semibold text-purple-900 mb-2 ms-2">
               {selectedProperty.name} Dashboard
             </h3>
             <div className="flex space-x-2 overflow-x-auto">
@@ -188,8 +185,8 @@ const OwnerProperties: React.FC<{
                   className={`px-4 py-2 whitespace-nowrap mt-1 ms-2 font-semibold transition focus:outline-none bg-transparent border-none focus:outline-none focus:border-none 
                     ${
                       selectedSection === section.key
-                        ? "bg-purple-300 text-black rounded-t-md rounded-b-none border-b-2 border-purple-700 focus:outline-none focus:border-none "
-                        : "text-purple-700 hover:text-purple-400 rounded-t-md"
+                        ? "!bg-purple-300 text-black rounded-t-md rounded-b-none border-b-2 border-purple-700 focus:outline-none focus:border-none "
+                        : "text-purple-900 hover:text-purple-700 rounded-t-md"
                     }`}
                 >
                   {section.label}
@@ -210,7 +207,9 @@ const OwnerProperties: React.FC<{
           {selectedSection === "rooms" && (
             <RoomsSection property={selectedProperty} />
           )}
-          {selectedSection === "tenants" && <TenantsSection />}
+          {selectedSection === "tenants" && (
+            <TenantsSection property={selectedProperty} userId={userId} />
+          )}
           {selectedSection === "kitchen" && <KitchenSection />}
           {selectedSection === "complaints" && <ComplaintsSection />}
           {selectedSection === "address" && (

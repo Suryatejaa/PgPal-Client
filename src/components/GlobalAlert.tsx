@@ -11,10 +11,10 @@ const GlobalAlert = ({
 }) => {
   const color =
     type === "error"
-      ? "from-red-500 to-pink-500"
+      ? "bg-red-100 text-red-800 font-bold"
       : type === "success"
-      ? "from-green-500 to-teal-400"
-      : "from-purple-600 to-indigo-600";
+      ? "bg-green-100 text-green-800 font-bold"
+      : "bg-purple-100 text-purple-800 font-bold";
 
   // Handle click outside the alert box
   const wrapperRef = React.useRef<HTMLDivElement>(null);
@@ -34,7 +34,7 @@ const GlobalAlert = ({
     // Auto-hide after 3 seconds
     const timer = setTimeout(() => {
       onClose();
-    }, 20000);
+    }, 2000);
 
     return () => {
       document.removeEventListener("mousedown", handleClick);
@@ -46,7 +46,7 @@ const GlobalAlert = ({
     <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-[100]">
       <div
         ref={wrapperRef}
-        className={`flex items-center gap-2 px-1 py-2 rounded shadow-lg text-black bg-gradient-to-r ${color}`}
+        className={`flex items-center gap-2 px-1 py-2 rounded shadow-lg ${color}`}
       >
         <span className="">{message}</span>
       </div>

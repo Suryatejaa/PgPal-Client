@@ -7,12 +7,12 @@ const OwnerDashboard: React.FC<{
   userRole: string;
 }> = ({ userId, userName, userRole }) => {
   return (
-    <div className="min-h-screen bg-white text-purple-700">
-      <div className="fixed top-0 left-0 w-full bg-white z-10 px-6 py-1 shadow">
+    <div className="min-h-screen bg-purple-100 text-purple-800">
+      <div className="fixed top-0 left-0 w-full text-white bg-purple-700 z-10 px-6 py-1 shadow">
         <h1 className="text-4xl font-bold">👑PGPAL Owner</h1>
       </div>
-      <div className="pt-10">
-        <div className="bg-gradient-to-br from-purple-600 to-indigo-700 text-white shadow-lg p-2">
+      <div className="pt-10 w-full">
+        <div className="text-gradient-to-br from-purple-600 to-indigo-700 bg-white-100 shadow-lg p-2">
           <OwnerProperties
             userId={userId}
             userName={userName}

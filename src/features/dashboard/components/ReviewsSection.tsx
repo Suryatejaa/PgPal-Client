@@ -1,7 +1,7 @@
+import { FaEdit, FaTrash } from "react-icons/fa";
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../../services/axiosInstance";
 import GlobalAlert from "../../../components/GlobalAlert";
-import { FaEdit, FaTrash } from "react-icons/fa";
 
 const ReviewsSection = ({
   propertyId,

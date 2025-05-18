@@ -12,7 +12,7 @@ const TenantDetailsModal = ({
   };
   onClose: () => void;
 }) => (
-  <Modal onClose={onClose}>
+  <Modal onClose={onClose} readonly>
     <div className="min-w-[260px] max-w-s p-2">
       <h4 className="text-lg font-bold mb-1 text-purple-700">Tenant Details</h4>
       {tenantModal.loading && <div>Loading...</div>}

@@ -14,7 +14,7 @@ const PropertyOverview: React.FC<{ pgpalId: string }> = ({ pgpalId }) => {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-6 my-4">
-      <div className="bg-purple-100 rounded-xl p-4 shadow text-center">
+      <div className="bg-violet-200 rounded-xl p-4 shadow text-center"> 
         <div className="text-2xl font-bold text-purple-700">
           {overview.tenants.activeTenants}
         </div>
