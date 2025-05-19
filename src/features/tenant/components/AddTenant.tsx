@@ -18,6 +18,7 @@ const AddTenant = ({
   rooms = [],
   onSubmit,
   onCancel,
+  defaultBedId = "",
 }: {
   propertyId: string;
   rooms: {
@@ -25,7 +26,8 @@ const AddTenant = ({
     beds: { bedId: string; status: string }[];
   }[];
   onSubmit: (data: any) => void;
-  onCancel: () => void;
+    onCancel: () => void;
+  defaultBedId?: string;
 }) => {
   const [tenant, setTenant] = useState({ ...defaultTenant, propertyId });
   const [formError, setFormError] = useState<string | null>(null);

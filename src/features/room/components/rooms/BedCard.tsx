@@ -2,10 +2,12 @@ import React from "react";
 
 const BedCard = ({
   bed,
-  onTenantClick,
+  onVacantClick,
+  onOccupiedClick,
 }: {
   bed: any;
-  onTenantClick?: (ppid: string) => void;
+  onVacantClick?: (ppid: string) => void;
+  onOccupiedClick?: (ppid: string) => void;
 }) => (
   <div
     className={`border rounded p-2 mb-1 cursor-pointer transition hover:shadow-md ${
@@ -13,11 +15,11 @@ const BedCard = ({
         ? "bg-red-50 border-red-200"
         : "bg-green-50 border-green-200"
     }`}
-    onClick={
-      bed.status === "occupied" && bed.tenantPpt
-        ? () => onTenantClick && onTenantClick(bed.tenantPpt)
-        : undefined
-    }
+    onClick={() => {  
+      bed.status === "occupied"
+        ? onOccupiedClick && onOccupiedClick(bed)
+        : onVacantClick && onVacantClick(bed)
+    }}
     title={
       bed.status === "occupied" && bed.tenantPpt
         ? "Click to view tenant details"

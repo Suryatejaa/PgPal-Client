@@ -17,7 +17,7 @@ const RoomsSection = ({ property }: { property: any }) => {
     message: string;
     type?: "info" | "success" | "error";
   } | null>(null);
-
+  const [search, setSearch] = useState(""); // <-- Add search state
 
   const typeBedCount: Record<string, number> = {
     single: 1,
@@ -50,35 +50,47 @@ const RoomsSection = ({ property }: { property: any }) => {
 
   const filterOptions = [...staticFilterOptions, ...typeOptions];
 
-
   const filteredRooms = React.useMemo(() => {
-    if (filter === "all") return rooms;
+    let filtered = rooms;
     if (filter === "occupied") {
-      return rooms.filter(
+      filtered = rooms.filter(
         (room) =>
           room.beds?.length > 0 &&
           room.beds.every((bed: any) => bed.status === "occupied")
       );
-    }
-    if (filter === "vacant") {
-      return rooms.filter(
+    } else if (filter === "vacant") {
+      filtered = rooms.filter(
         (room) =>
           room.beds?.length > 0 &&
           room.beds.every((bed: any) => bed.status === "vacant")
       );
-    }
-    if (filter === "partial") {
-      return rooms.filter(
+    } else if (filter === "partial") {
+      filtered = rooms.filter(
         (room) =>
           room.beds?.length > 0 &&
           room.beds.some((bed: any) => bed.status === "occupied") &&
           room.beds.some((bed: any) => bed.status === "vacant")
       );
+    } else if (filter !== "all") {
+      filtered = rooms.filter((room) => room.type === filter);
     }
     // If filter matches a type
-    return rooms.filter((room) => room.type === filter);
-  }, [rooms, filter]);
-
+    const q = search.trim().toLowerCase();
+    if (!q) return filtered;
+    return filtered.filter(
+      (room) =>
+        (room.roomNumber && String(room.roomNumber).toLowerCase().includes(q)) ||
+        (room.pgpalId && room.pgpalId.toLowerCase().includes(q)) ||
+        (room.beds &&
+          room.beds.some(
+            (bed: any) =>
+              (bed.bedId && bed.bedId.toLowerCase().includes(q)) ||
+              (bed.pgpalId && bed.pgpalId.toLowerCase().includes(q))
+          ))
+    );
+  }, [rooms, filter, search]);
+ 
+  
   // Fetch rooms function
   const fetchRooms = async () => {
     setError(null);
@@ -120,7 +132,7 @@ const RoomsSection = ({ property }: { property: any }) => {
       });
       console.log(res);
       setShowForm(false);
-      setAlert({ message: "Room added successfully!", type: "success" });    
+      setAlert({ message: "Room added successfully!", type: "success" });
       await fetchRooms();
     } catch (err: any) {
       console.log(err.response.data.error);
@@ -130,6 +142,7 @@ const RoomsSection = ({ property }: { property: any }) => {
     }
   };
 
+  
   const groupedRooms = React.useMemo(() => {
     const groups: { [floor: string]: any[] } = {};
     filteredRooms.forEach((room) => {
@@ -143,6 +156,34 @@ const RoomsSection = ({ property }: { property: any }) => {
     return groups;
   }, [filteredRooms]);
 
+  const getFilterCount = (key: string) => {
+    if (key === "all") return rooms.length;
+    if (key === "occupied") {
+      return rooms.filter(
+        (room) =>
+          room.beds?.length > 0 &&
+          room.beds.every((bed: any) => bed.status === "occupied")
+      ).length;
+    }
+    if (key === "vacant") {
+      return rooms.filter(
+        (room) =>
+          room.beds?.length > 0 &&
+          room.beds.every((bed: any) => bed.status === "vacant")
+      ).length;
+    }
+    if (key === "partial") {
+      return rooms.filter(
+        (room) =>
+          room.beds?.length > 0 &&
+          room.beds.some((bed: any) => bed.status === "occupied") &&
+          room.beds.some((bed: any) => bed.status === "vacant")
+      ).length;
+    }
+    // For type filters
+    return rooms.filter((room) => room.type === key).length;
+  };
+
   return (
     <div className="relative">
       {alert && (
@@ -155,13 +196,13 @@ const RoomsSection = ({ property }: { property: any }) => {
       {rooms.length > 0 && (
         <button
           onClick={() => setShowForm(true)}
-          className="absolute right-0 top-10 mt-1 bg-purple-600 text-white px-4 py-1 rounded font-semibold"
+          className="absolute right-0 top-8 mt-12 bg-purple-600 text-white px-4 py-1 rounded font-semibold"
         >
           + Add Room
         </button>
       )}
       <div
-        className="sticky z-20 flex overflow-x-auto -mt-1 pb-2 bg-purple-300 border-gray-200"
+        className="sticky z-20 flex overflow-x-auto text-sm -mt-1 pb-1 bg-purple-300 border-gray-200"
         style={{ top: 120 }} // Adjust this value to match the height of your section header bar
       >
         {filterOptions.map((opt) => (
@@ -175,9 +216,21 @@ const RoomsSection = ({ property }: { property: any }) => {
                   : "bg-transparent text-indigo-700 hover:text-purple-700 border-none"
               }`}
           >
-            {opt.label}
+            {opt.label} ({getFilterCount(opt.key)})
           </button>
         ))}
+      </div>
+      <div
+        className="sticky z-10 bg-white"
+        style={{ top: 168 }} // adjust if needed to stick below filter bar
+      >
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by room number, bed ID, or room ID"
+          className="w-full px-3 py-2 border  focus:outline-none"
+        />
       </div>
       <div className="pt-1">
         {rooms.length === 0 ? (

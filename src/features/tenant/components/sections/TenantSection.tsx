@@ -20,7 +20,7 @@ import {
 
 const TENANT_FILTERS = [
   { key: "active", label: "Active" },
-  { key: "inactive", label: "Inactive" },
+  { key: "inactive", label: "Notice Period" },
   { key: "paid", label: "Rent Paid" },
   { key: "unpaid", label: "Rent Unpaid" },
   { key: "past", label: "Past Tenants" },
@@ -44,6 +44,7 @@ const TenantSection = ({
 
   const [rooms, setRooms] = useState<any[]>([]);
   const [removingTenantId, setRemovingTenantId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const fetchRooms = async () => {
     try {
@@ -75,15 +76,19 @@ const TenantSection = ({
   const [retainConfirm, setRetainConfirm] = useState<any | null>(null);
 
   const handleRetainTenant = async (vacate: any) => {
-    console.log(vacate._id);
     try {
-      const res = await retainTenant(vacate.tenantId);
+      // ✅ Use the roomId and bedId from the vacate record being shown
+      const res = await retainTenant(vacate._id, {
+        roomId: vacate.roomId,
+        bedId: vacate.bedId,
+        // ...any other required fields
+      });
       console.log(res);
       setAlert({ message: "Tenant retained successfully", type: "success" });
       setRetainConfirm(null);
       fetchData();
     } catch (err: any) {
-      console.log(err);
+      console.error(err);
       setAlert({ message: "Failed to retain tenant", type: "error" });
     }
   };
@@ -113,22 +118,26 @@ const TenantSection = ({
   // Filter tenants
   const filteredTenants = tenants.filter((t) => {
     if (filter === "active") return t.status === "active";
+    // if (filter === "inactive") {
+    //   if (t.status === "inactive") {
+    //     // Find latest stayHistory entry for this property
+    //     const latestStay =
+    //       t.stayHistory && t.stayHistory.length
+    //         ? t.stayHistory
+    //             .filter((s: any) => s.propertyId === property.pgpalId)
+    //             .sort(
+    //               (a: any, b: any) =>
+    //                 new Date(b.to).getTime() - new Date(a.to).getTime()
+    //             )[0]
+    //         : null;
+    //     // If latest stay is in notice period, include
+    //     if (latestStay && latestStay.isInNoticePeriod) return true;
+    //   }
+    //   return false;
+    // }
     if (filter === "inactive") {
-      if (t.status === "inactive") {
-        // Find latest stayHistory entry for this property
-        const latestStay =
-          t.stayHistory && t.stayHistory.length
-            ? t.stayHistory
-                .filter((s: any) => s.propertyId === property.pgpalId)
-                .sort(
-                  (a: any, b: any) =>
-                    new Date(b.to).getTime() - new Date(a.to).getTime()
-                )[0]
-            : null;
-        // If latest stay is in notice period, include
-        if (latestStay && latestStay.isInNoticePeriod) return true;
-      }
-      return false;
+      console.log(t.status === "inactive" && t.isInNoticePeriod);
+      return t.status === "inactive" && t.isInNoticePeriod;
     }
     if (filter === "paid") return t.currentStay?.rentPaidStatus === "paid";
     if (filter === "unpaid") return t.currentStay?.rentPaidStatus === "unpaid";
@@ -171,18 +180,95 @@ const TenantSection = ({
     }
   };
 
+  const occupiedBeds = tenants.map((t) => t.currentStay?.bedId).filter(Boolean);
+
+  function matchesSearch(item: any) {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (item.name && item.name.toLowerCase().includes(q)) ||
+      (item.roomId && item.roomId.toLowerCase().includes(q)) ||
+      (item.bedId && item.bedId.toLowerCase().includes(q)) ||
+      (item.currentStay?.bedId &&
+        item.currentStay.bedId.toLowerCase().includes(q)) ||
+      (item.pgpalId && item.pgpalId.toLowerCase().includes(q)) ||
+      (item.tenantId && item.tenantId.toLowerCase().includes(q))
+    );
+  }
+
+  // For active/inactive/paid/unpaid
+  const filteredTenantsWithSearch = filteredTenants.filter(matchesSearch);
+
+  // For past
+  const filteredVacatesWithSearch = vacates.filter(matchesSearch);
+
+  // For inactive
+  const filteredInactiveVacatesWithSearch = vacates
+    .filter(
+      (v) => v.status === "noticeperiod" && v.propertyId === property.pgpalId
+    )
+    .filter(matchesSearch);
+
+  const tenantsByFloorFiltered = React.useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    filteredTenantsWithSearch.forEach((tenant) => {
+      const roomPgpalId = tenant.currentStay?.roomPpid;
+      const floor = roomPgpalIdToFloor[roomPgpalId] || "Unknown";
+      if (!groups[floor]) groups[floor] = [];
+      groups[floor].push(tenant);
+    });
+    return groups;
+  }, [filteredTenantsWithSearch, roomPgpalIdToFloor]);
+
+  const getTenantFilterCount = (key: string) => {
+    if (key === "active")
+      return tenants.filter((t) => t.status === "active").length;
+    if (key === "inactive") {
+      return vacates.filter(
+        (t) => t.status === "noticeperiod" && t.propertyId === property.pgpalId
+      ).length;
+    }
+    if (key === "paid")
+      return tenants.filter((t) => t.currentStay?.rentPaidStatus === "paid")
+        .length;
+    if (key === "unpaid")
+      return tenants.filter((t) => t.currentStay?.rentPaidStatus === "unpaid")
+        .length;
+    if (key === "past") return vacates.length;
+    return 0;
+  };
+
   return (
     <div className="relative">
       {alert && <GlobalAlert {...alert} onClose={() => setAlert(null)} />}
       {tenants.length > 0 && (
         <button
           onClick={() => setShowForm(true)}
-          className="absolute right-0 top-10 mt-1 bg-purple-600 text-white px-4 py-1 rounded font-semibold"
+          className="absolute right-0 top-8 mt-12 bg-purple-600 text-white px-4 py-1 rounded font-semibold"
         >
           + Add Tenant
         </button>
       )}
-      <TenantFilterBar filter={filter} setFilter={setFilter} />
+      <TenantFilterBar
+        filter={filter}
+        setFilter={setFilter}
+        filterOptions={TENANT_FILTERS.map((opt) => ({
+          ...opt,
+          label: `${opt.label} (${getTenantFilterCount(opt.key)})`,
+        }))}
+      />
+      <div
+        className="sticky z-10 bg-white "
+        style={{ top: 168 }} // adjust if needed to stick below filter bar
+      >
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name, room, or ID"
+          className="w-full px-3 py-2 border rounded focus:outline-none"
+        />
+      </div>
       <div className="pt-1">
         {tenants.length === 0 && filter !== "past" && filter !== "inactive" ? (
           <div className="flex flex-col items-center justify-center min-h-[200px]">
@@ -198,18 +284,19 @@ const TenantSection = ({
           </div>
         ) : filter === "past" ? (
           <PastTenantsList
-            vacates={vacates}
+            vacates={filteredVacatesWithSearch}
             onRetain={(v) => setRetainConfirm(v)}
             userId={userId}
+            occupiedBeds={occupiedBeds}
           />
         ) : filter === "inactive" ? (
           <InactiveTenantsList
-            vacates={vacates}
+            vacates={filteredInactiveVacatesWithSearch}
             propertyId={property.pgpalId}
           />
         ) : (
           <TenantListByFloor
-            tenantsByFloor={tenantsByFloor}
+            tenantsByFloor={tenantsByFloorFiltered}
             onRemove={setRemovingTenantId}
           />
         )}

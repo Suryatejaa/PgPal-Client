@@ -24,10 +24,13 @@ const InactiveTenantsList = ({
         ) : (
           noticePeriodTenants.map((v) => (
             <div
-              key={v.tenantId}
+              key={v._id}
               className="bg-white rounded-lg shadow p-4 border border-gray-200"
             >
               <div className="font-bold text-lg text-purple-800">
+                {v.name}
+              </div>
+              <div className="font-bold text-xs text-purple-800">
                 {v.tenantId}
               </div>
               <div className="text-gray-700">Room: {v.roomId}</div>

@@ -5,7 +5,8 @@ import axiosInstance from "../../../../services/axiosInstance";
 import EditRoomForm from "./EditRoomForm";
 import BedCard from "./BedCard";
 import TenantDetailsModal from "./TenantDetailsModal";
-
+import AddTenant from "../../../tenant/components/AddTenant";
+import RemoveTenantForm from "../../../tenant/components/RemoveTenant";
 
 const RoomCard = ({
   room,
@@ -22,14 +23,17 @@ const RoomCard = ({
   const [showEdit, setShowEdit] = useState(false);
   const { setError } = useError();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showAddTenant, setShowAddTenant] = useState(false);
+  const [showRemoveTenant, setShowRemoveTenant] = useState(false);
+  const [removeTenantBed, setRemoveTenantBed] = useState<any>(null);
 
-
-  const [tenantModal, setTenantModal] = useState<{
+  const [bedModal, setBedModal] = useState<{
     open: boolean;
     loading: boolean;
     data: any | null;
     error: string | null;
-  }>({ open: false, loading: false, data: null, error: null });
+    bed?: any;
+  }>({ open: false, loading: false, data: null, error: null, bed: null });
 
   const handleEdit = async (data: any, params: string) => {
     let url = `/room-service/rooms/${room._id}`;
@@ -78,21 +82,32 @@ const RoomCard = ({
     }
   };
 
-  const handleTenantClick = async (ppid: string) => {
-    setTenantModal({ open: true, loading: true, data: null, error: null });
+  const handleVacantBedClick = (bed: any) => {
+    setBedModal({ open: true, loading: true, data: null, error: null, bed });
+  };
+
+  const handleOccupiedBedClick = async (bed: any) => {
+    setBedModal({
+      open: true,
+      loading: true,
+      data: null,
+      error: null,
+      bed: null,
+    });
     try {
       const res = await axiosInstance.get(
-        `/tenant-service/tenants?ppid=${ppid}`
+        `/tenant-service/tenants?ppid=${bed.tenantPpt}`
       );
-      console.log(res.data[0])
-      setTenantModal({
+      console.log(res.data[0]);
+      setBedModal({
         open: true,
         loading: false,
         data: res.data[0],
         error: null,
+        bed,
       });
     } catch (err: any) {
-      setTenantModal({
+      setBedModal({
         open: true,
         loading: false,
         data: null,
@@ -100,7 +115,55 @@ const RoomCard = ({
           err?.response?.data?.error ||
           err?.message ||
           "Failed to fetch tenant details.",
+        bed,
       });
+    }
+  };
+
+  // Add this function to handle tenant removal
+  const handleRemoveTenant = async (tenantId: string, data: any) => {
+    try {
+      const res = await axiosInstance.post(
+        `/tenant-service/remove-tenant/${tenantId}`,
+        data
+      );
+      console.log(res.data);
+      setShowRemoveTenant(false);
+      if (onRoomUpdated) onRoomUpdated();
+      if (setAlert)
+        setAlert({ message: "Tenant removed successfully!", type: "success" });
+    } catch (err: any) {
+      console.log(err);
+      setError(
+        err?.response?.data?.error || err?.error || "Failed to remove tenant."
+      );
+      if (setAlert)
+        setAlert({
+          message: err?.response?.data?.error || "Failed to remove tenant.",
+          type: "error",
+        });
+    }
+  };
+
+  // Add this function to handle adding a tenant
+  const handleAddTenant = async (data: any) => {
+    try {
+      const res = await axiosInstance.post("/tenant-service", data);
+      console.log(res.data);
+      setShowAddTenant(false);
+      if (onRoomUpdated) onRoomUpdated();
+      if (setAlert)
+        setAlert({ message: "Tenant added successfully!", type: "success" });
+    } catch (err: any) {
+      console.log(err);
+      setError(
+        err?.response?.data?.error || err?.error || "Failed to add tenant."
+      );
+      if (setAlert)
+        setAlert({
+          message: err?.response?.data?.error || "Failed to add tenant.",
+          type: "error",
+        });
     }
   };
 
@@ -138,7 +201,12 @@ const RoomCard = ({
         style={{ minHeight: "2.5rem" }}
       >
         {room.beds?.map((bed: any, idx: number) => (
-          <BedCard key={idx} bed={bed} onTenantClick={handleTenantClick} />
+          <BedCard
+            key={idx}
+            bed={bed}
+            onVacantClick={handleVacantBedClick}
+            onOccupiedClick={handleOccupiedBedClick}
+          />
         ))}
       </div>
       {showEdit && (
@@ -151,18 +219,123 @@ const RoomCard = ({
           />
         </Modal>
       )}
-      {tenantModal.open && (
-        <TenantDetailsModal
-          tenantModal={tenantModal}
+
+      {bedModal.open && bedModal.bed && bedModal.bed.status === "occupied" && (
+        <Modal
           onClose={() =>
-            setTenantModal({
+            setBedModal({
               open: false,
-              loading: false,
+              bed: null,
+              loading: true,
               data: null,
               error: null,
             })
           }
-        />
+          readonly
+        >
+          <div>
+            <div className="font-bold mb-2">Bed: {bedModal.bed.bedId}</div>
+            <div>
+              <span className="font-semibold">Name:</span> {bedModal.data.name}
+            </div>
+            <div>
+              <span className="font-semibold">Phone:</span>{" "}
+              {bedModal.data.phone}
+            </div>
+            <div>
+              <span className="font-semibold">Aadhar:</span>{" "}
+              {bedModal.data.aadhar}
+            </div>
+            <div>
+              <span className="font-semibold">Status:</span>{" "}
+              {bedModal.bed.tenantPpt}
+            </div>
+            <div>
+              <span className="font-semibold">In Notice Period:</span>{" "}
+              {bedModal.data.In_Notice_Period ? "Yes" : "No"}
+            </div>
+            <div>
+              <span className="font-semibold">Assigned At:</span>{" "}
+              {bedModal.data.currentStay?.assignedAt
+                ? new Date(
+                    bedModal.data.currentStay.assignedAt
+                  ).toLocaleString()
+                : "N/A"}
+            </div>
+            {/* Add more tenant details as needed */}
+            <button
+              className="mt-4 bg-red-600 text-white px-4 py-2 rounded"
+              onClick={() => {
+                setRemoveTenantBed(bedModal.bed); // <-- store the bed to remove
+                setShowRemoveTenant(true);
+                setBedModal({
+                  open: false,
+                  bed: null,
+                  loading: true,
+                  data: null,
+                  error: null,
+                });
+              }}
+            >
+              Remove Tenant
+            </button>
+          </div>
+        </Modal>
+      )}
+      {showRemoveTenant && (
+        <Modal onClose={() => setShowRemoveTenant(false)}>
+          <RemoveTenantForm
+            onSubmit={(data: any) =>
+              handleRemoveTenant(removeTenantBed.tenantPpt, data)
+            }
+            onCancel={() => setShowRemoveTenant(false)}
+          />
+        </Modal>
+      )}
+      {bedModal.open && bedModal.bed && bedModal.bed.status === "vacant" && (
+        <Modal
+          onClose={() =>
+            setBedModal({
+              open: false,
+              bed: null,
+              loading: true,
+              data: null,
+              error: null,
+            })
+          }
+          readonly
+        >
+          <div>
+            <div className="font-bold mb-2">Bed: {bedModal.bed.bedId}</div>
+            <div>Status: Vacant</div>
+            <button
+              className="mt-4 bg-purple-600 text-white px-4 py-2 rounded"
+              onClick={() => {
+                setShowAddTenant(true);
+                setBedModal({
+                  open: false,
+                  bed: null,
+                  loading: true,
+                  data: null,
+                  error: null,
+                });
+              }}
+            >
+              Assign Tenant
+            </button>
+          </div>
+        </Modal>
+      )}
+      {showAddTenant && (
+        <Modal onClose={() => setShowAddTenant(false)}>
+          <AddTenant
+            propertyId={room.propertyId}
+            rooms={[room]} // Pass only this room for selection
+            onSubmit={handleAddTenant}
+            onCancel={() => setShowAddTenant(false)}
+            defaultBedId={bedModal.bed?.bedId}
+          />
+        </Modal>
       )}
     </div>
   );

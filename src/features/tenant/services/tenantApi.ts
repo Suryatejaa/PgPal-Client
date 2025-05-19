@@ -21,5 +21,5 @@ export const fetchTenantByPpid = (ppid: string) =>
 export const fetchRentStatus = (tenantId: string) =>
     axiosInstance.get(`/tenant-service/rent/${tenantId}/status`);
 
-export const retainTenant = (tenantId: string) =>
-    axiosInstance.post(`/tenant-service/retain-tenant/${tenantId}`);
+export const retainTenant = (vacateId: string, data: any) =>
+  axiosInstance.post(`/tenant-service/retain-tenant/${vacateId}`, data);
