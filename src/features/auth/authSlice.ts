@@ -25,6 +25,7 @@ export const loginUser = createAsyncThunk<
   }
 });
 
+
 export const registerUser = createAsyncThunk<
   User,
   {

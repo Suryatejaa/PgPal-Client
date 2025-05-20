@@ -45,6 +45,7 @@ const TenantSection = ({
   const [rooms, setRooms] = useState<any[]>([]);
   const [removingTenantId, setRemovingTenantId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [roomsFound, setRoomsFound] = useState(false);
 
   const fetchRooms = async () => {
     try {
@@ -52,7 +53,11 @@ const TenantSection = ({
         `/room-service/${property._id}/rooms`
       );
       setRooms(res.data.rooms || []);
-    } catch {
+      setRoomsFound(true);
+    } catch (err: any) {
+      if (err.response.data.error === "No rooms found") {
+        setRoomsFound(false);
+      }
       setRooms([]);
     }
   };
@@ -98,8 +103,14 @@ const TenantSection = ({
     try {
       const res = await fetchTenants(property.pgpalId);
       setTenants(res.data || []);
-    } catch {
-      setAlert({ message: "Failed to fetch tenants", type: "error" });
+    } catch (err: any) {
+      if (err.response.data.error === "Tenant not found") {
+        setAlert({
+          message: "No tenants found for this property",type: "info",
+        });
+      } else {        
+        setAlert({ message: "Failed to fetch tenants", type: "error" });
+      }
       setTenants([]);
     }
     try {

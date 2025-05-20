@@ -8,7 +8,7 @@ import OverviewSection from "../components/sections/OverviewSection";
 import AddressSection from "../components/sections/AddressSection";
 import RoomsSection from "../../room/components/sections/RoomSection";
 import TenantsSection from "../../tenant/components/sections/TenantSection";
-import KitchenSection from "../components/sections/KitchenSection";
+import KitchenSection from "../../kitchen//components/sections/KitchenSection";
 import ComplaintsSection from "../components/sections/ComplaintsSection";
 
 const SECTION_LIST = [
@@ -210,7 +210,15 @@ const OwnerProperties: React.FC<{
           {selectedSection === "tenants" && (
             <TenantsSection property={selectedProperty} userId={userId} />
           )}
-          {selectedSection === "kitchen" && <KitchenSection />}
+          {selectedSection === "kitchen" && (
+            <KitchenSection
+              property={selectedProperty}
+              userId={userId}
+              userName={userName}
+              userRole={userRole}
+              isOwner={selectedProperty?.ownerId === userId}
+            />
+          )}
           {selectedSection === "complaints" && <ComplaintsSection />}
           {selectedSection === "address" && (
             <AddressSection property={selectedProperty} />
