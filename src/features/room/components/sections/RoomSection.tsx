@@ -5,7 +5,6 @@ import AddRoomForm from "../rooms/AddRoomForm";
 import axiosInstance from "../../../../services/axiosInstance";
 import { useError } from "../../../../context/ErrorContext";
 import GlobalAlert from "../../../../components/GlobalAlert"; // adjust path as needed
-import ConfirmDilog from "../../../../components/ConfirmDialog"; // adjust path as needed
 
 
 const RoomsSection = ({ property }: { property: any }) => {
@@ -203,7 +202,7 @@ const RoomsSection = ({ property }: { property: any }) => {
       )}
       <div
         className="sticky z-20 flex overflow-x-auto text-sm -mt-1 pb-1 bg-purple-300 border-gray-200"
-        style={{ top: 120 }} // Adjust this value to match the height of your section header bar
+        style={{ top: 139 }} // Adjust this value to match the height of your section header bar
       >
         {filterOptions.map((opt) => (
           <button
@@ -222,7 +221,7 @@ const RoomsSection = ({ property }: { property: any }) => {
       </div>
       <div
         className="sticky z-10 bg-white"
-        style={{ top: 168 }} // adjust if needed to stick below filter bar
+        style={{ top: 179 }} // adjust if needed to stick below filter bar
       >
         <input
           type="text"

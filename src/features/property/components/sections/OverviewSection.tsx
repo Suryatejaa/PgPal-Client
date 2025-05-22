@@ -32,7 +32,7 @@ const OverviewSection = ({
       {/* Sticky filter bar */}
       <div
         className="sticky z-20 flex overflow-x-auto text-sm -mt-1 pb-1 bg-purple-300 border-gray-200"
-        style={{ top: 120 }} // Adjust as needed for your header height
+        style={{ top: 140 }} // Adjust as needed for your header height
       >
         {OVERVIEW_TABS.map((tab) => (
           <button

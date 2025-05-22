@@ -8,7 +8,7 @@ import OverviewSection from "../components/sections/OverviewSection";
 import AddressSection from "../components/sections/AddressSection";
 import RoomsSection from "../../room/components/sections/RoomSection";
 import TenantsSection from "../../tenant/components/sections/TenantSection";
-import KitchenSection from "../../kitchen//components/sections/KitchenSection";
+import KitchenSection from "../components/sections/KitchenSection";
 import ComplaintsSection from "../components/sections/ComplaintsSection";
 
 const SECTION_LIST = [
@@ -169,10 +169,10 @@ const OwnerProperties: React.FC<{
             ref={stickyRef}
           ></div>
           <div
-            className={`sticky z-10 w-full transition-colors duration-500 bg-purple-100 border-t-2 border-purple-600 ${
-              isSticky ? "from-purple-600 to-indigo-600 rounded-t-none" : ""
+            className={`sticky z-10 w-full transition-colors duration-500 bg-purple-100 border-t-2 border-purple-700 ${
+              isSticky ? "from-purple-600 to-indigo-600 rounded-t-none border-none" : ""
             }`}
-            style={{ top: "48px" }}
+            style={{ top: "60px" }}
           >
             <h3 className="text-xl font-semibold text-purple-900 mb-2 ms-2">
               {selectedProperty.name} Dashboard

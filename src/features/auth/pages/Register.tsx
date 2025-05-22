@@ -177,6 +177,16 @@ const Register = () => {
         if (e.target.value) checkPhone(e.target.value); // Only check if valid
       }
     }
+
+    if (e.target.name === "password") {
+      if (e.target.value && !passwordRegex.test(e.target.value)) {
+        setErrors((prev) => ({ ...prev, password: "Password should have 8 charaters long and contain atleast a upper case, a lower case, a numeric charater, a special charater" }));
+        setPhoneAvailable(null); // Reset availability if invalid
+      } else {
+        setErrors((prev) => ({ ...prev, phoneNumber: "" }));
+        if (e.target.value) checkPhone(e.target.value); // Only check if valid
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -19,7 +19,7 @@ const TenantFilterBar = ({
 }) => (
   <div
     className="sticky z-20 flex overflow-x-auto text-sm -mt-1 pb-1 bg-purple-300 border-gray-200"
-    style={{ top: 120 }}
+    style={{ top: 140 }}
   >
     {(filterOptions || TENANT_FILTERS).map((opt) => (
       <button

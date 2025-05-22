@@ -20,8 +20,8 @@ const ConfirmDialog = ({
 }) =>
   !open ? null : (
     <Modal onClose={onCancel}>
-      <div className="p-4">
-        <div className="font-bold text-lg text-purple-700 mb-2">{title}</div>
+      <div className="p-0">
+        <div className="font-bold text-lg text-red-600 mb-2">{title}</div>
         <div className="mb-4 text-gray-700">{message}</div>
         <div className="flex justify-end gap-2">
           <button
@@ -31,7 +31,7 @@ const ConfirmDialog = ({
             {cancelText}
           </button>
           <button
-            className="px-4 py-1 rounded bg-purple-600 text-white"
+            className="px-4 py-1 rounded bg-red-600 text-white"
             onClick={onConfirm}
           >
             {confirmText}

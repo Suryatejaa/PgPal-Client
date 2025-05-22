@@ -64,6 +64,9 @@ const Login = () => {
       );
       alert("Password reset successful!");
       setIsModalOpen(false);
+      setOtp("")
+      setNewPassword("")
+      setConfirmPassword("")
     } catch (err: any) {
       console.error("Error verifying OTP:", err.response?.data?.message);
       alert(err.response?.data?.message || "Failed to reset password.");

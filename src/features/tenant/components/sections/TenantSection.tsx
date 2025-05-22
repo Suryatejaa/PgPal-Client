@@ -270,7 +270,7 @@ const TenantSection = ({
       />
       <div
         className="sticky z-10 bg-white "
-        style={{ top: 168 }} // adjust if needed to stick below filter bar
+        style={{ top: 180 }} // adjust if needed to stick below filter bar
       >
         <input
           type="text"

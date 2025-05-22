@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import OwnerProperties from "../../property/pages/OwnerProperties";
 import OwnerProfileSidebar from "../components/OwnerProfileSidebar";
 import axiosInstance from "../axiosInstance";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { useNavigate, Link } from "react-router-dom";
 import { logoutUser } from "../../auth/authSlice";
+import GlobalAlert from "../../../components/GlobalAlert";
 
 const OwnerDashboard: React.FC<{
   userId: string;
@@ -51,6 +52,18 @@ const OwnerDashboard: React.FC<{
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [passwordError, setPasswordError] = React.useState<string | null>(null);
   const [updatingPassword, setUpdatingPassword] = React.useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const [alert, setAlert] = useState<{
+    message: string;
+    type?: "info" | "success" | "error";
+  } | null>(null);
+
+  const usernameRegex = /^[A-Za-z0-9._]{4,18}$/;
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^[0-9]{10}$/; // Adjust as per your phone format
 
   const fetchProfile = () =>
     axiosInstance
@@ -110,6 +123,11 @@ const OwnerDashboard: React.FC<{
     setNewUsername(e.target.value);
     if (e.target.value !== profile?.username) {
       checkUsername(e.target.value);
+      if (!usernameRegex.test(e.target.value)) {
+        setUsernameError(
+          "Username must be 4-18 chars and only letters, numbers, . or _"
+        );
+      }
     } else {
       setUsernameAvailable(null);
       setUsernameError(null);
@@ -134,22 +152,16 @@ const OwnerDashboard: React.FC<{
       const updated = await res.data;
       setProfile((prev: any) => ({ ...prev, username: updated.username }));
       setEditingUsername(false);
+      setAlert({ message: "Username updated successfully!", type: "success" });
     } catch (err) {
       setUsernameError("Failed to update username");
+      setAlert({ message: "Failed to update Username", type: "error" });
       throw new Error("Failed to update username");
     } finally {
       setUpdatingUsername(false);
     }
   };
-  // Email
-  const handleEmailEdit = () => {
-    setEditingEmail(true);
-    setNewEmail(profile?.email || "");
-    setEmailError(null);
-    setOtpMode(false);
-    setOtp("");
-    setOtpError(null);
-  };
+
   const handleEmailPhoneChange = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmail || !newPhone) return;
@@ -178,29 +190,6 @@ const OwnerDashboard: React.FC<{
     }
   };
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setNewEmail(e.target.value);
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setUpdatingEmail(true);
-    setEmailError(null);
-    try {
-      // Send OTP to new email
-      const res = await fetch("http://localhost:4000/api/auth-service/me", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email: newEmail }),
-      });
-      console.log(res);
-      if (!res.ok) throw new Error("Failed to send OTP");
-      setOtpMode(true);
-    } catch {
-      setEmailError("Failed to send OTP");
-    } finally {
-      setUpdatingEmail(false);
-    }
-  };
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUpdatingEmail(true);
@@ -229,45 +218,17 @@ const OwnerDashboard: React.FC<{
       setOtpMode(false);
       setEditingEmailPhone(false);
       setEmailPhoneError(null);
+      setAlert({
+        message: "Email and phone updated Successfully!",
+        type: "success",
+      });
     } catch (err) {
       console.log(err);
+      setAlert({ message: "Failed to update Email and phone", type: "error" });
       setOtpError("Invalid OTP or failed to update email");
       throw new Error("Invalid OTP or failed to update email");
     } finally {
       setUpdatingEmail(false);
-    }
-  };
-
-  // Phone
-  const handlePhoneEdit = () => {
-    setEditingPhone(true);
-    setNewPhone(profile?.phoneNumber || "");
-    setPhoneError(null);
-  };
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setNewPhone(e.target.value);
-  const handlePhoneSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setUpdatingPhone(true);
-    setPhoneError(null);
-    try {
-      const res = await fetch("http://localhost:4000/api/auth-service/me", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ phoneNumber: newPhone }),
-      });
-      if (!res.ok) throw new Error("Failed to update phone");
-      const updated = await res.json();
-      setProfile((prev: any) => ({
-        ...prev,
-        phoneNumber: updated.phoneNumber,
-      }));
-      setEditingPhone(false);
-    } catch {
-      setPhoneError("Failed to update phone");
-    } finally {
-      setUpdatingPhone(false);
     }
   };
 
@@ -279,6 +240,22 @@ const OwnerDashboard: React.FC<{
     setConfirmPassword("");
     setPasswordError(null);
   };
+
+  const handlePasswordChange = () => {
+    if (oldPassword.length < 8) {
+      setPasswordError("Password must be 8 characters long");
+      return;
+    } else if (!passwordRegex.test(newPassword)) {
+      setPasswordError(
+        "Password should have 8 charaters long and contain atleast a upper case, a lower case, a numeric charater, a special charater "
+      );
+    } else if (newPassword !== confirmPassword) {
+      setPasswordError("New and Confirm Password doesn't match");
+    } else {
+      setPasswordError(null);
+    }
+  };
+
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!oldPassword || !newPassword || newPassword !== confirmPassword) {
@@ -288,32 +265,49 @@ const OwnerDashboard: React.FC<{
     setUpdatingPassword(true);
     setPasswordError(null);
     try {
-      const res = await fetch("http://localhost:4000/api/auth-service/me", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ oldPassword, newPassword }),
-      });
-      if (!res.ok) throw new Error("Failed to update password");
+      const res = await axiosInstance.put(
+        "http://localhost:4000/api/auth-service/me",
+        {
+          currentPassword: oldPassword,
+          newPassword: newPassword,
+          confirmNewPassword: confirmPassword,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      if (!res.data) throw new Error("Failed to update password");
       setEditingPassword(false);
-    } catch {
+      setAlert({ message: "Password Updated successfully!", type: "success" });
+    } catch (err: any) {
+      console.log(err);
+      const message = err.response.data.message
+        ? err.response.data.message
+        : err.response.data.error;
+      const error = err.response.data.error
+        ? err.response.data.error
+        : err.response.data.message;
       setPasswordError("Failed to update password");
+      setAlert({ message: message, type: "error" });
+      setAlert({ message: error, type: "error" });
     } finally {
       setUpdatingPassword(false);
     }
   };
 
   const handleLogout = (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch(logoutUser({}))
+    e?.preventDefault();
+    dispatch(logoutUser())
       .unwrap()
       .then(() => navigate("/"))
       .catch(() => {}); // error handled in slice
   };
 
+ 
   return (
     <div className="min-h-screen bg-purple-100 text-purple-800">
       {/* Top Bar */}
+      {alert && <GlobalAlert {...alert} onClose={() => setAlert(null)} />}
       <div className="fixed top-0 left-0 w-full text-white bg-purple-700 z-10 px-6 py-1 shadow flex items-center justify-between">
         <h1 className="text-2xl font-bold">
           <p className="-mb-2 -mt-1">👑</p>PGPAL Owner
@@ -364,6 +358,22 @@ const OwnerDashboard: React.FC<{
         handleEmailPhoneChange={handleEmailPhoneChange}
         handleOtpSubmit={handleOtpSubmit}
         handleLogout={handleLogout}
+        handlePasswordEdit={handlePasswordEdit}
+        handlePasswordSubmit={handlePasswordSubmit}
+        editingPassword={editingPassword}
+        setEditingPassword={setEditingPassword}
+        setPasswordError={setPasswordError}
+        passwordError={passwordError}
+        setConfirmPassword={setConfirmPassword}
+        setNewPassword={setNewPassword}
+        confirmPassword={confirmPassword}
+        newPassword={newPassword}
+        oldPassword={oldPassword}
+        setOldPassword={setOldPassword}
+        handlePasswordChange={handlePasswordChange}
+        onLogout={handleLogout}
+        setShowLogoutConfirm={setShowLogoutConfirm}
+        showLogoutConfirm={showLogoutConfirm}
       />
 
       <div className="pt-12 w-full">

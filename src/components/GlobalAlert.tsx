@@ -11,10 +11,10 @@ const GlobalAlert = ({
 }) => {
   const color =
     type === "error"
-      ? "bg-red-100 text-red-800 font-bold"
+      ? "bg-red-100 text-red-800"
       : type === "success"
-      ? "bg-green-100 text-green-800 font-bold"
-      : "bg-purple-100 text-purple-800 font-bold";
+      ? "bg-green-100 text-green-800"
+      : "bg-purple-100 text-purple-800";
 
   // Handle click outside the alert box
   const wrapperRef = React.useRef<HTMLDivElement>(null);
