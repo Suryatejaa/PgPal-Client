@@ -6,12 +6,15 @@ import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { useNavigate, Link } from "react-router-dom";
 import { logoutUser } from "../../auth/authSlice";
 import GlobalAlert from "../../../components/GlobalAlert";
+import { BellIcon } from "@heroicons/react/24/outline";
+import NotificationSection from "../../notifications/components/sections/NotificationSection";
 
 const OwnerDashboard: React.FC<{
   userId: string;
   userName: string;
   userRole: string;
-}> = ({ userId, userName, userRole }) => {
+  userPpid: string;
+}> = ({ userId, userName, userRole, userPpid }) => {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [profile, setProfile] = React.useState<any>(null);
   const [editingUsername, setEditingUsername] = React.useState(false);
@@ -39,6 +42,18 @@ const OwnerDashboard: React.FC<{
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
 
+  const [emailAvailable, setEmailAvailable] = React.useState<boolean | null>(
+    null
+  );
+  const [checkingEmail, setCheckingEmail] = React.useState(false);
+  const [phoneAvailable, setPhoneAvailable] = React.useState<boolean | null>(
+    null
+  );
+  const [checkingPhone, setCheckingPhone] = React.useState(false);
+
+  const emailCheckTimeout = React.useRef<any>(null);
+  const phoneCheckTimeout = React.useRef<any>(null);
+
   // For phone
   const [editingPhone, setEditingPhone] = React.useState(false);
   const [newPhone, setNewPhone] = React.useState("");
@@ -53,6 +68,7 @@ const OwnerDashboard: React.FC<{
   const [passwordError, setPasswordError] = React.useState<string | null>(null);
   const [updatingPassword, setUpdatingPassword] = React.useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
 
   const [alert, setAlert] = useState<{
     message: string;
@@ -111,6 +127,91 @@ const OwnerDashboard: React.FC<{
     setNewUsername(profile?.username || "");
     setUsernameAvailable(null);
     setUsernameError(null);
+  };
+
+  const checkEmail = (email: string) => {
+    if (emailCheckTimeout.current) clearTimeout(emailCheckTimeout.current);
+    if (!email.trim()) {
+      setEmailAvailable(null);
+      setEmailPhoneError(null);
+      return;
+    }
+    setCheckingEmail(true);
+    emailCheckTimeout.current = setTimeout(async () => {
+      try {
+        const res = await axiosInstance.get(
+          `http://localhost:4000/api/auth-service/check-email?email=${encodeURIComponent(
+            email
+          )}`
+        );
+        const data = await res.data;
+        setEmailAvailable(data.available);
+        setEmailPhoneError(data.available ? null : "Email not available");
+      } catch {
+        setEmailAvailable(null);
+        setEmailPhoneError("Error checking email");
+      } finally {
+        setCheckingEmail(false);
+      }
+    }, 500);
+  };
+
+  const checkPhone = (phone: string) => {
+    if (phoneCheckTimeout.current) clearTimeout(phoneCheckTimeout.current);
+    if (!phone.trim()) {
+      setPhoneAvailable(null);
+      setEmailPhoneError(null);
+      return;
+    }
+    setCheckingPhone(true);
+    console.log(phone);
+    phoneCheckTimeout.current = setTimeout(async () => {
+      try {
+        const res = await axiosInstance.get(
+          `http://localhost:4000/api/auth-service/check-phonenumber?phoneNumber=${encodeURIComponent(
+            phone
+          )}`
+        );
+        const data = await res.data;
+        setPhoneAvailable(data.available);
+        setEmailPhoneError(data.available ? null : "Phone not available");
+      } catch (err: any) {
+        console.log(err.response.data);
+        setPhoneAvailable(null);
+        setEmailPhoneError("Error checking phone");
+      } finally {
+        setCheckingPhone(false);
+      }
+    }, 500);
+  };
+
+  // Update input handlers:
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewEmail(e.target.value);
+    if (e.target.value !== profile?.email) {
+      checkEmail(e.target.value);
+    } else {
+      setEmailAvailable(null);
+      setEmailPhoneError(null);
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewPhone(e.target.value);
+    if (!phoneRegex.test(e.target.value)) {
+      setEmailPhoneError(
+        "Phone number should have 10 digits long and contain only numbers"
+      );
+    } else if (
+      e.target.value !== profile?.phoneNumber &&
+      e.target.value.length === 10 &&
+      emailPhoneError
+    ) {
+      checkPhone(e.target.value);
+    } else {
+      setPhoneAvailable(null);
+      setEmailPhoneError(null);
+    }
   };
 
   const handleEmailPhoneEdit = () => {
@@ -303,26 +404,38 @@ const OwnerDashboard: React.FC<{
       .catch(() => {}); // error handled in slice
   };
 
- 
   return (
     <div className="min-h-screen bg-purple-100 text-purple-800">
       {/* Top Bar */}
       {alert && <GlobalAlert {...alert} onClose={() => setAlert(null)} />}
-      <div className="fixed top-0 left-0 w-full text-white bg-purple-700 z-10 px-6 py-1 shadow flex items-center justify-between">
+      <div className="fixed top-0 left-0 w-full text-white bg-purple-700 z-10 px-3 py-3 shadow flex items-center justify-between">
         <h1 className="text-2xl font-bold">
-          <p className="-mb-2 -mt-1">👑</p>PGPAL Owner
+          Purple PG<span className="text-sm"> (Owner)</span>
         </h1>
-        <button
-          className="-mr-4 flex items-center bg-transparent rounded-full  h-9 focus:outline-none hover:focus:outline-none border-none"
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Open profile"
-        >
-          <span className="inline-block w-9 h-9 rounded-full bg-white text-purple-700 flex items-center justify-center font-bold text-sm">
-            {profile?.username?.[0] || userName?.[0] || "P"}
-          </span>
-        </button>
+        <div className="flex items-center">
+          <BellIcon
+            className="w-7 h-7 -mr-1 cursor-pointer text-white hover:text-yellow-300"
+            onClick={() => setNotificationOpen(true)}
+            title="Notifications"
+          />
+
+          <button
+            className="-mr-4 flex items-center bg-transparent rounded-full  h-9 focus:outline-none hover:focus:outline-none border-none"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open profile"
+          >
+            <span className="inline-block w-9 h-9 rounded-full bg-white text-purple-700 flex items-center justify-center font-bold text-sm">
+              {profile?.username?.[0] || userName?.[0] || "P"}
+            </span>
+          </button>
+        </div>
       </div>
       {/* Sidebar */}
+      <NotificationSection
+        open={notificationOpen}
+        setOpen={setNotificationOpen}
+        userId={userPpid}
+      />
       <OwnerProfileSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -374,6 +487,12 @@ const OwnerDashboard: React.FC<{
         onLogout={handleLogout}
         setShowLogoutConfirm={setShowLogoutConfirm}
         showLogoutConfirm={showLogoutConfirm}
+        checkingEmail={checkingEmail}
+        emailAvailable={emailAvailable}
+        handleEmailChange={handleEmailChange}
+        checkingPhone={checkingPhone}
+        phoneAvailable={phoneAvailable}
+        handlePhoneChange={handlePhoneChange}
       />
 
       <div className="pt-12 w-full">
@@ -382,6 +501,7 @@ const OwnerDashboard: React.FC<{
             userId={userId}
             userName={userName}
             userRole={userRole}
+            userPpid={userPpid}
           />
         </div>
       </div>

@@ -1,19 +1,25 @@
 import axiosInstance from "../../../services/axiosInstance";
 
-export const addMeal = (menuId: string,data:any) =>
-    axiosInstance.post(`/kitchen-service/kitchens/menu/${menuId}`,data);
+// Add a menu
+export const addMenu = (data: any) =>
+  axiosInstance.post(`/kitchen-service/menu`, data);
 
-export const updateMeal = (menuId: string, data: any) =>
-    axiosInstance.put(`/kitchen-service/kitchens/menu/${menuId}`, data);
+// Update a menu
+export const updateMenu = (pppId: string, menuNo: number, data: any) =>
+  axiosInstance.put(`/kitchen-service/update?pppId=${pppId}&menuNo=${menuNo}`, data);
 
-export const selectKitchenMenu = (menuId: string) =>
-    axiosInstance.put(`/kitchen-service/kitchens/menu/${menuId}/select`);
+// Get all menus for a property
+export const getMenus = (pppId: string) =>
+  axiosInstance.get(`/kitchen-service/${pppId}`);
 
-export const deleteMeal = (menuId: string) =>
-    axiosInstance.delete(`/kitchen-service/kitchens/menu/${menuId}`);
+// Delete a menu
+export const deleteMenu = (pppId: string, menuNo: number) =>
+  axiosInstance.delete(`/kitchen-service/delete?pppId=${pppId}&menuNo=${menuNo}`);
 
-export const getMeals = (kitchenId: string) =>
-    axiosInstance.get(`/kitchen-service/kitchens/${kitchenId}/menu`);
+// Select a menu
+export const selectMenu = (pppid: string, menuNo: number) =>
+  axiosInstance.put(`/kitchen-service/select-menu?pppid=${pppid}&menuNo=${menuNo}`);
 
+// Get today's meal (if needed)
 export const getTodayMeal = (kitchenId: string) =>
-    axiosInstance.get(`/kitchen-service/kitchens/${kitchenId}/menu/today`);
+  axiosInstance.get(`/kitchen-service/kitchens/${kitchenId}/menu/today`);

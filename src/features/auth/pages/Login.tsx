@@ -152,9 +152,17 @@ const Login = () => {
           </button>
         </div>
       </form>
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setOtpStep(false);
+          setOtp("");
+          setNewPassword("");
+          setConfirmPassword("");
+        }}
+      >
         {!otpStep ? (
-          <div className="space-y-4">
+          <div className="space-y-4 mx-0  ">
             <h2 className="text-lg font-bold text-gray-800">Forgot Password</h2>
             <input
               placeholder="Enter your email or phone"
@@ -171,7 +179,11 @@ const Login = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-gray-800">Reset Password</h2>
+              <h2 className="text-lg font-bold text-gray-800">Reset Password</h2>
+              <p className="text-sm text-gray-600">
+                An OTP has been sent to your registered email. Please enter it
+                below.
+              </p>
             <input
               placeholder="Enter OTP"
               value={otp}

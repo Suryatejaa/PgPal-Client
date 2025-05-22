@@ -255,7 +255,7 @@ const TenantSection = ({
       {tenants.length > 0 && (
         <button
           onClick={() => setShowForm(true)}
-          className="absolute right-0 top-8 mt-12 bg-purple-600 text-white px-4 py-1 rounded font-semibold"
+          className="absolute right-0 top-8 mt-12 bg-purple-600 text-white px-4 py-1 rounded-b rounded-t-none font-semibold"
         >
           + Add Tenant
         </button>
@@ -277,7 +277,7 @@ const TenantSection = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name, room, or ID"
-          className="w-full px-3 py-2 border rounded focus:outline-none"
+          className="w-full px-3 py-2 border-none rounded focus:outline-none"
         />
       </div>
       <div className="pt-1">

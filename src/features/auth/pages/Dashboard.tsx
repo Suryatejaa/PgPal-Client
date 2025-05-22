@@ -18,6 +18,7 @@ const Dashboard = () => {
         userId={user._id}
         userName={user.name}
         userRole={user.role}
+        userPpid={user.pgpalId}
       />
     );
   return <TenantDashboard />;

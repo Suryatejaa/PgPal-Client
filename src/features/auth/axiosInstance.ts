@@ -60,11 +60,16 @@ axiosInstance.interceptors.response.use(
 
         originalRequest.headers["Authorization"] = `Bearer ${authToken}`;
         return axiosInstance(originalRequest);
-      } catch (refreshError) {
+      } catch (refreshError: any) {
         processQueue(refreshError, null);
         isRefreshing = false;
-        // Optionally, logout user here
-        window.location.href = "/";
+        // Only redirect if refresh token is invalid/expired
+        if (
+          refreshError?.response?.status === 401 ||
+          refreshError?.response?.status === 403
+        ) {
+          window.location.href = "/";
+        }
         return Promise.reject(refreshError);
       }
     }

@@ -8,8 +8,8 @@ import OverviewSection from "../components/sections/OverviewSection";
 import AddressSection from "../components/sections/AddressSection";
 import RoomsSection from "../../room/components/sections/RoomSection";
 import TenantsSection from "../../tenant/components/sections/TenantSection";
-import KitchenSection from "../components/sections/KitchenSection";
-import ComplaintsSection from "../components/sections/ComplaintsSection";
+import KitchenSection from "../../kitchen/components/sections/KitchenSection";
+import ComplaintsSection from "../../complaints/components/sections/ComplaintsSection";
 
 const SECTION_LIST = [
   { key: "overview", label: "Overview" },
@@ -24,7 +24,8 @@ const OwnerProperties: React.FC<{
   userId: string;
   userName: string;
   userRole: string;
-}> = ({ userId, userName, userRole }) => {
+  userPpid: string;
+}> = ({ userId, userName, userRole, userPpid }) => {
   const [properties, setProperties] = useState<any[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
@@ -170,7 +171,9 @@ const OwnerProperties: React.FC<{
           ></div>
           <div
             className={`sticky z-10 w-full transition-colors duration-500 bg-purple-100 border-t-2 border-purple-700 ${
-              isSticky ? "from-purple-600 to-indigo-600 rounded-t-none border-none" : ""
+              isSticky
+                ? "from-purple-600 to-indigo-600 rounded-t-none border-none"
+                : ""
             }`}
             style={{ top: "60px" }}
           >
@@ -211,15 +214,16 @@ const OwnerProperties: React.FC<{
             <TenantsSection property={selectedProperty} userId={userId} />
           )}
           {selectedSection === "kitchen" && (
-            <KitchenSection
+            <KitchenSection property={selectedProperty} />
+          )}
+          {selectedSection === "complaints" && (
+            <ComplaintsSection
               property={selectedProperty}
               userId={userId}
-              userName={userName}
-              userRole={userRole}
               isOwner={selectedProperty?.ownerId === userId}
+              userPpid={userPpid}
             />
           )}
-          {selectedSection === "complaints" && <ComplaintsSection />}
           {selectedSection === "address" && (
             <AddressSection property={selectedProperty} />
           )}
