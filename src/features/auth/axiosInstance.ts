@@ -49,7 +49,12 @@ axiosInstance.interceptors.response.use(
         const res = await axios.post(
           `${API_BASE}/auth-service/refresh-token`,
           {},
-          { withCredentials: true }
+          {
+            withCredentials: true,
+            headers: {
+              'x-internal-service': 'true'
+            }
+          }
         );
         const { authToken } = res.data;
         Cookies.set("token", authToken, { path: "/", sameSite: "lax" });

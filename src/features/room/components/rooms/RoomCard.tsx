@@ -7,6 +7,7 @@ import BedCard from "./BedCard";
 import TenantDetailsModal from "./TenantDetailsModal";
 import AddTenant from "../../../tenant/components/AddTenant";
 import RemoveTenantForm from "../../../tenant/components/RemoveTenant";
+import UpdateRentForm from "../UpdateRentForm";
 
 const RoomCard = ({
   room,
@@ -167,6 +168,29 @@ const RoomCard = ({
     }
   };
 
+  // Add this state at the top of your component
+  const [showUpdateRent, setShowUpdateRent] = useState(false);
+
+  // Add this function to handle rent update
+  const handleUpdateRent = async (data: any) => {
+    try {
+      const res = await axiosInstance.post("/rent-service/update", data);
+      console.log(res);
+      setShowUpdateRent(false);
+      if (onRoomUpdated) onRoomUpdated();
+      if (setAlert)
+        setAlert({ message: "Rent updated successfully!", type: "success" });
+    } catch (err: any) {
+      console.log(err)
+      if (setAlert) {
+        setAlert({
+          message: err?.response?.data?.error || "Failed to update rent.",
+          type: "error",
+        });
+      }
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
       <div className="flex justify-between items-center">
@@ -279,6 +303,12 @@ const RoomCard = ({
             >
               Remove Tenant
             </button>
+            <button
+              className="mt-4 ml-2 bg-green-600 text-white px-4 py-2 rounded"
+              onClick={() => setShowUpdateRent(true)}
+            >
+              Update Rent
+            </button>
           </div>
         </Modal>
       )}
@@ -334,6 +364,15 @@ const RoomCard = ({
             onSubmit={handleAddTenant}
             onCancel={() => setShowAddTenant(false)}
             defaultBedId={bedModal.bed?.bedId}
+          />
+        </Modal>
+      )}
+      {showUpdateRent && (
+        <Modal onClose={() => setShowUpdateRent(false)}>
+          <UpdateRentForm
+            tenant={bedModal.data}
+            onSubmit={handleUpdateRent}
+            onCancel={() => setShowUpdateRent(false)}
           />
         </Modal>
       )}

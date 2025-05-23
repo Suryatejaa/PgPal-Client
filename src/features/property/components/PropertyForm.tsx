@@ -23,6 +23,7 @@ const defaultForm = {
   totalBeds: "",
   totalRooms: "",
   occupiedBeds: "",
+  pgGenderType: "",
 };
 
 const PropertyForm: React.FC<PropertyFormProps> = ({
@@ -62,7 +63,9 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     return Object.keys(temp).length === 0;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     let updatedForm = { ...form };
 
@@ -86,7 +89,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-     
       const {
         name,
         contact,
@@ -94,21 +96,24 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         totalRooms,
         totalBeds,
         occupiedBeds,
+        pgGenderType,
         // Add other fields if you want
       } = form;
-  
+
       // Calculate availableBeds if not present
-      const available = form.availableBeds !== ""
-        ? Number(form.availableBeds)
-        : Number(totalBeds) - Number(occupiedBeds);
-  
-      const payload = {        
+      const available =
+        form.availableBeds !== ""
+          ? Number(form.availableBeds)
+          : Number(totalBeds) - Number(occupiedBeds);
+
+      const payload = {
         name,
         contact,
         address,
         totalRooms: Number(totalRooms),
         totalBeds: Number(totalBeds),
-        occupiedBeds: Number(occupiedBeds),        
+        occupiedBeds: Number(occupiedBeds),
+        pgGenderType,
       };
       onSubmit(payload);
     }
@@ -157,6 +162,22 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
       />
       {errors.contact && (
         <div className="text-red-500 text-xs">{errors.contact}</div>
+      )}
+
+      <select
+        name="pgGenderType"
+        value={form.pgGenderType}
+        onChange={handleChange}
+        className="w-full p-2 rounded border"
+        required
+      >
+        <option value="">Select PG Gender Type</option>
+        <option value="gents">Gents</option>
+        <option value="ladies">Ladies</option>
+        <option value="colive">Colive</option>
+      </select>
+      {errors.pgGenderType && (
+        <div className="text-red-500 text-xs">{errors.pgGenderType}</div>
       )}
 
       <input

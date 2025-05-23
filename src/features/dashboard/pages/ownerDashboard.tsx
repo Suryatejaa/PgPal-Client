@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import OwnerProperties from "../../property/pages/OwnerProperties";
 import OwnerProfileSidebar from "../components/OwnerProfileSidebar";
 import axiosInstance from "../axiosInstance";
@@ -8,6 +8,7 @@ import { logoutUser } from "../../auth/authSlice";
 import GlobalAlert from "../../../components/GlobalAlert";
 import { BellIcon } from "@heroicons/react/24/outline";
 import NotificationSection from "../../notifications/components/sections/NotificationSection";
+import { getNotifications } from "../../notifications/services/notificationApis";
 
 const OwnerDashboard: React.FC<{
   userId: string;
@@ -69,6 +70,8 @@ const OwnerDashboard: React.FC<{
   const [updatingPassword, setUpdatingPassword] = React.useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [lastNotificationIds, setLastNotificationIds] = useState<string[]>([]);
 
   const [alert, setAlert] = useState<{
     message: string;
@@ -80,6 +83,48 @@ const OwnerDashboard: React.FC<{
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^[0-9]{10}$/; // Adjust as per your phone format
+
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+
+    const fetchUnread = async () => {
+      try {
+        const res = await getNotifications({
+          ownerId: userId, // userId is the owner's id
+          audience: "owner",
+        });
+        console.log(res.data)
+        const notifications = res.data || [];
+        const unread = notifications.filter((n: any) => !n.isRead).length;
+        setUnreadCount(unread);
+
+        // Detect new notification
+        const currentIds = notifications.map((n: any) => n._id);
+        if (
+          lastNotificationIds.length > 0 &&
+          currentIds[0] &&
+          currentIds[0] !== lastNotificationIds[0]
+        ) {
+          setAlert({
+            message: "You have a new notification!",
+            type: "info",
+          });
+        }
+        setLastNotificationIds(currentIds);
+      } catch(err: any) {
+        console.log(err);
+        setUnreadCount(0);
+      }
+    };
+
+    fetchUnread(); // initial fetch
+
+    interval = setInterval(fetchUnread, 30000); // poll every 10s
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line
+  }, [userPpid, lastNotificationIds]);
 
   const fetchProfile = () =>
     axiosInstance
@@ -389,8 +434,7 @@ const OwnerDashboard: React.FC<{
         ? err.response.data.error
         : err.response.data.message;
       setPasswordError("Failed to update password");
-      setAlert({ message: message, type: "error" });
-      setAlert({ message: error, type: "error" });
+      setAlert({ message: message || error, type: "error" });
     } finally {
       setUpdatingPassword(false);
     }
@@ -413,12 +457,18 @@ const OwnerDashboard: React.FC<{
           Purple PG<span className="text-sm"> (Owner)</span>
         </h1>
         <div className="flex items-center">
-          <BellIcon
-            className="w-7 h-7 -mr-1 cursor-pointer text-white hover:text-yellow-300"
-            onClick={() => setNotificationOpen(true)}
-            title="Notifications"
-          />
-
+          <div className="relative">
+            <BellIcon
+              className="w-7 h-7 -mr-1 cursor-pointer text-white hover:text-yellow-300"
+              onClick={() => setNotificationOpen(true)}
+              title="Notifications"
+            />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </div>
           <button
             className="-mr-4 flex items-center bg-transparent rounded-full  h-9 focus:outline-none hover:focus:outline-none border-none"
             onClick={() => setSidebarOpen(true)}
@@ -435,6 +485,7 @@ const OwnerDashboard: React.FC<{
         open={notificationOpen}
         setOpen={setNotificationOpen}
         userId={userPpid}
+        setUnreadCount={setUnreadCount}
       />
       <OwnerProfileSidebar
         sidebarOpen={sidebarOpen}

@@ -1,5 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-import { getOwnProperties, addProperty } from "../services/propertyService";
+import {
+  getOwnProperties,
+  addProperty,
+  updateProperty,
+} from "../services/propertyService";
 import PropertyForm from "../components/PropertyForm";
 import Modal from "../components/Modal";
 import { PlusIcon } from "@heroicons/react/24/solid";
@@ -10,6 +14,8 @@ import RoomsSection from "../../room/components/sections/RoomSection";
 import TenantsSection from "../../tenant/components/sections/TenantSection";
 import KitchenSection from "../../kitchen/components/sections/KitchenSection";
 import ComplaintsSection from "../../complaints/components/sections/ComplaintsSection";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import GlobalAlert from "../../../components/GlobalAlert"; // adjust path as needed
 
 const SECTION_LIST = [
   { key: "overview", label: "Overview" },
@@ -30,9 +36,13 @@ const OwnerProperties: React.FC<{
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedSection, setSelectedSection] = useState("overview");
-
   const [isSticky, setIsSticky] = useState(false);
   const stickyRef = useRef<HTMLDivElement>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [alert, setAlert] = useState<{
+    message: string;
+    type?: "info" | "success" | "error";
+  } | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -105,7 +115,18 @@ const OwnerProperties: React.FC<{
         ) : null}
         {showForm && (
           <Modal onClose={handleFormCancel}>
-            <h3 className="text-xl font-semibold mb-2">Add New Property</h3>
+            <div className="sticky top-0 z-10 bg-white flex items-center justify-between">
+              <h3 className="text-2xl text-purple-700 font-bold">
+                Add New Property
+              </h3>
+              <button
+                onClick={handleFormCancel}
+                className="text-gray-500 hover:text-gray-700 text-2xl bg-transparent border-none cursor-pointer"
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
             <PropertyForm
               initial={null}
               onSubmit={handleFormSubmit}
@@ -120,6 +141,13 @@ const OwnerProperties: React.FC<{
   // If properties exist, show cards and add card
   return (
     <div>
+      {alert && (
+        <GlobalAlert
+          message={alert.message}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
       <h2 className="text-2xl font-bold mb-2 ms-2 mt-2">Your PGs:</h2>
       <div className="flex space-x-4 rounded-xl overflow-x-auto">
         {properties.map((property) => (
@@ -142,7 +170,7 @@ const OwnerProperties: React.FC<{
       </div>
       {showForm && (
         <Modal onClose={handleFormCancel}>
-          <div className="sticky top-0 z-10 bg-white flex items-center justify-between mb-4 pb-2">
+          <div className="sticky top-0 z-10 bg-white flex items-center justify-between">
             <h3 className="text-2xl text-purple-700 font-bold">
               Add New Property
             </h3>
@@ -158,6 +186,35 @@ const OwnerProperties: React.FC<{
             initial={null}
             onSubmit={handleFormSubmit}
             onCancel={handleFormCancel}
+          />
+        </Modal>
+      )}
+      {editMode && (
+        <Modal onClose={() => setEditMode(false)}>
+          <div className="sticky top-0 z-10 bg-white flex items-center justify-between">
+            <h3 className="text-2xl text-purple-700 font-bold">
+              Edit Property
+            </h3>
+            <button
+              onClick={() => setEditMode(false)}
+              className="text-gray-500 hover:text-gray-700 text-2xl bg-transparent border-none cursor-pointer"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
+          <PropertyForm
+            initial={selectedProperty}
+            onSubmit={async (data: any) => {
+              await updateProperty(selectedProperty._id, data);
+              setEditMode(false);
+              setAlert({
+                message: "Property updated successfully!",
+                type: "success",
+              });
+              await fetchProperties();
+            }}
+            onCancel={() => setEditMode(false)}
           />
         </Modal>
       )}
@@ -177,8 +234,15 @@ const OwnerProperties: React.FC<{
             }`}
             style={{ top: "60px" }}
           >
-            <h3 className="text-xl font-semibold text-purple-900 mb-2 ms-2">
+            <h3 className="text-xl font-semibold text-purple-900 mb-2 ms-2 flex items-center gap-2">
               {selectedProperty.name} Dashboard
+              <button
+                className="ml-1 p-1 mt-1 rounded hover:bg-purple-200"
+                onClick={() => setEditMode(true)}
+                title="Edit Property"
+              >
+                <PencilSquareIcon className="w-5 h-4 text-purple-700" />
+              </button>
             </h3>
             <div className="flex space-x-2 overflow-x-auto">
               {SECTION_LIST.map((section) => (
@@ -225,7 +289,7 @@ const OwnerProperties: React.FC<{
             />
           )}
           {selectedSection === "address" && (
-            <AddressSection property={selectedProperty} />
+            <AddressSection property={selectedProperty} isOwner={selectedProperty?.ownerId === userId} />
           )}
         </div>
       )}

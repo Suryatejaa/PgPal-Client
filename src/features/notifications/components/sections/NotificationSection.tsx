@@ -3,8 +3,9 @@ import {
   getNotifications,
   markNotificationAsRead,
   deleteNotification,
+  deleteAllNotifications,
 } from "../../services/notificationApis";
-import { CheckCircleIcon } from "@heroicons/react/24/outline"; // Add this import at the top
+import { TrashIcon, CheckCircleIcon } from "@heroicons/react/24/outline"; // Add this import at the top
 import { XMarkIcon } from "@heroicons/react/24/outline"; // Add this import at the top
 import { markAllNotificationsAsRead } from "../../services/notificationApis";
 
@@ -12,10 +13,12 @@ const NotificationSection = ({
   open,
   setOpen,
   userId,
+  setUnreadCount,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   userId: string;
+  setUnreadCount: (count: number) => void;
 }) => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,10 +30,19 @@ const NotificationSection = ({
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const res = await getNotifications(userId);
+      const res = await getNotifications({
+        ownerId: userId, // userId is the owner's id
+        audience: "owner",
+      });
+      console.log(res)
       setNotifications(res.data || []);
-    } catch {
+      // Calculate unread count and update parent
+      const unread = (res.data || []).filter((n: any) => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch (err: any) {
+      console.log(err);
       setNotifications([]);
+      setUnreadCount(0);
     } finally {
       setLoading(false);
     }
@@ -59,6 +71,17 @@ const NotificationSection = ({
     await fetchNotifications();
   };
 
+  const handleDeleteAll = async () => {
+    try {
+      const res = await deleteAllNotifications(userId);
+      console.log(res);
+      await fetchNotifications();
+    } catch (error) {
+      console.log(error);
+      console.error("Error deleting all notifications:", error);
+    }
+  };
+
   return open ? (
     <div className="fixed inset-0 z-30 flex justify-end">
       <div
@@ -66,22 +89,33 @@ const NotificationSection = ({
         onClick={() => setOpen(false)}
       />
       <div className="relative bg-white w-96 max-w-full h-full shadow-lg p-0 z-50 flex flex-col">
-        <div className="flex items-center justify-between px-4 py-2">
+        <div className="flex items-center justify-between px-4 py-2 hover:border-none">
           <span className="font-bold text-lg">Notifications</span>
-          <button
-            className="text-xs text-purple-700 mt-1 bg-transparent hover:border-none"
-            onClick={handleMarkAllRead}
-            disabled={notifications.every((n) => n.isRead)}
-          >
-            <CheckCircleIcon className="h-5 w-5 mr-10" />
-          </button>
-          <button
-            className="absolute top-1 right-2 bg-transparent text-gray-500 text-lg"
-            onClick={() => setOpen(false)}
-            aria-label="Close"
-          >
-            ✕
-          </button>
+          <div className="flex gap-1">
+            <button
+              className="flex items-center bg-transparent py-1 px-2 gap-1 text-md text-purple-700 hover:underline"
+              onClick={handleMarkAllRead}
+              disabled={notifications.every((n) => n.isRead)}
+              title="Mark all as read"
+            >
+              <CheckCircleIcon className="w-4 h-4" />
+            </button>
+            <button
+              className="flex items-center bg-transparent py-1 px-2 gap-1 text-red-600 hover:underline"
+              onClick={handleDeleteAll}
+              disabled={notifications.length === 0}
+              title="Delete all"
+            >
+              <TrashIcon className="w-4 h-4 tex-lg" />
+            </button>
+            <button
+              className="flex items-center gap-1 px-2 py-1 text-sm bg-transparent text-gray-600 hover:underline"
+              onClick={() => setOpen(false)}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto px-2 py-2">
           {loading ? (
@@ -127,7 +161,7 @@ const NotificationSection = ({
                       handleDelete(n._id);
                     }}
                   >
-                    🗑
+                    <TrashIcon className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -166,14 +200,12 @@ const NotificationSection = ({
                 </button>
               )}
               <button
-                className="bg-red-600 text-white px-3 py-1 rounded"
+                className="bg-red-600 text-white px-3 py-1 ml-1 rounded"
                 onClick={() => {
                   handleDelete(modal.notification._id);
                   setModal({ open: false, notification: null });
                 }}
-                
-              >
-                Delete
+              >Delete
               </button>
             </div>
           </div>

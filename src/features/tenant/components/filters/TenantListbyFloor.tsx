@@ -74,12 +74,34 @@ const TenantListByFloor = ({
                         </div>
                       )}
                     </div>
-                    <button
-                      className="text-red-600 hover:text-red-800"
-                      onClick={() => onRemove(tenant.pgpalId)}
-                    >
-                      Remove
-                    </button>
+                    <div>
+                      <button
+                        className="text-red-600 py-1 w-24 mb-1 hover:text-red-800"
+                        onClick={() => onRemove(tenant.pgpalId)}
+                      >
+                        Remove
+                      </button>
+                      <br></br>
+                      {tenant.currentStay.rentPaidStatus === "unpaid" && (
+                        <button
+                          className="text-yellow-900 bg-yellow-200 w-24 py-1 hover:text-red-800"
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(
+                                `/api/tenant-service/notify-tenant?ppid=${tenant.pgpalId}`
+                              );
+                              const data = await res.json();
+                              console.log(data);
+                              alert(data.message || "Notification sent!");
+                            } catch (err) {
+                              alert("Failed to notify tenant.");
+                            }
+                          }}
+                        >
+                          Notify
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
