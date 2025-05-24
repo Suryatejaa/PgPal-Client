@@ -4,6 +4,7 @@ const STATUS_OPTIONS = [
   { value: "In Progress", label: "In Progress" },
   { value: "Resolved", label: "Resolved" },
   { value: "Rejected", label: "Rejected" },
+  { value: "Closed", label: "Closed" },
 ];
 
 const ComplaintActionForm = ({
@@ -11,18 +12,19 @@ const ComplaintActionForm = ({
   onSubmit,
   onCancel,
   loading,
-  userId
+  userId,
+  allowClose,
 }: {
   complaint: any;
   onSubmit: (data: { status: string; notes?: any }) => void;
   onCancel: () => void;
   loading?: boolean;
   userId: string;
+  allowClose?: boolean;
 }) => {
   const [status, setStatus] = useState("In Progress");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
-
   const handleSave = () => {
     if (!status) {
       setError("Please select a status.");
@@ -48,7 +50,9 @@ const ComplaintActionForm = ({
             onChange={(e) => setStatus(e.target.value)}
             disabled={loading}
           >
-            {STATUS_OPTIONS.map((opt) => (
+            {STATUS_OPTIONS
+              .filter((opt) => allowClose ? opt.value !== "Rejected" : opt.value !== "Closed")
+              .map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>

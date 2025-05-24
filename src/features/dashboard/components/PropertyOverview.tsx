@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getOverview } from "../services/dashboardService";
-import axiosInstance from "../../../features/auth/axiosInstance";
+import axiosInstance from "../../../services/axiosInstance";
 
 const PropertyOverview: React.FC<{ pgpalId: string }> = ({ pgpalId }) => {
   const [overview, setOverview] = useState<any>(null);

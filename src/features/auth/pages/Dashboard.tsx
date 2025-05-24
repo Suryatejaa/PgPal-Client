@@ -9,8 +9,8 @@ const Dashboard = () => {
   const user =
     useAppSelector((state) => state.auth.user) ||
     JSON.parse(localStorage.getItem("user") || "null");
-  
-  console.log(user.role)
+
+  console.log(user.role);
 
   if (user?.role === "owner")
     return (
@@ -21,7 +21,14 @@ const Dashboard = () => {
         userPpid={user.pgpalId}
       />
     );
-  return <TenantDashboard />;
+  return (
+    <TenantDashboard
+      userId={user._id}
+      userName={user.name}
+      userRole={user.role}
+      userPpid={user.pgpalId}
+    />
+  );
 };
 
 export default Dashboard;

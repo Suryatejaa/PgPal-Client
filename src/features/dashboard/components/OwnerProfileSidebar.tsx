@@ -67,6 +67,8 @@ const OwnerProfileSidebar = ({
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  
+
   return (
     sidebarOpen && (
       <div className="fixed inset-0 z-30 flex justify-end">
@@ -87,7 +89,7 @@ const OwnerProfileSidebar = ({
               {profile?.username?.[0] || "P"}
             </div>
             {/* Username Edit (unchanged) */}
-            <div className="font-bold text-lg flex items-center gap-2">
+            <div className="font-bold text-lg text-purple-800 flex items-center gap-2">
               {editingUsername ? (
                 <form
                   onSubmit={handleUsernameSubmit}
@@ -429,7 +431,7 @@ const OwnerProfileSidebar = ({
               </form>
             ) : (
               <button
-                className="py-1 mt-1 w-full border-purple-600 border-2 bg-transparent hover:bg-purple-600 hover:text-white hover:border-none"
+                className="py-1 mt-1 w-full text-purple-800 border-purple-600 border-2 bg-transparent hover:bg-purple-600 hover:text-white hover:border-none"
                 onClick={handlePasswordEdit}
               >
                 Change Password

@@ -16,11 +16,15 @@ const ComplaintsSection = ({
   userId,
   userPpid,
   isOwner,
+  propertyId,
+  refreshKey = 0,
 }: {
   property: any;
-  userId: string;
-  userPpid: string;
+  userId: any;
+  userPpid: any;
   isOwner: boolean;
+  propertyId: string;
+  refreshKey?: number;
 }) => {
   if (!property || !property.pgpalId) {
     return <div className="text-gray-500 text-sm">No property selected.</div>;
@@ -53,8 +57,33 @@ const ComplaintsSection = ({
   ];
 
   const filteredComplaints = React.useMemo(() => {
-    if (filter === "all") return complaints;
-    return complaints.filter((c) => c.status === filter);
+    if (filter === "all") {
+      // Sort by latest note date, fallback to createdAt
+      return [...complaints].sort((a, b) => {
+        const aLatest =
+          a.notes && a.notes.length > 0
+            ? new Date(a.notes[a.notes.length - 1].at).getTime()
+            : new Date(a.createdAt).getTime();
+        const bLatest =
+          b.notes && b.notes.length > 0
+            ? new Date(b.notes[b.notes.length - 1].at).getTime()
+            : new Date(b.createdAt).getTime();
+        return bLatest - aLatest;
+      });
+    }
+    return complaints
+      .filter((c) => c.status === filter)
+      .sort((a, b) => {
+        const aLatest =
+          a.notes && a.notes.length > 0
+            ? new Date(a.notes[a.notes.length - 1].at).getTime()
+            : new Date(a.createdAt).getTime();
+        const bLatest =
+          b.notes && b.notes.length > 0
+            ? new Date(b.notes[b.notes.length - 1].at).getTime()
+            : new Date(b.createdAt).getTime();
+        return bLatest - aLatest;
+      });
   }, [complaints, filter]);
 
   const fetchComplaints = async () => {
@@ -86,7 +115,7 @@ const ComplaintsSection = ({
       fetchComplaints();
       fetchMetrics();
     }
-  }, [property?.pgpalId]);
+  }, [property?.pgpalId, refreshKey]);
 
   const handleRaiseComplaint = async (data: any) => {
     try {
@@ -148,14 +177,6 @@ const ComplaintsSection = ({
 
   return (
     <div className="w-full">
-      {!isOwner && (
-        <button
-          className="absolute right-0 top-8 mt-12 bg-purple-600 text-white px-4 py-1 rounded-b rounded-t-none font-semibold"
-          onClick={() => setShowForm(true)}
-        >
-          Raise Complaint
-        </button>
-      )}
       <div
         className="sticky z-20 flex overflow-x-auto text-sm -mt-1 pb-1 bg-purple-300 border-gray-200"
         style={{ top: 139 }}
@@ -231,7 +252,7 @@ const ComplaintsSection = ({
                     </p>
                   </div>
                 </div>
-                {isOwner && !["Closed", "Rejected"].includes(c.status) && (
+                {!["Closed", "Rejected"].includes(c.status) && (
                   <button
                     className="text-purple-600 bg-gray-100 border-none text-sm font-semibold px-2 py-1 rounded hover:bg-purple-50 self-start"
                     onClick={() => setActionComplaint(c)}
@@ -277,8 +298,8 @@ const ComplaintsSection = ({
                               {note.by === userPpid
                                 ? " (You)"
                                 : isOwner
-                                ? " (Owner)"
-                                : ""}
+                                ? " (Tenant)"
+                                : " (Owner)"}
                             </span>
                           </div>
                           <div className="ml-0">{note.message}</div>
@@ -309,6 +330,7 @@ const ComplaintsSection = ({
             onCancel={() => setActionComplaint(null)}
             onSubmit={handleUpdateComplaint}
             userId={userPpid}
+            allowClose={actionComplaint.createdBy === userPpid}
           />
         </Modal>
       )}

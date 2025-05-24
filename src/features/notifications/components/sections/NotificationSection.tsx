@@ -14,11 +14,13 @@ const NotificationSection = ({
   setOpen,
   userId,
   setUnreadCount,
+  isTenant,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   userId: string;
   setUnreadCount: (count: number) => void;
+  isTenant: boolean;
 }) => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,15 +28,21 @@ const NotificationSection = ({
     open: boolean;
     notification: any | null;
   }>({ open: false, notification: null });
+  const [tenantDetails, setTenantDetails] = useState<any>(null);
+  const [tenantLoading, setTenantLoading] = useState(false);
 
   const fetchNotifications = async () => {
     setLoading(true);
+    const Tenant = isTenant || false; // Ensure isTenant is a boolean
+    const Owner = !isTenant; // Ensure Owner is the opposite of isTenant
+    const params = {
+      ...(Tenant ? { tenantId: userId, audience: "tenant" } : {}),
+      ...(Owner ? { ownerId: userId, audience: "owner" } : {}),
+    };
+    console.log("Fetching notifications with params:", params);
     try {
-      const res = await getNotifications({
-        ownerId: userId, // userId is the owner's id
-        audience: "owner",
-      });
-      console.log(res)
+      const res = await getNotifications(params);
+      console.log(res);
       setNotifications(res.data || []);
       // Calculate unread count and update parent
       const unread = (res.data || []).filter((n: any) => !n.isRead).length;
@@ -56,7 +64,21 @@ const NotificationSection = ({
   }, [open]);
 
   const handleMarkAllRead = async () => {
-    const res = await markAllNotificationsAsRead(userId);
+    const Tenant = isTenant || false; // Ensure isTenant is a boolean
+    const Owner = !isTenant; // Ensure Owner is the opposite of isTenant
+    const params = {
+      ...(Tenant ? { tenantId: userId, audience: "tenant" } : {}),
+      ...(Owner ? { ownerId: userId, audience: "owner" } : {}),
+    };
+    console.log(params);
+    try {
+      setLoading(true);
+      const res = await markAllNotificationsAsRead(params);
+      console.log(res);
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+    const res = await markAllNotificationsAsRead(params);
     console.log(res);
     await fetchNotifications();
   };
@@ -72,13 +94,43 @@ const NotificationSection = ({
   };
 
   const handleDeleteAll = async () => {
+    const Tenant = isTenant || false; // Ensure isTenant is a boolean
+    const Owner = !isTenant; // Ensure Owner is the opposite of isTenant
+    const params = {
+      ...(Tenant ? { tenantId: userId } : {}),
+      ...(Owner ? { ownerId: userId } : {}),
+    };
+    console.log(params);
     try {
-      const res = await deleteAllNotifications(userId);
+      const res = await deleteAllNotifications(params);
       console.log(res);
       await fetchNotifications();
     } catch (error) {
       console.log(error);
       console.error("Error deleting all notifications:", error);
+    }
+  };
+
+  const handleOpenModal = async (notification: any) => {
+    setModal({ open: true, notification });
+    setTenantDetails(null);
+    if (
+      notification.type === "complaint_update" &&
+      notification.createdBy &&
+      !isTenant // Only for owner
+    ) {
+      setTenantLoading(true);
+      try {
+        const res = await fetch(
+          `/api/tenant-service/tenants?ppid=${notification.createdBy}`
+        );
+        const data = await res.json();
+        setTenantDetails(data[0]);
+      } catch {
+        setTenantDetails(null);
+      } finally {
+        setTenantLoading(false);
+      }
     }
   };
 
@@ -131,7 +183,7 @@ const NotificationSection = ({
                 className={`flex items-start gap-2 p-3 mb-2 rounded cursor-pointer border ${
                   n.isRead ? "bg-gray-100" : "bg-purple-50 border-purple-200"
                 }`}
-                onClick={() => setModal({ open: true, notification: n })}
+                onClick={() => handleOpenModal(n)}
               >
                 <div className="flex-1">
                   <div className="font-semibold">{n.title}</div>
@@ -187,6 +239,39 @@ const NotificationSection = ({
               <div className="text-xs text-gray-500 mb-2">
                 {new Date(modal.notification.createdAt).toLocaleString()}
               </div>
+              {modal.notification.type === "complaint_update" && !isTenant && (
+                <div className="bg-purple-50 rounded p-2 my-2">
+                  <div className="font-semibold text-purple-700 mb-1">
+                    Tenant Details:
+                  </div>
+                  {tenantLoading ? (
+                    <div className="text-xs text-gray-500">Loading...</div>
+                  ) : tenantDetails ? (
+                    <div className="text-xs text-gray-700">
+                      <div>
+                        <span className="font-semibold">Name:</span>{" "}
+                        {tenantDetails.name}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Phone:</span>{" "}
+                        {tenantDetails.phone}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Room:</span>{" "}
+                        {tenantDetails.currentStay?.roomPpid}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Bed:</span>{" "}
+                        {tenantDetails.currentStay?.bedId}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500">
+                      No tenant info found.
+                    </div>
+                  )}
+                </div>
+              )}
               {!modal.notification.isRead && (
                 <button
                   className="bg-purple-600 text-white px-3 py-1 rounded"
@@ -205,7 +290,8 @@ const NotificationSection = ({
                   handleDelete(modal.notification._id);
                   setModal({ open: false, notification: null });
                 }}
-              >Delete
+              >
+                Delete
               </button>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axiosInstance from "../../../auth/axiosInstance";
+import axiosInstance from "../../../../services/axiosInstance";
 
 const AddressSection = ({
   property,

@@ -1,36 +1,207 @@
-// src/pages/dashboards/TenantDashboard.tsx
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  getCurrentStay,
+  getNearbyPGs,
+} from "../services/tenantDashboardServices";
+import NotificationSection from "../../notifications/components/sections/NotificationSection";
+import GlobalAlert from "../../../components/GlobalAlert";
+import OwnerDashboardTopBar from "../components/OwnerDashboardTopBar";
+import useOwnerProfile from "../components/useOwnerProfile";
+import useOwnerNotifications from "../components/useOwnerNotifications";
+import OwnerProfileSidebar from "../components/OwnerProfileSidebar";
+import CurrentStayHeader from "../../tenant/components/sections/CurrentStayHeader";
+import StickySectionBar from "../components/sections/StickySectionBar";
+import PropertyOverview from "../../property/components/sections/PropertyOverview";
+import StayHistory from "../../tenant/components/sections/StayHistory";
+import NearbyPGsSection from "../../property/components/sections/NearBySection";
 
-const TenantDashboard: React.FC = () => {
+const SECTION_LIST = [
+  { key: "overview", label: "Property" },
+  { key: "history", label: "Stay History" },
+];
+
+type TenantDashboardProps = {
+  userId: string;
+  userName: string;
+  userRole: string;
+  userPpid: string;
+};
+
+const TenantDashboard: React.FC<TenantDashboardProps> = ({
+  userId,
+  userName,
+  userRole,
+  userPpid,
+}) => {
+  const [currentStay, setCurrentStay] = useState<any>(null);
+  const [nearbyPGs, setNearbyPGs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Section state for current stay
+  const [selectedSection, setSelectedSection] = useState("overview");
+  const [overview, setOverview] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setIsSticky] = useState(false);
+
+  // Profile and notification hooks (reuse owner logic)
+  const profileProps = useOwnerProfile();
+  const notificationProps = useOwnerNotifications(userId, userPpid, userRole); // Pass tenant id if available
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Fetch current stay and nearby PGs
+  useEffect(() => {
+    getCurrentStay().then((res) => {
+      const stay = res.data?.currentStay;
+      setCurrentStay(stay);
+      setLoading(false);
+
+      if (!stay) {
+        // Get device location for nearby PGs
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              const { latitude, longitude } = pos.coords;
+              const pgRes = await getNearbyPGs(latitude, longitude);
+              setNearbyPGs(pgRes.data || []);
+            },
+            () => {
+              // fallback: Hyderabad
+              getNearbyPGs(17.385, 78.4867).then((pgRes) =>
+                setNearbyPGs(pgRes.data || [])
+              );
+            }
+          );
+        } else {
+          getNearbyPGs(17.385, 78.4867).then((pgRes) =>
+            setNearbyPGs(pgRes.data || [])
+          );
+        }
+      }
+    });
+  }, []);
+
+  // Fetch profile
+  useEffect(() => {
+    profileProps.fetchProfile();
+  }, []);
+
+  // Sticky section bar effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (stickyRef.current) {
+        const rect = stickyRef.current.getBoundingClientRect();
+        setIsSticky(rect.top <= 0);
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Fetch overview/history when section changes
+  useEffect(() => {
+    if (
+      currentStay &&
+      selectedSection === "overview" &&
+      currentStay.propertyPpid
+    ) {
+      import("../../../services/axiosInstance").then(({ default: axiosInstance }) => {
+        axiosInstance
+          .get(`/property-service/property-ppid/${currentStay.propertyPpid}`)
+          .then((res) => setOverview(res.data))
+          .catch(() => setOverview(null));
+      });
+    }
+    if (
+      currentStay &&
+      selectedSection === "history" &&
+      profileProps.profile?.pgpalId
+    ) {
+      import("../../../services/axiosInstance").then(({ default: axiosInstance }) => {
+        axiosInstance
+          .get(
+            `/tenant-service/tenant-history?ppid=${profileProps.profile.pgpalId}`
+          )
+          .then((res) => setHistory(res.data))
+          .catch(() => setHistory([]));
+      });
+    }
+  }, [selectedSection, currentStay, profileProps.profile?.pgpalId]);
+
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-indigo-700 text-white p-6">
-      <h1 className="text-4xl font-bold mb-6">🏠 PGPAL Tenant</h1>
+    <div className="min-h-screen text-purple-900 bg-purple-100 pt-6">
+      {/* Top Bar */}
+      <OwnerDashboardTopBar
+        unreadCount={notificationProps.unreadCount}
+        setNotificationOpen={notificationProps.setNotificationOpen}
+        profile={profileProps.profile}
+        userName={profileProps.profile?.username}
+        setSidebarOpen={setSidebarOpen}
+      />
+      {/* Notifications */}
+      <NotificationSection
+        open={notificationProps.notificationOpen}
+        setOpen={notificationProps.setNotificationOpen}
+        userId={userPpid}
+        setUnreadCount={notificationProps.setUnreadCount}
+        isTenant={userRole === "tenant"}
+      />
+      {/* Profile Sidebar */}
+      <OwnerProfileSidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        {...profileProps}
+      />
+      {/* Alert */}
+      {notificationProps.alert && (
+        <GlobalAlert
+          {...notificationProps.alert}
+          onClose={() => notificationProps.setAlert(null)}
+        />
+      )}
+      {/* Main Content */}
+      <div className="pt-10">
+        {currentStay ? (
+          <>
+            <CurrentStayHeader
+              stay={currentStay}
+              hasCoords={
+                currentStay.location?.coordinates?.[1] !== undefined &&
+                currentStay.location?.coordinates?.[0] !== undefined &&
+                !isNaN(currentStay.location?.coordinates?.[1]) &&
+                !isNaN(currentStay.location?.coordinates?.[0])
+              }
+              lat={currentStay.location?.coordinates?.[1]}
+              lng={currentStay.location?.coordinates?.[0]}
+            />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DashboardCard title="Rent Due" value="₹3,750" />
-        <DashboardCard title="Room No." value="B-102" />
-      </div>
-
-      <div className="mt-10">
-        <h2 className="text-2xl font-semibold mb-4">Recent Notices 📋</h2>
-        <ul className="space-y-2">
-          <li className="bg-white/10 p-4 rounded-xl">
-            📦 Parcel room closed after 9PM
-          </li>
-          <li className="bg-white/10 p-4 rounded-xl">
-            🎉 Hostel Day on 28th May
-          </li>
-        </ul>
+            <StickySectionBar
+              sectionList={SECTION_LIST}
+              selectedSection={selectedSection}
+              setSelectedSection={setSelectedSection}
+              isSticky={isSticky}
+            />
+            <div className="mt-1">
+              {selectedSection === "overview" && overview && (
+                <PropertyOverview
+                  overview={overview}
+                  userId={profileProps.profile?.pgpalId}
+                />
+              )}
+              {selectedSection === "history" && (
+                <StayHistory history={history} />
+              )}
+            </div>
+          </>
+        ) : (
+          <NearbyPGsSection pgs={nearbyPGs} />
+        )}
       </div>
     </div>
   );
 };
-
-const DashboardCard = ({ title, value }: { title: string; value: string }) => (
-  <div className="bg-white/10 p-6 rounded-2xl shadow-lg">
-    <h3 className="text-lg font-medium">{title}</h3>
-    <p className="text-2xl font-bold mt-2">{value}</p>
-  </div>
-);
 
 export default TenantDashboard;

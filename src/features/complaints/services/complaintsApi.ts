@@ -1,8 +1,8 @@
-import axiosInstance from "../../auth/axiosInstance";
+import axiosInstance from "../../../services/axiosInstance";
 
 // Raise a complaint
 export const raiseComplaint = (data: any) =>
-  axiosInstance.put(`/complaint-service`, data);
+  axiosInstance.post(`/complaint-service`, data);
 
 // Get all complaints (optionally filter by propertyId client-side)
 export const getAllComplaints = (propertyId?: string) =>

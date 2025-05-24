@@ -49,7 +49,12 @@ axiosInstance.interceptors.response.use(
         const res = await axios.post(
           `${API_BASE}/auth-service/refresh-token`,
           {},
-          { withCredentials: true }
+          {
+            withCredentials: true,
+            headers: {
+              'x-internal-service': 'true'
+            }
+          }
         );
         const { authToken } = res.data;
         Cookies.set("token", authToken, { path: "/", sameSite: "lax" });
@@ -60,11 +65,21 @@ axiosInstance.interceptors.response.use(
 
         originalRequest.headers["Authorization"] = `Bearer ${authToken}`;
         return axiosInstance(originalRequest);
-      } catch (refreshError) {
+      }  catch (refreshError: any) {
         processQueue(refreshError, null);
         isRefreshing = false;
-        // Optionally, logout user here
-        window.location.href = "/";
+
+        // If refresh fails, clear tokens and let Redux handle logout
+        if (
+          refreshError?.response?.status === 401 ||
+          refreshError?.response?.status === 403
+        ) {
+          Cookies.remove("token");
+          Cookies.remove("refreshToken");
+          // Optionally: dispatch a logout action if you have access to the store here
+          // import store from '../../app/store';
+          // store.dispatch({ type: 'auth/logout' });
+        }
         return Promise.reject(refreshError);
       }
     }

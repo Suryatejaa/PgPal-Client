@@ -73,7 +73,7 @@ axiosInstance.interceptors.response.use(
           refreshError?.response?.status === 401 ||
           refreshError?.response?.status === 403
         ) {
-          window.location.href = "/";
+         
         }
         return Promise.reject(refreshError);
       }
