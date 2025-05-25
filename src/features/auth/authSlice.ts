@@ -6,6 +6,39 @@ import { jwtDecode } from "jwt-decode";
 
 const API_BASE = "http://localhost:4000/api/auth-service";
 
+export const initializeAuth = createAsyncThunk(
+  "auth/initializeAuth",
+  async (_, thunkAPI) => {
+    try {
+      // Try to get user info from the protected /me endpoint
+      const res = await axiosInstance.get(
+        "http://localhost:4000/api/auth-service/me",
+        { withCredentials: true }
+      );
+      console.log(res.data);
+      // Return user object from server
+      return res.data.user;
+    } catch (err) {
+      // If 401, try to refresh
+      try {
+        const refreshRes = await axiosInstance.post(
+          "http://localhost:4000/api/auth-service/refresh-token",
+          {},
+          { withCredentials: true }
+        );
+        // After refresh, try /me again
+        const meRes = await axiosInstance.get(
+          "http://localhost:4000/api/auth-service/me",
+          { withCredentials: true }
+        );
+        return meRes.data.user;
+      } catch (refreshErr) {
+        // If refresh fails, user is not authenticated
+        return null;
+      }
+    }
+  }
+);
 export const loginUser = createAsyncThunk<
   User,
   { credential: string; password: string; role: string }
@@ -17,7 +50,13 @@ export const loginUser = createAsyncThunk<
     const { authToken, refreshToken, user } = res.data;
     Cookies.set("token", authToken, { path: "/", sameSite: "lax" });
     Cookies.set("refreshToken", refreshToken, { path: "/", sameSite: "lax" });
-    return { ...user, token: authToken, refreshToken }; // return user object with tokens
+    return {
+      ...user,
+      name: user.username || user.name,
+      phone: user.phoneNumber || user.phone,
+      token: authToken,
+      refreshToken,
+    };// return user object with tokens
   } catch (err: any) {
     const message =
       err?.response?.data?.message || err.message || "Login failed";
@@ -44,7 +83,13 @@ export const registerUser = createAsyncThunk<
 
     const { authToken, refreshToken, user } = res.data;
 
-    return { ...user, token: authToken, refreshToken };
+    return {
+      ...user,
+      name: user.username || user.name,
+      phone: user.phoneNumber || user.phone,
+      token: authToken,
+      refreshToken,
+    };
   } catch (err: any) {
     return thunkAPI.rejectWithValue(
       err.response?.data?.message || "Register failed"
@@ -88,7 +133,13 @@ export const verifyOtp = createAsyncThunk<
     const { authToken, refreshToken, user } = res.data;
     Cookies.set("token", authToken, { path: "/", sameSite: "lax" });
     Cookies.set("refreshToken", refreshToken, { path: "/", sameSite: "lax" });
-    return { ...user, token: authToken, refreshToken };
+    return {
+      ...user,
+      name: user.username || user.name,
+      phone: user.phoneNumber || user.phone,
+      token: authToken,
+      refreshToken,
+    };
 
     return res.data; // Return the response data
   } catch (err: any) {
@@ -102,6 +153,12 @@ interface TokenPayload {
   name: string;
   pgpalId: string;
   role: string;
+  username: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  phone: string;
+  gender: string;
 }
 
 const initialState: AuthState = {
@@ -127,13 +184,15 @@ const authSlice = createSlice({
           if (decoded._id && decoded.role) {
             state.user = {
               _id: decoded._id,
-              name: decoded.name,
+              name: decoded.username || decoded.name,
               pgpalId: decoded.pgpalId,
               role: decoded.role,
               token,
-              email: "",
-              phone: "",
-              gender: "",
+              email: decoded.email || "",
+              phone: decoded.phoneNumber || decoded.phone || "",
+              gender: decoded.gender || "",
+              username: decoded.username || "",
+              phoneNumber: decoded.phoneNumber || "",
             };
           } else {
             state.user = null;
@@ -157,7 +216,17 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         console.log("State.user ", action.payload);
-        state.user = action.payload;
+        const user = action.payload;
+        if (user) {
+          state.user = {
+            ...user,
+            name: user.username || user.name,
+            phone: user.phoneNumber || user.phone,
+          };
+        } else {
+          state.user = null;
+        }
+        state.loadingFromCookies = false;
         state.loading = false;
 
         console.log("Login successful, token stored in cookies by server.");
@@ -173,7 +242,18 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
-        state.user = action.payload;
+        console.log("State.user ", action.payload);
+        const user = action.payload;
+        if (user) {
+          state.user = {
+            ...user,
+            name: user.username || user.name,
+            phone: user.phoneNumber || user.phone,
+          };
+        } else {
+          state.user = null;
+        }
+        state.loadingFromCookies = false;
         state.loading = false;
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -205,12 +285,44 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(verifyOtp.fulfilled, (state, action) => {
-        state.user = action.payload; // Update user state with the response
+        console.log("State.user ", action.payload);
+        const user = action.payload;
+        if (user) {
+          state.user = {
+            ...user,
+            name: user.username || user.name,
+            phone: user.phoneNumber || user.phone,
+          };
+        } else {
+          state.user = null;
+        }
+        state.loadingFromCookies = false;
         state.loading = false;
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.error = action.payload as string;
         state.loading = false;
+      })
+    
+      .addCase(initializeAuth.pending, (state) => {
+        state.loadingFromCookies = true;
+      })
+      .addCase(initializeAuth.fulfilled, (state, action) => {
+        const user = action.payload;
+        if (user) {
+          state.user = {
+            ...user,
+            name: user.username || user.name,
+            phone: user.phoneNumber || user.phone,
+          };
+        } else {
+          state.user = null;
+        }
+        state.loadingFromCookies = false;
+      })
+      .addCase(initializeAuth.rejected, (state) => {
+        state.user = null;
+        state.loadingFromCookies = false;
       });
   },
 });

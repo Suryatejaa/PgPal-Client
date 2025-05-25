@@ -67,6 +67,7 @@ const OwnerProperties: React.FC<{
     const res = await getOwnProperties();
     setProperties(res.data);
     // Select the first property by default if available
+    console.log(res.data[0].location.coordinates)
     if (res.data.length > 0) setSelectedProperty(res.data[0]);
     else setSelectedProperty(null);
   };

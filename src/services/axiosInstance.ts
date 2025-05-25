@@ -27,8 +27,13 @@ axiosInstance.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
+    const skipRefresh =
+    originalRequest.url?.includes("/login") ||
+    originalRequest.url?.includes("/register") ||
+    originalRequest.url?.includes("/refresh-token");
+
     // If 401 and not already retried
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !skipRefresh) {
       if (isRefreshing) {
         // Queue the request until refresh is done
         return new Promise(function (resolve, reject) {
@@ -57,7 +62,6 @@ axiosInstance.interceptors.response.use(
           }
         );
         const { authToken } = res.data;
-        Cookies.set("token", authToken, { path: "/", sameSite: "lax" });
 
         axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${authToken}`;
         processQueue(null, authToken);

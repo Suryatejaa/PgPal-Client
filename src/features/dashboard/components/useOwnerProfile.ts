@@ -1,7 +1,10 @@
 import { useState, useRef } from "react";
 import axiosInstance from "../../../services/axiosInstance";
+import { useAppDispatch } from "../../../app/hooks";
+import { logoutUser } from "../../auth/authSlice";
+import { useNavigate } from "react-router-dom";
 
-export default function useOwnerProfile(dispatch?: any, navigate?: any) {
+export default function useOwnerProfile() {
   const [profile, setProfile] = useState<any>(null);
   const [editingUsername, setEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState("");
@@ -10,7 +13,8 @@ export default function useOwnerProfile(dispatch?: any, navigate?: any) {
   const [updatingUsername, setUpdatingUsername] = useState(false);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const usernameCheckTimeout = useRef<any>(null);
-
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [editingEmail, setEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -48,15 +52,15 @@ export default function useOwnerProfile(dispatch?: any, navigate?: any) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^[0-9]{10}$/;
 
-    const fetchProfile = () => {
-        const res = axiosInstance
-            .get("http://localhost:4000/api/auth-service/me", {
-                withCredentials: true,
-            })
-            .then((res: any) => res.data)
-            .then(setProfile)
-            .catch(() => setProfile(null));
-    }
+  const fetchProfile = () => {
+    const res = axiosInstance
+      .get("http://localhost:4000/api/auth-service/me", {
+        withCredentials: true,
+      })
+      .then((res: any) => res.data.user)
+      .then(setProfile)
+      .catch(() => setProfile(null));
+  };
   const checkUsername = (username: string) => {
     if (usernameCheckTimeout.current)
       clearTimeout(usernameCheckTimeout.current);
@@ -328,22 +332,12 @@ export default function useOwnerProfile(dispatch?: any, navigate?: any) {
     } finally {
       setUpdatingPassword(false);
     }
-    };
+  };
 
-    const handleLogout = async () => {
-      try {
-        await axiosInstance.post(
-          "http://localhost:4000/api/auth-service/logout",
-          {},
-          {
-            withCredentials: true,
-          }
-        );
-        setProfile(null);
-      } catch (err) {
-        console.error("Failed to logout:", err);
-      }
-    };
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    navigate("/");
+  };
 
   return {
     profile,
@@ -425,7 +419,7 @@ export default function useOwnerProfile(dispatch?: any, navigate?: any) {
     handleOtpSubmit,
     handlePasswordEdit,
     handlePasswordChange,
-      handlePasswordSubmit,
+    handlePasswordSubmit,
     handleLogout
   };
 }

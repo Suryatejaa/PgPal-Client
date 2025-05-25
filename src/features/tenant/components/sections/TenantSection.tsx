@@ -332,6 +332,7 @@ const TenantSection = ({
           <RemoveTenantForm
             onSubmit={(data: any) => handleRemoveTenant(removingTenantId, data)}
             onCancel={() => setRemovingTenantId(null)}
+            isVacate={false}
           />
         </Modal>
       )}

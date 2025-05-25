@@ -7,6 +7,9 @@ import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { setUserFromCookies } from "./features/auth/authSlice";
 import { ErrorProvider, useError } from "./context/ErrorContext";
+import { initializeAuth } from "./features/auth/authSlice";
+
+
 
 const GlobalErrorBar = () => {
   const { error, setError } = useError();
@@ -34,11 +37,11 @@ function AppContent() {
   const loading = useAppSelector((state) => state.auth.loadingFromCookies);
   const { setError } = useError();
 
-  useEffect(() => {
-    console.log("App useEffect: dispatching setUserFromCookies");
-    dispatch(setUserFromCookies());
-  }, [dispatch]);
+  
 
+  useEffect(() => {
+    dispatch(initializeAuth());
+  }, [dispatch]);
   // if (loading) return <div className="w-full text-center py-10">Loading...</div>;
 
   if (loading) {

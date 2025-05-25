@@ -3,9 +3,11 @@ import React, { useState } from "react";
 const RemoveTenantForm = ({
   onSubmit,
   onCancel,
+  isVacate,
 }: {
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  isVacate: boolean;
 }) => {
   const [reason, setReason] = useState("");
   const [isImmediateVacate, setIsImmediateVacate] = useState(false);
@@ -61,7 +63,7 @@ const RemoveTenantForm = ({
           type="submit"
           className="bg-red-600 text-white px-4 py-2 rounded"
         >
-          Remove Tenant
+          {isVacate ? "Confirm Vacate" : "Remove Tenant"}
         </button>
         <button
           type="button"

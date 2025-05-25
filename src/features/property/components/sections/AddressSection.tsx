@@ -7,13 +7,13 @@ const AddressSection = ({
 }: {
   property: any;
   isOwner?: boolean;
-}) => {
+  }) => {
   const [showMap, setShowMap] = useState(false);
   const [location, setLocation] = useState(
-    property.location
+    property.location.coordinates
       ? {
-          lat: property.location.lat ?? property.location.latitude,
-          lng: property.location.lng ?? property.location.longitude,
+          lat: property.location.coordinates[1],
+          lng: property.location.coordinates[0],
         }
       : null
   );
@@ -24,8 +24,10 @@ const AddressSection = ({
     lng: number;
   } | null>(null);
 
-  console.log(property.location.latitude, property.location.longitude);
+  // console.log(property.location.coordinates);
   // Get user's current location on mount
+
+  // console.log(property.location.coordinates)
   React.useEffect(() => {
     if (!location && !userLocation) {
       if (navigator.geolocation) {

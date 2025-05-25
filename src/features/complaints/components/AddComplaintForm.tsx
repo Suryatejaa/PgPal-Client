@@ -69,7 +69,7 @@ const AddComplaintForm = ({
   };
 
   return (
-    <div>
+    <div className="m-3">
       <h3 className="font-semibold mb-2">Raise Complaint</h3>
       <div className="flex flex-col gap-2">
         <label>
@@ -118,7 +118,7 @@ const AddComplaintForm = ({
           />
         </label>
         {error && <div className="text-xs text-red-600">{error}</div>}
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mb-2">
           <button
             className="bg-purple-600 text-white px-3 py-1 rounded"
             onClick={handleSave}

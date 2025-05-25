@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axiosInstance from "../../../services/axiosInstance";
-import GlobalAlert from "../../../components/GlobalAlert";
+import axiosInstance from "../../../../services/axiosInstance";
+import GlobalAlert from "../../../../components/GlobalAlert";
 
 const validAmenities = [
   "Wifi",

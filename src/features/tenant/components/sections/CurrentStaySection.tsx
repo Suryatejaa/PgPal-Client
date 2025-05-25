@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import axiosInstance from "../../../../services/axiosInstance";
 import CurrentStayHeader from "./CurrentStayHeader";
 
-
 const SECTION_LIST = [
   { key: "overview", label: "Property Overview" },
   { key: "history", label: "Stay History" },
@@ -31,11 +30,18 @@ const CurrentStaySection = ({ stay, profile }: { stay: any; profile: any }) => {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
+  console.log(stay);
   useEffect(() => {
-    if (selectedSection === "overview" && stay.propertyPpid) {
+    if (
+      selectedSection === "overview" &&
+      (stay.propertyPpid || stay.propertyId)
+    ) {
       axiosInstance
-        .get(`/property-service/property-ppid/${stay.propertyPpid}`)
+        .get(
+          `/property-service/property-ppid/${
+            stay.propertyPpid || stay.propertyId
+          }`
+        )
         .then((res) => setOverview(res.data))
         .catch(() => setOverview(null));
     }
@@ -54,7 +60,7 @@ const CurrentStaySection = ({ stay, profile }: { stay: any; profile: any }) => {
         hasCoords={hasCoords}
         lat={lat}
         lng={lng}
-      />      
+      />
     </div>
   );
 };

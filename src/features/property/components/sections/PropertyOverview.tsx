@@ -3,6 +3,7 @@ import TodayMenuSection from "../../../kitchen/components/sections/TodayMenuSect
 import AddComplaintForm from "../../../complaints/components/AddComplaintForm";
 import { raiseComplaint } from "../../../complaints/services/complaintsApi";
 import ComplaintsSection from "../../../complaints/components/sections/ComplaintsSection";
+import VacateSection from "./VacateSection";
 
 const SUB_SECTION_LIST = [
   { key: "overview", label: "Overview" },
@@ -14,11 +15,17 @@ const SUB_SECTION_LIST = [
 const PropertyOverview = ({
   overview,
   userId,
+  rules,
+  onVacateChange,
 }: {
   overview: any;
   userId?: string;
+  rules?: any;
+  onVacateChange?: () => void;
 }) => {
-  const [selectedSubSection, setSelectedSubSection] = useState("overview");
+  const [selectedSubSection, setSelectedSubSection] = useState(
+    () => sessionStorage.getItem("tenantSubSelectedSection") || "overview"
+  );
   const stickyRef = useRef<HTMLDivElement>(null);
   const [isSticky, setIsSticky] = useState(false);
   const [complaintsRefreshKey, setComplaintsRefreshKey] = useState(0);
@@ -38,6 +45,8 @@ const PropertyOverview = ({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // console.log(overview)
+
   const handleRaiseComplaint = async (data: any) => {
     try {
       await raiseComplaint(data);
@@ -48,6 +57,10 @@ const PropertyOverview = ({
       alert(e?.response?.data?.error || "Failed to raise complaint");
     }
   };
+
+  useEffect(() => {
+    sessionStorage.setItem("tenantSubSelectedSection", selectedSubSection);
+  }, [selectedSubSection]);
 
   return (
     <div>
@@ -125,6 +138,18 @@ const PropertyOverview = ({
                     : "N/A"}
                 </span>
               </div>
+              <div className="mb-2">
+                <span className="font-semibold text-purple-700">Rules:</span>
+                <span className="ml-2 text-gray-700">
+                  {rules && rules.length > 0
+                    ? rules.map((rule: any) => (
+                        <div key={rule.id} className="mb-1">
+                          <span className="text-gray-700">{rule.rule}</span>
+                        </div>
+                      ))
+                    : "N/A"}
+                </span>
+              </div>
             </div>
             {/* Optionally, show images if available */}
             {overview.images && overview.images.length > 0 && (
@@ -182,8 +207,11 @@ const PropertyOverview = ({
         )}
         {selectedSubSection === "vacate" && (
           <div>
-            {/* TODO: Raise Vacate Section */}
-            <div>Raise Vacate form will be shown here.</div>
+            <VacateSection
+              propertyId={overview.pgpalId}
+              userId={userId}
+              onVacateChange={onVacateChange}
+            />
           </div>
         )}
       </div>

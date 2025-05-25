@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import PropertyOverview from "../../../dashboard/components/PropertyOverview";
 import PropertyStats from "../../../dashboard/components/StatsComponent";
-import AmenitiesSection from "../../../dashboard/components/AmenitiesSection";
+import AmenitiesSection from "./AmenitiesSection";
 import RulesSection from "../../../dashboard/components/RulesSection";
-import ReviewsSection from "../../../dashboard/components/ReviewsSection";
+import ReviewsSection from "./ReviewsSection";
 
 const OVERVIEW_TABS = [
   { key: "stats", label: "Stats" },
@@ -26,7 +26,7 @@ const OverviewSection = ({
   isOwner: boolean;
 }) => {
   const [selectedTab, setSelectedTab] = useState("stats");
-
+  // console.log(property)
   return (
     <div className="relative">
       {/* Sticky filter bar */}
