@@ -35,7 +35,9 @@ const OwnerProperties: React.FC<{
   const [properties, setProperties] = useState<any[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
-  const [selectedSection, setSelectedSection] = useState("overview");
+  const [selectedSection, setSelectedSection] = useState(
+    () => sessionStorage.getItem("selectedSection") || "overview"
+  );
   const [isSticky, setIsSticky] = useState(false);
   const stickyRef = useRef<HTMLDivElement>(null);
   const [editMode, setEditMode] = useState(false);
@@ -67,7 +69,6 @@ const OwnerProperties: React.FC<{
     const res = await getOwnProperties();
     setProperties(res.data);
     // Select the first property by default if available
-    console.log(res.data[0].location.coordinates)
     if (res.data.length > 0) setSelectedProperty(res.data[0]);
     else setSelectedProperty(null);
   };
@@ -85,6 +86,11 @@ const OwnerProperties: React.FC<{
     setShowForm(true);
     setSelectedProperty(null);
   };
+
+  useEffect(() => {
+    // Save selected section to session storage
+    sessionStorage.setItem("selectedSection", selectedSection);
+  }, [selectedSection]);
 
   // Handle form submit
   const handleFormSubmit = async (data: any) => {
@@ -284,13 +290,15 @@ const OwnerProperties: React.FC<{
           {selectedSection === "complaints" && (
             <ComplaintsSection
               property={selectedProperty}
-              userId={userId}
               isOwner={selectedProperty?.ownerId === userId}
               userPpid={userPpid}
             />
           )}
           {selectedSection === "address" && (
-            <AddressSection property={selectedProperty} isOwner={selectedProperty?.ownerId === userId} />
+            <AddressSection
+              property={selectedProperty}
+              isOwner={selectedProperty?.ownerId === userId}
+            />
           )}
         </div>
       )}

@@ -6,12 +6,13 @@ import axiosInstance from "../../../../services/axiosInstance";
 import { useError } from "../../../../context/ErrorContext";
 import GlobalAlert from "../../../../components/GlobalAlert"; // adjust path as needed
 
-
 const RoomsSection = ({ property }: { property: any }) => {
   const [rooms, setRooms] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const { setError } = useError();
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState(
+    () => sessionStorage.getItem("filter") || "all"
+  );
   const [alert, setAlert] = useState<{
     message: string;
     type?: "info" | "success" | "error";
@@ -28,6 +29,11 @@ const RoomsSection = ({ property }: { property: any }) => {
     seven: 7,
     eight: 8,
   };
+
+  useEffect(() => {
+    // Save filter to session storage
+    sessionStorage.setItem("filter", filter);
+  }, [filter]); 
 
   const typeOptions = React.useMemo(() => {
     const types = Array.from(new Set(rooms.map((room) => room.type)))
@@ -78,7 +84,8 @@ const RoomsSection = ({ property }: { property: any }) => {
     if (!q) return filtered;
     return filtered.filter(
       (room) =>
-        (room.roomNumber && String(room.roomNumber).toLowerCase().includes(q)) ||
+        (room.roomNumber &&
+          String(room.roomNumber).toLowerCase().includes(q)) ||
         (room.pgpalId && room.pgpalId.toLowerCase().includes(q)) ||
         (room.beds &&
           room.beds.some(
@@ -88,8 +95,7 @@ const RoomsSection = ({ property }: { property: any }) => {
           ))
     );
   }, [rooms, filter, search]);
- 
-  
+
   // Fetch rooms function
   const fetchRooms = async () => {
     setError(null);
@@ -141,7 +147,6 @@ const RoomsSection = ({ property }: { property: any }) => {
     }
   };
 
-  
   const groupedRooms = React.useMemo(() => {
     const groups: { [floor: string]: any[] } = {};
     filteredRooms.forEach((room) => {

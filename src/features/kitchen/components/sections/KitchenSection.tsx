@@ -18,7 +18,9 @@ const KitchenSection = ({ property }: { property: any }) => {
   const [alert, setAlert] = useState<{ message: string; type?: string } | null>(
     null
   );
-  const [selectedTab, setSelectedTab] = useState<string>("selected");
+  const [selectedTab, setSelectedTab] = useState(
+    () => sessionStorage.getItem("kitchenSelectedTab") || "selected"
+  );
   const [confirmDelete, setConfirmDelete] = useState<{
     open: boolean;
     menuNo: number | null;
@@ -31,10 +33,10 @@ const KitchenSection = ({ property }: { property: any }) => {
     setLoading(true);
     try {
       const res = await getMenus(property.pgpalId);
-      console.log(res)
+      console.log(res);
       setMenus(res.data.menus || []);
     } catch (e: any) {
-      console.log(e)
+      console.log(e);
       if (e.response.data.message === "No menus found") {
         setAlert(null);
       } else {
@@ -49,6 +51,11 @@ const KitchenSection = ({ property }: { property: any }) => {
   };
 
   useEffect(() => {
+    // Save selected tab to session storage
+    sessionStorage.setItem("kitchenSelectedTab", selectedTab);
+  }, [selectedTab]);
+  
+  useEffect(() => {
     if (property?.pgpalId) fetchMenus();
   }, [property?.pgpalId]);
 
@@ -59,7 +66,7 @@ const KitchenSection = ({ property }: { property: any }) => {
       setShowForm(false);
       setAlert({ message: "Menu added!", type: "success" });
     } catch (e: any) {
-      console.log(data,e)
+      console.log(data, e);
       setAlert({
         message: e?.response?.data?.error || "Failed to add menu",
         type: "error",
@@ -135,11 +142,9 @@ const KitchenSection = ({ property }: { property: any }) => {
     if (found) menusToShow = [found];
   }
 
-  
   const availableMenuNumbers = [1, 2, 3, 4].filter(
     (num) => !menus.some((menu) => menu.menuNo === num)
   );
-
 
   return (
     <div className="w-full border-none">

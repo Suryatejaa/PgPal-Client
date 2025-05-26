@@ -24,6 +24,8 @@ const defaultForm = {
   totalRooms: "",
   occupiedBeds: "",
   pgGenderType: "",
+  rentRange: { min: "", max: "" }, // <-- added
+  depositRange: { min: "", max: "" },
 };
 
 const PropertyForm: React.FC<PropertyFormProps> = ({
@@ -31,7 +33,20 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const [form, setForm] = useState(initial || defaultForm);
+  const [form, setForm] = useState(() => {
+    const base = initial || defaultForm;
+    return {
+      ...defaultForm,
+      ...base,
+      rentRange: { ...defaultForm.rentRange, ...(base.rentRange || {}) },
+      depositRange: {
+        ...defaultForm.depositRange,
+        ...(base.depositRange || {}),
+      },
+      contact: { ...defaultForm.contact, ...(base.contact || {}) },
+      address: { ...defaultForm.address, ...(base.address || {}) },
+    };
+  });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const user = useAppSelector((state) => state.auth.user);
   const userId = user?._id;
@@ -58,6 +73,12 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     if (!fieldValues.totalBeds) temp.totalBeds = "Total Beds is required";
     if (!fieldValues.occupiedBeds)
       temp.occupiedBeds = "Occupied Beds is required";
+    if (!fieldValues.rentRange?.min) temp.rentRangeMin = "Min rent is required";
+    if (!fieldValues.rentRange?.max) temp.rentRangeMax = "Max rent is required";
+    if (!fieldValues.depositRange?.min)
+      temp.depositRangeMin = "Min deposit is required";
+    if (!fieldValues.depositRange?.max)
+      temp.depositRangeMax = "Max deposit is required";
 
     setErrors(temp);
     return Object.keys(temp).length === 0;
@@ -79,6 +100,16 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         ...form,
         address: { ...form.address, [name.split(".")[1]]: value },
       };
+    } else if (name.startsWith("rentRange.")) {
+      updatedForm = {
+        ...form,
+        rentRange: { ...form.rentRange, [name.split(".")[1]]: value },
+      };
+    } else if (name.startsWith("depositRange.")) {
+      updatedForm = {
+        ...form,
+        depositRange: { ...form.depositRange, [name.split(".")[1]]: value },
+      };
     } else {
       updatedForm = { ...form, [name]: value };
     }
@@ -97,6 +128,8 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         totalBeds,
         occupiedBeds,
         pgGenderType,
+        rentRange,
+        depositRange,
         // Add other fields if you want
       } = form;
 
@@ -114,6 +147,14 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         totalBeds: Number(totalBeds),
         occupiedBeds: Number(occupiedBeds),
         pgGenderType,
+        rentRange: {
+          min: Number(rentRange.min),
+          max: Number(rentRange.max),
+        },
+        depositRange: {
+          min: Number(depositRange.min),
+          max: Number(depositRange.max),
+        },
       };
       onSubmit(payload);
     }
@@ -178,6 +219,54 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
       </select>
       {errors.pgGenderType && (
         <div className="text-red-500 text-xs">{errors.pgGenderType}</div>
+      )}
+
+      <div className="flex gap-2">
+        <input
+          name="rentRange.min"
+          value={form.rentRange.min}
+          onChange={handleChange}
+          placeholder="Min Rent"
+          type="number"
+          className="w-1/2 p-2 rounded border"
+        />
+        <input
+          name="rentRange.max"
+          value={form.rentRange.max}
+          onChange={handleChange}
+          placeholder="Max Rent"
+          type="number"
+          className="w-1/2 p-2 rounded border"
+        />
+      </div>
+      {(errors.rentRangeMin || errors.rentRangeMax) && (
+        <div className="text-red-500 text-xs">
+          {errors.rentRangeMin || errors.rentRangeMax}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <input
+          name="depositRange.min"
+          value={form.depositRange.min}
+          onChange={handleChange}
+          placeholder="Min Deposit"
+          type="number"
+          className="w-1/2 p-2 rounded border"
+        />
+        <input
+          name="depositRange.max"
+          value={form.depositRange.max}
+          onChange={handleChange}
+          placeholder="Max Deposit"
+          type="number"
+          className="w-1/2 p-2 rounded border"
+        />
+      </div>
+      {(errors.depositRangeMin || errors.depositRangeMax) && (
+        <div className="text-red-500 text-xs">
+          {errors.depositRangeMin || errors.depositRangeMax}
+        </div>
       )}
 
       <input

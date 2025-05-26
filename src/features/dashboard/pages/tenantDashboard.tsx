@@ -15,7 +15,7 @@ import PropertyOverview from "../../property/components/sections/PropertyOvervie
 import StayHistory from "../../tenant/components/sections/StayHistory";
 import NearbyPGsSection from "../../property/components/sections/NearBySection";
 import axiosInstance from "../../../services/axiosInstance";
-import TenantLandingPage from "../components/TenantLandingPage";
+import TenantLandingPage from "../../tenant/components/sections/TenantLandingPage";
 
 const SECTION_LIST = [
   { key: "overview", label: "Property" },
@@ -89,7 +89,6 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
   };
 
   useEffect(() => {
-    console.log(selectedSection);
     sessionStorage.setItem("tenantSelectedSection", selectedSection);
   }, [selectedSection]);
 
@@ -190,6 +189,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
         profile={profileProps.profile}
         userName={profileProps.profile?.username}
         setSidebarOpen={setSidebarOpen}
+        isActive={currentStay?.propertyId || currentStay?.propertyPpid ? true : false}
       />
       {/* Notifications */}
       <NotificationSection

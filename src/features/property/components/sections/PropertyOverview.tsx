@@ -4,6 +4,7 @@ import AddComplaintForm from "../../../complaints/components/AddComplaintForm";
 import { raiseComplaint } from "../../../complaints/services/complaintsApi";
 import ComplaintsSection from "../../../complaints/components/sections/ComplaintsSection";
 import VacateSection from "./VacateSection";
+import PropertyReviews from "../../../tenant/components/sections/PropertyReviews";
 
 const SUB_SECTION_LIST = [
   { key: "overview", label: "Overview" },
@@ -30,6 +31,7 @@ const PropertyOverview = ({
   const [isSticky, setIsSticky] = useState(false);
   const [complaintsRefreshKey, setComplaintsRefreshKey] = useState(0);
   const [showComplaintForm, setShowComplaintForm] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
 
   // console.log('id from overview', overview, userId);
 
@@ -150,6 +152,19 @@ const PropertyOverview = ({
                     : "N/A"}
                 </span>
               </div>
+              <div className="my-4">
+                <button
+                  className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded font-semibold shadow hover:bg-yellow-200 transition"
+                  onClick={() => setShowReviews((prev) => !prev)}
+                >
+                  {showReviews ? "Hide Reviews" : "See & Add Reviews"}
+                </button>
+                {showReviews && (
+                  <div className="mt-4">
+                    <PropertyReviews propertyId={overview._id} />
+                  </div>
+                )}
+              </div>
             </div>
             {/* Optionally, show images if available */}
             {overview.images && overview.images.length > 0 && (
@@ -195,8 +210,8 @@ const PropertyOverview = ({
               <div className="relative mt-0">
                 <ComplaintsSection
                   property={overview}
-                  propertyId={overview.pgpalId}
-                  userId={userId}
+                  // propertyId={overview.pgpalId}
+                  // userId={userId}
                   userPpid={userId}
                   isOwner={false}
                   refreshKey={complaintsRefreshKey}

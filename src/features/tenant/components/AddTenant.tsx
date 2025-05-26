@@ -18,7 +18,7 @@ const AddTenant = ({
   rooms = [],
   onSubmit,
   onCancel,
-  defaultBedId = "",
+  defaultBedId,
 }: {
   propertyId: string;
   rooms: {
@@ -26,7 +26,7 @@ const AddTenant = ({
     beds: { bedId: string; status: string }[];
   }[];
   onSubmit: (data: any) => void;
-    onCancel: () => void;
+  onCancel: () => void;
   defaultBedId?: string;
 }) => {
   const [tenant, setTenant] = useState({ ...defaultTenant, propertyId });
@@ -39,6 +39,13 @@ const AddTenant = ({
   >([]);
 
   useEffect(() => {
+    // If only one room is passed, auto-select it
+    if (rooms.length === 1) {
+      setSelectedRoom(String(rooms[0].roomNumber));
+    }
+  }, [rooms]);
+
+  useEffect(() => {
     if (selectedRoom) {
       const room = rooms.find(
         (r) => String(r.roomNumber) === String(selectedRoom)
@@ -46,13 +53,21 @@ const AddTenant = ({
       setAvailableBeds(
         room ? room.beds.filter((b) => b.status === "vacant") : []
       );
-      setTenant((prev) => ({ ...prev, roomNumber: selectedRoom, bedId: "" }));
+      setTenant((prev) => ({
+        ...prev,
+        roomNumber: selectedRoom,
+        bedId: defaultBedId && prev.bedId === "" ? defaultBedId : prev.bedId,
+      }));
     } else {
       setAvailableBeds([]);
-      setTenant((prev) => ({ ...prev, roomNumber: "", bedId: "" }));
+      setTenant((prev) => ({
+        ...prev,
+        roomNumber: "",
+        bedId: "",
+      }));
     }
     // eslint-disable-next-line
-  }, [selectedRoom, rooms]);
+  }, [selectedRoom, rooms, defaultBedId]);
 
   // Validation
   useEffect(() => {
@@ -158,7 +173,7 @@ const AddTenant = ({
         onChange={handleChange}
         className="w-full p-2 border rounded"
         required
-        disabled={!selectedRoom}
+        disabled={!selectedRoom && !defaultBedId}
       >
         <option value="">Select Bed</option>
         {availableBeds.map((bed) => (

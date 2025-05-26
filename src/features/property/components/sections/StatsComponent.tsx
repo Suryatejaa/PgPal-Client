@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getCheckins, getVacates } from "../services/dashboardService";
+import {
+  getCheckins,
+  getVacates,
+} from "../../../dashboard/services/dashboardService";
 
 const periods = ["day", "week", "month"];
 

@@ -8,8 +8,7 @@ import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { setUserFromCookies } from "./features/auth/authSlice";
 import { ErrorProvider, useError } from "./context/ErrorContext";
 import { initializeAuth } from "./features/auth/authSlice";
-
-
+import ExplorePGsPage from "./features/dashboard/pages/ExplorePage";
 
 const GlobalErrorBar = () => {
   const { error, setError } = useError();
@@ -17,7 +16,10 @@ const GlobalErrorBar = () => {
   return (
     <div className="fixed top-0 left-0 w-full z-50 bg-red-600 text-white p-3 flex justify-between items-center">
       <span>{error}</span>
-      <button className="ml-4 px-2 py-1 bg-red-800 rounded" onClick={() => setError(null)}>
+      <button
+        className="ml-4 px-2 py-1 bg-red-800 rounded"
+        onClick={() => setError(null)}
+      >
         Close
       </button>
     </div>
@@ -36,8 +38,6 @@ function AppContent() {
   const dispatch = useAppDispatch();
   const loading = useAppSelector((state) => state.auth.loadingFromCookies);
   const { setError } = useError();
-
-  
 
   useEffect(() => {
     dispatch(initializeAuth());
@@ -64,6 +64,14 @@ function AppContent() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/explore"
+            element={
+              <PrivateRoute>
+                <ExplorePGsPage />
+              </PrivateRoute>
+            }
+          />
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
       </Router>
@@ -73,4 +81,3 @@ function AppContent() {
 
 export default App;
 // useAppSelector is now imported from hooks, so this implementation is removed.
-

@@ -71,7 +71,7 @@ const OwnerProfileSidebar = ({
 
   return (
     sidebarOpen && (
-      <div className="fixed inset-0 z-30 flex justify-end">
+      <div className="fixed  inset-0 z-[9999] flex justify-end">
         <div
           className="fixed inset-0 bg-black bg-opacity-30"
           onClick={() => setSidebarOpen(false)}

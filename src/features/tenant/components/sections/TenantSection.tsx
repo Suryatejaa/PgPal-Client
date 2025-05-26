@@ -35,7 +35,9 @@ const TenantSection = ({
 }) => {
   const [tenants, setTenants] = useState<any[]>([]);
   const [vacates, setVacates] = useState<any[]>([]);
-  const [filter, setFilter] = useState("active");
+  const [filter, setFilter] = useState(
+      () => sessionStorage.getItem("tenantFilter") || "active"
+    );
   const [showForm, setShowForm] = useState(false);
   const [alert, setAlert] = useState<{
     message: string;
@@ -46,6 +48,11 @@ const TenantSection = ({
   const [removingTenantId, setRemovingTenantId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [roomsFound, setRoomsFound] = useState(false);
+
+  useEffect(() => {
+    // Save filter to session storage
+    sessionStorage.setItem("tenantFilter", filter);
+  }, [filter]);
 
   const fetchRooms = async () => {
     try {

@@ -13,17 +13,13 @@ import ComplaintActionForm from "../ComplaintActionForm";
 
 const ComplaintsSection = ({
   property,
-  userId,
   userPpid,
   isOwner,
-  propertyId,
   refreshKey = 0,
 }: {
   property: any;
-  userId: any;
   userPpid: any;
   isOwner: boolean;
-  propertyId: string;
   refreshKey?: number;
 }) => {
   if (!property || !property.pgpalId) {
@@ -36,7 +32,9 @@ const ComplaintsSection = ({
     null
   );
   const [metrics, setMetrics] = useState<any>(null);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState(
+    () => sessionStorage.getItem("complaintFilter") || "all"
+  );
   const [confirmDelete, setConfirmDelete] = useState<{
     open: boolean;
     complaintId: string | null;
@@ -55,6 +53,11 @@ const ComplaintsSection = ({
     { key: "Closed", label: "Closed" },
     { key: "Rejected", label: "Rejected" },
   ];
+
+  useEffect(() => {
+    // Save filter to session storage
+    sessionStorage.setItem("complaintFilter", filter);
+  }, [filter]);
 
   const filteredComplaints = React.useMemo(() => {
     if (filter === "all") {

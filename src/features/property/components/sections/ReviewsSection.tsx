@@ -96,13 +96,17 @@ const ReviewsSection = ({
     setComment(review.comment);
   };
 
+  const sortedReviews = [...reviews].sort((a, b) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <div className="bg-white rounded-xl shadow p-4 mt-4 text-black">
       {alert && <GlobalAlert {...alert} onClose={() => setAlert(null)} />}
       <div className="font-bold text-purple-700 mb-2">Reviews</div>
       {average !== null && (
         <div className="mb-2 text-sm text-indigo-700">
-          Average Rating: <span className="font-bold">{average}</span> / 5
+          Average Rating: <span className="font-bold">{average ? average.toFixed(1) : 0}</span> / 5
         </div>
       )}
       <form onSubmit={handleAddOrEdit} className="flex flex-col gap-2 mb-2">
@@ -151,7 +155,7 @@ const ReviewsSection = ({
         </div>
       </form>
       <ul className="space-y-2">
-        {reviews.map((r) => (
+        {sortedReviews.map((r) => (
           <li key={r._id} className="bg-purple-50 rounded px-2 py-1">
             <div className="flex justify-between items-center">
               <div>

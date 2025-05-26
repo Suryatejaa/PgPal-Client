@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axiosInstance from "../../../services/axiosInstance";
-import GlobalAlert from "../../../components/GlobalAlert";
+import axiosInstance from "../../../../services/axiosInstance";
+import GlobalAlert from "../../../../components/GlobalAlert";
 
 const RulesSection = ({
   propertyId,
@@ -34,7 +34,7 @@ const RulesSection = ({
             "Failed to fetch rules.",
           type: "error",
         });
-      }      
+      }
     }
   };
 
@@ -68,8 +68,8 @@ const RulesSection = ({
     } catch {
       setAlert({ message: "Failed to delete rule", type: "error" });
     }
-    };
-    console.log(isOwner, userId);
+  };
+  console.log(isOwner, userId);
 
   return (
     <div className="bg-white rounded-xl shadow p-4 mt-4 text-black">

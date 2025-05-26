@@ -191,6 +191,8 @@ const RoomCard = ({
     }
   };
 
+  // console.log(bedModal)
+
   return (
     <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
       <div className="flex justify-between items-center">

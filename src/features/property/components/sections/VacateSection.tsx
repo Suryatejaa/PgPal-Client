@@ -80,12 +80,20 @@ const VacateSection = ({
     }
   }, [alert]);
 
-  let latestVacate;
+  let latestVacate = null;
   if (Array.isArray(vacateRequest) && vacateRequest.length > 0) {
-    let latest = vacateRequest.reduce((latest, curr) =>
-      new Date(curr.createdAt) > new Date(latest.createdAt) ? curr : latest
+    // Only consider requests that are not completed/vacated
+    const activeRequests = vacateRequest.filter(
+      (req) =>
+        req.status !== "completed" &&
+        req.status !== "vacated" &&
+        req.status !== "closed"
     );
-    latestVacate = latest || null;
+    if (activeRequests.length > 0) {
+      latestVacate = activeRequests.reduce((latest, curr) =>
+        new Date(curr.createdAt) > new Date(latest.createdAt) ? curr : latest
+      );
+    }
   }
 
   const canWithdraw =

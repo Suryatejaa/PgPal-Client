@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import PropertyOverview from "../../../dashboard/components/PropertyOverview";
-import PropertyStats from "../../../dashboard/components/StatsComponent";
+import PropertyStats from "./StatsComponent";
 import AmenitiesSection from "./AmenitiesSection";
-import RulesSection from "../../../dashboard/components/RulesSection";
+import RulesSection from "./RulesSection";
 import ReviewsSection from "./ReviewsSection";
 
 const OVERVIEW_TABS = [
@@ -25,8 +25,14 @@ const OverviewSection = ({
   userRole: string;
   isOwner: boolean;
 }) => {
-  const [selectedTab, setSelectedTab] = useState("stats");
+  const [selectedTab, setSelectedTab] = useState(
+    () => sessionStorage.getItem("selectedTab") || "stats"
+  );
   // console.log(property)
+  useEffect(() => {
+    // Save selected tab to session storage
+    sessionStorage.setItem("selectedTab", selectedTab);
+  }, [selectedTab]);
   return (
     <div className="relative">
       {/* Sticky filter bar */}
