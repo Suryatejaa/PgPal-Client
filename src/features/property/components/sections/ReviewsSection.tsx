@@ -97,7 +97,7 @@ const ReviewsSection = ({
   };
 
   const sortedReviews = [...reviews].sort((a, b) => {
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
   });
 
   return (
@@ -162,7 +162,7 @@ const ReviewsSection = ({
                 <span className="font-semibold">{r.updatedByName}</span>
                 <span className="ml-2 text-yellow-600">★ {r.rating}</span>
                 <span className="ml-2 text-xs text-gray-500">
-                  {new Date(r.createdAt).toLocaleDateString()}
+                  {new Date(r.updatedAt).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex gap-1">

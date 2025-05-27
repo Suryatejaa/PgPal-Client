@@ -5,11 +5,11 @@ import axiosInstance from "../../../../services/axiosInstance";
 
 const VacateSection = ({
   propertyId,
-  userId,
+  userPgPalId,
   onVacateChange,
 }: {
   propertyId: string;
-  userId: any;
+  userPgPalId: any;
   onVacateChange?: () => void;
 }) => {
   const [showModal, setShowModal] = useState(false);
@@ -24,7 +24,7 @@ const VacateSection = ({
       setLoading(true);
       try {
         const res = await axiosInstance.get(
-          `/tenant-service/vacate-request/${propertyId}/${userId}`
+          `/tenant-service/vacate-request/${propertyId}/${userPgPalId}`
         );
         setVacateRequest(res.data || null);
       } catch {
@@ -34,7 +34,7 @@ const VacateSection = ({
       }
     };
     fetchVacate();
-  }, [propertyId, userId, showModal]);
+  }, [propertyId, userPgPalId, showModal]);
 
   // Raise vacate request
   const handleVacate = async (data: any) => {

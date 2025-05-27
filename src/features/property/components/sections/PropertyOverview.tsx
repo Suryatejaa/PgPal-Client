@@ -15,13 +15,15 @@ const SUB_SECTION_LIST = [
 
 const PropertyOverview = ({
   overview,
-  userId,
+  userPgPalId,
   rules,
+  userId,
   onVacateChange,
 }: {
   overview: any;
+  userPgPalId?: string;
+    rules?: any;
   userId?: string;
-  rules?: any;
   onVacateChange?: () => void;
 }) => {
   const [selectedSubSection, setSelectedSubSection] = useState(
@@ -33,7 +35,7 @@ const PropertyOverview = ({
   const [showComplaintForm, setShowComplaintForm] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
 
-  // console.log('id from overview', overview, userId);
+  // console.log('id from overview', overview, userPgPalId,);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -161,7 +163,11 @@ const PropertyOverview = ({
                 </button>
                 {showReviews && (
                   <div className="mt-4">
-                    <PropertyReviews propertyId={overview._id} />
+                    <PropertyReviews
+                      propertyId={overview._id}
+                      userPgPalId={userPgPalId ? userPgPalId : ""}
+                      userId={userId}
+                    />
                   </div>
                 )}
               </div>
@@ -211,8 +217,8 @@ const PropertyOverview = ({
                 <ComplaintsSection
                   property={overview}
                   // propertyId={overview.pgpalId}
-                  // userId={userId}
-                  userPpid={userId}
+                  // userPgPalId,={userPgPalId,}
+                  userPpid={userPgPalId}
                   isOwner={false}
                   refreshKey={complaintsRefreshKey}
                 />
@@ -224,7 +230,7 @@ const PropertyOverview = ({
           <div>
             <VacateSection
               propertyId={overview.pgpalId}
-              userId={userId}
+              userPgPalId={userPgPalId}
               onVacateChange={onVacateChange}
             />
           </div>

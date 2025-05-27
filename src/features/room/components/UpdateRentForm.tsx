@@ -5,18 +5,24 @@ const UpdateRentForm = ({ tenant, onSubmit, onCancel }: any) => {
   const [rentPaidDate, setRentPaidDate] = useState("");
   const [rentPaidMethod, setRentPaidMethod] = useState("cash");
   const [transactionId, setTransactionId] = useState("");
+  const [loading, setLoading] = useState(false);
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        onSubmit({
-          tenantId: tenant.pgpalId,
-          rentPaid: Number(rentPaid),
-          rentPaidDate,
-          rentPaidMethod,
-          transactionId,
-        });
+        setLoading(true);
+        try {
+          await onSubmit({
+            tenantId: tenant.pgpalId,
+            rentPaid: Number(rentPaid),
+            rentPaidDate,
+            rentPaidMethod,
+            transactionId,
+          });
+        } finally {
+          setLoading(false);
+        }
       }}
       className="flex flex-col gap-3"
     >
@@ -66,13 +72,15 @@ const UpdateRentForm = ({ tenant, onSubmit, onCancel }: any) => {
         <button
           type="submit"
           className="bg-green-600 text-white px-4 py-1 rounded"
+          disabled={loading}
         >
-          Update Rent
+          {loading ? "Loading..." : "Update Rent"}
         </button>
         <button
           type="button"
           className="bg-gray-300 text-gray-700 px-4 py-1 rounded"
           onClick={onCancel}
+          disabled={loading}
         >
           Cancel
         </button>

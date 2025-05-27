@@ -29,10 +29,12 @@ function AddReviewForm({
           comment,
         }
       );
+      // console.log(res)
       onReviewAdded();
       setRating(0);
       setComment("");
     } catch (err: any) {
+      console.error(err);
       setError("Failed to submit review.");
     } finally {
       setSubmitting(false);

@@ -60,12 +60,14 @@ const OverviewSection = ({
       <div className="pt-2">
         {selectedTab === "stats" && (
           <>
-            <PropertyOverview pgpalId={property.pgpalId} />
+            <PropertyOverview pgpalId={property.pgpalId} id={property._id} />
             <PropertyStats pgpalId={property.pgpalId} />
-            <div className="bg-white rounded-xl shadow p-4 text-gray-800">
-              <div>
-                <strong>Contact:</strong> {property.contact?.phone} |{" "}
-                {property.contact?.email}
+            <div className="flex flex-col items-center w-full">
+              <div className="bg-white rounded-xl shadow p-4 text-gray-800 w-full max-w-6xl mt-4">
+                <div className="text-center">
+                  <strong>Contact:</strong> {property.contact?.phone} |{" "}
+                  {property.contact?.email}
+                </div>
               </div>
             </div>
           </>

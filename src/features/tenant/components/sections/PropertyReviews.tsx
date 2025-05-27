@@ -1,12 +1,27 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../../../services/axiosInstance";
 import AddReviewForm from "./AddReviewForm";
+import ConfirmDialog from "../../../../components/ConfirmDialog";
 
-const PropertyReviews = ({ propertyId }: { propertyId: string }) => {
+const PropertyReviews = ({
+  propertyId,
+  userPgPalId,
+  userId,
+}: {
+  propertyId: string;
+  userPgPalId: string;
+  userId?: string;
+}) => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [averageRating, setAverageRating] = useState<number | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchReviews();
+  }, [propertyId]);
+
+  const fetchReviews = () => {
     axiosInstance
       .get(`/property-service/${propertyId}/reviews`)
       .then((res) => {
@@ -17,11 +32,21 @@ const PropertyReviews = ({ propertyId }: { propertyId: string }) => {
         setReviews([]);
         setAverageRating(null);
       });
-  }, [propertyId]);
+  };
+
+  const handleDelete = async () => {
+    if (!pendingDeleteId) return;
+    await axiosInstance.delete(
+      `/property-service/${propertyId}/reviews/${pendingDeleteId}`
+    );
+    setConfirmOpen(false);
+    setPendingDeleteId(null);
+    fetchReviews();
+  };
 
   const sortedReviews = [...reviews].sort(
     (a: any, b: any) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
 
   return (
@@ -64,23 +89,34 @@ const PropertyReviews = ({ propertyId }: { propertyId: string }) => {
                   </svg>
                   {r.rating}
                 </span>
+                {r.updatedBy === userId && (
+                  <button
+                    className="ml-2 text-xs text-red-500 hover:underline"
+                    onClick={() => {
+                      setPendingDeleteId(r._id);
+                      setConfirmOpen(true);
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
               <div className="text-gray-700 text-sm">{r.comment}</div>
             </div>
           ))}
         </div>
       )}
-      <AddReviewForm
-        propertyId={propertyId}
-        onReviewAdded={() => {
-          // Refetch reviews
-          axiosInstance
-            .get(`/property-service/${propertyId}/reviews`)
-            .then((res) => {
-              setReviews(res.data.reviews || []);
-              setAverageRating(res.data.averageRating ?? null);
-            });
+      <AddReviewForm propertyId={propertyId} onReviewAdded={fetchReviews} />
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Delete Review"
+        message="Are you sure you want to delete your review? This action cannot be undone."
+        onCancel={() => {
+          setConfirmOpen(false);
+          setPendingDeleteId(null);
         }}
+        onConfirm={handleDelete}
+        confirmText="Delete"        
       />
     </div>
   );

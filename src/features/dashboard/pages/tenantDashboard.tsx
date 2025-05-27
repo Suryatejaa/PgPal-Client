@@ -242,7 +242,8 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
                 <PropertyOverview
                   overview={overview}
                   rules={rules}
-                  userId={profileProps.profile?.pgpalId}
+                  userId={userId}
+                  userPgPalId={profileProps.profile?.pgpalId}
                   onVacateChange={() => setRefreshStayKey((k) => k + 1)}
                 />
               )}

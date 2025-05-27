@@ -33,7 +33,10 @@ const OwnerProperties: React.FC<{
   userPpid: string;
 }> = ({ userId, userName, userRole, userPpid }) => {
   const [properties, setProperties] = useState<any[]>([]);
-  const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [selectedProperty, setSelectedProperty] = useState<any>(() => {
+    const stored = sessionStorage.getItem("selectedProperty");
+    return stored ? JSON.parse(stored) : null;
+  });
   const [showForm, setShowForm] = useState(false);
   const [selectedSection, setSelectedSection] = useState(
     () => sessionStorage.getItem("selectedSection") || "overview"
@@ -68,9 +71,17 @@ const OwnerProperties: React.FC<{
   const fetchProperties = async () => {
     const res = await getOwnProperties();
     setProperties(res.data);
-    // Select the first property by default if available
-    if (res.data.length > 0) setSelectedProperty(res.data[0]);
-    else setSelectedProperty(null);
+    // Try to restore selected property from session storage
+    const stored = sessionStorage.getItem("selectedProperty");
+    if (stored) {
+      const storedObj = JSON.parse(stored);
+      const match = res.data.find((p: any) => p._id === storedObj._id);
+      setSelectedProperty(match || res.data[0] || null);
+    } else if (res.data.length > 0) {
+      setSelectedProperty(res.data[0]);
+    } else {
+      setSelectedProperty(null);
+    }
   };
 
   // Handle property card click (just select, don't open form)
@@ -78,6 +89,7 @@ const OwnerProperties: React.FC<{
     console.log(property.ownerId);
     console.log(userId);
     setSelectedProperty(property);
+    sessionStorage.setItem("selectedProperty", JSON.stringify(property));
     setShowForm(false);
   };
 

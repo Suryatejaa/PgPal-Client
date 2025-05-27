@@ -9,11 +9,22 @@ const AddressSection = ({
   property: any;
   isOwner?: boolean;
 }) => {
+  const hasCoords =
+    property?.location &&
+    Array.isArray(property.location.coordinates) &&
+    property.location.coordinates.length === 2 &&
+    typeof property.location.coordinates[0] === "number" &&
+    typeof property.location.coordinates[1] === "number";
+
   const [showMap, setShowMap] = useState(false);
-  const [location, setLocation] = useState({
-    lat: property.location.coordinates[1],
-    lng: property.location.coordinates[0],
-  });
+  const [location, setLocation] = useState(
+    hasCoords
+      ? {
+          lat: property.location.coordinates[1],
+          lng: property.location.coordinates[0],
+        }
+      : null
+  );
   const [saving, setSaving] = useState(false);
   const [MapPicker, setMapPicker] = useState<React.FC<any> | null>(null);
   const [userLocation, setUserLocation] = useState<{
@@ -21,22 +32,9 @@ const AddressSection = ({
     lng: number;
   } | null>(null);
 
-  // console.log(property.location.coordinates);
+  const showMissingLocation = !hasCoords && !showMap;
+
   // Get user's current location on mount
-
-  // console.log(property.location.coordinates)
-
-  const blueIcon = new L.Icon({
-    iconUrl:
-      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
-    shadowUrl:
-      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
-
   React.useEffect(() => {
     if (!userLocation) {
       if (navigator.geolocation) {
@@ -63,8 +61,8 @@ const AddressSection = ({
       (async () => {
         const leaflet = await import("react-leaflet");
         await import("leaflet/dist/leaflet.css");
-        // ...inside your dynamic import effect...
-        const { MapContainer, TileLayer, Marker, useMapEvents } = leaflet;
+        const { MapContainer, TileLayer, Marker, useMapEvents, useMap } =
+          leaflet;
 
         // TypeScript workaround: cast Marker to any to allow icon prop
         const MarkerAny = Marker as any;
@@ -78,25 +76,87 @@ const AddressSection = ({
           return position ? <MarkerAny position={position} /> : null;
         }
 
+        // Component to handle map panning
+        function MapController({ position }: { position: any }) {
+          const map = useMap();
+
+          React.useEffect(() => {
+            if (position && map) {
+              map.setView([position.lat, position.lng], 15);
+            }
+          }, [position?.lat, position?.lng, map]); // Watch lat/lng individually
+
+          return null;
+        }
+
         const Picker = ({ position, setPosition, userLocation }: any) => {
           const MapContainerAny = MapContainer as any;
           const TileLayerAny = TileLayer as any;
+          const [search, setSearch] = React.useState("");
+          const [searching, setSearching] = React.useState(false);
+
+          // Function to search location using Nominatim
+          const handleSearch = async () => {
+            if (!search) return;
+            setSearching(true);
+            try {
+              const res = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+                  search
+                )}`
+              );
+              const data = await res.json();
+              if (data && data.length > 0) {
+                const { lat, lon } = data[0];
+                setPosition({ lat: parseFloat(lat), lng: parseFloat(lon) });
+              } else {
+                alert("Location not found.");
+              }
+            } catch {
+              alert("Error searching location.");
+            }
+            setSearching(false);
+          };
+
+          const mapCenter = position ||
+            userLocation || {
+              lat: property?.location?.latitude || 17.385,
+              lng: property?.location?.longitude || 78.4867,
+            };
+
           return (
             <div className="relative">
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  className="border rounded px-2 py-1 w-full"
+                  placeholder="Search location..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                />
+                <button
+                  className="bg-blue-600 text-white px-3 py-1 rounded"
+                  onClick={handleSearch}
+                  disabled={searching}
+                >
+                  {searching ? "Searching..." : "Search"}
+                </button>
+              </div>
               <MapContainerAny
-                center={
-                  position ||
-                  userLocation || {
-                    lat: property.location.latitude,
-                    lng: property.location.longitude,
-                  }
-                }
+                center={[mapCenter.lat, mapCenter.lng]}
                 zoom={13}
                 style={{ height: 300, width: "100%" }}
               >
-                <TileLayerAny url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-               
+                <TileLayerAny url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png" />
+                {/* <TileLayerAny url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /> */}
                 <LocationMarker position={position} setPosition={setPosition} />
+                <MapController
+                  position={position}
+                  key={
+                    position ? `${position.lat}-${position.lng}` : "no-position"
+                  }
+                />
               </MapContainerAny>
               {/* Location button */}
               {userLocation && (
@@ -130,7 +190,13 @@ const AddressSection = ({
         setMapPicker(() => Picker);
       })();
     }
-  }, [showMap, MapPicker, userLocation]);
+  }, [
+    showMap,
+    MapPicker,
+    userLocation,
+    property?.location?.latitude,
+    property?.location?.longitude,
+  ]);
 
   const handleSaveLocation = async () => {
     if (!location) return;
@@ -140,7 +206,11 @@ const AddressSection = ({
         `/property-service/properties/${property._id}/location`,
         location
       );
-      console.log(res, location);
+      if (property.location) {
+        property.location.coordinates = [location.lng, location.lat];
+      } else {
+        property.location = { coordinates: [location.lng, location.lat] };
+      }
       setShowMap(false);
     } catch (err: any) {
       console.log(err, location);
@@ -175,7 +245,15 @@ const AddressSection = ({
       <div>
         <strong>Zip Code:</strong> {property.address?.zipCode}
       </div>
-      {location && (
+      {showMissingLocation && (
+        <div className="bg-yellow-100 mt-2 border border-yellow-400 text-yellow-800 rounded px-4 py-2 mb-2 text-center">
+          <strong>Location not set.</strong> <br />
+          {isOwner
+            ? "Please update the property location using the button below."
+            : "Owner has not provided the property location yet."}
+        </div>
+      )}
+      {location && !showMissingLocation && (
         <div className="mt-2">
           <strong>Location:</strong>{" "}
           <a
@@ -189,7 +267,7 @@ const AddressSection = ({
         </div>
       )}
       {isOwner && (
-        <div className="mt-3">
+        <div className="mt-2">
           <button
             className="bg-purple-600 text-white px-3 py-1 rounded"
             onClick={() => {

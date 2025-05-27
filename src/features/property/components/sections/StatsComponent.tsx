@@ -21,8 +21,8 @@ const PropertyStats: React.FC<{ pgpalId: string }> = ({ pgpalId }) => {
   }, [pgpalId, period]);
 
   return (
-    <div className="my-6">
-      <div className="flex items-center space-x-4 mb-2">
+    <div className="flex flex-col items-center w-full">
+      <div className="flex flex-row sm:flex-row items-center justify-start gap-2 mb-4 w-full max-w-6xl">
         <span className="font-semibold">Period:</span>
         {periods.map((p) => (
           <button
@@ -38,15 +38,15 @@ const PropertyStats: React.FC<{ pgpalId: string }> = ({ pgpalId }) => {
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-blue-100 rounded-xl p-4 shadow text-center">
+      <div className="flex flex-row sm:flex-row justify-center items-center gap-6 w-full max-w-6xl">
+        <div className="flex-1 bg-blue-100 rounded-xl p-4 shadow text-center min-w-[180px]">
           <div className="text-xl font-bold text-blue-700">
             {checkins ?? "..."}
           </div>
           <div className="text-gray-700">Check-ins ({period})</div>
         </div>
-        <div className="bg-red-100 rounded-xl p-4 shadow text-center">
-          <div className="text-xl font-bold text-red-700">
+        <div className="flex-1 bg-red-100 rounded-xl p-4 shadow text-center min-w-[180px]">
+          <div className="text-2xl font-bold text-red-700">
             {vacates ?? "..."}
           </div>
           <div className="text-gray-700">Vacates ({period})</div>
