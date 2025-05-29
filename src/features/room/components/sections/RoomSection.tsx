@@ -6,7 +6,13 @@ import axiosInstance from "../../../../services/axiosInstance";
 import { useError } from "../../../../context/ErrorContext";
 import GlobalAlert from "../../../../components/GlobalAlert"; // adjust path as needed
 
-const RoomsSection = ({ property }: { property: any }) => {
+const RoomsSection = ({
+  property,
+  requestedUsers,
+}: {
+  property: any;
+  requestedUsers?: any[];
+}) => {
   const [rooms, setRooms] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const { setError } = useError();
@@ -33,7 +39,7 @@ const RoomsSection = ({ property }: { property: any }) => {
   useEffect(() => {
     // Save filter to session storage
     sessionStorage.setItem("filter", filter);
-  }, [filter]); 
+  }, [filter]);
 
   const typeOptions = React.useMemo(() => {
     const types = Array.from(new Set(rooms.map((room) => room.type)))
@@ -54,6 +60,8 @@ const RoomsSection = ({ property }: { property: any }) => {
   ];
 
   const filterOptions = [...staticFilterOptions, ...typeOptions];
+
+  // console.log(requestedUsers)
 
   const filteredRooms = React.useMemo(() => {
     let filtered = rooms;
@@ -264,6 +272,7 @@ const RoomsSection = ({ property }: { property: any }) => {
                       room={room}
                       onRoomUpdated={fetchRooms}
                       setAlert={setAlert}
+                      requestedUsers={requestedUsers}
                     />
                   ))}
                 </div>

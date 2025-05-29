@@ -1,13 +1,5 @@
 import React from "react";
 
-const TENANT_FILTERS = [
-  { key: "active", label: "Active" },
-  { key: "inactive", label: "Inactive" },
-  { key: "paid", label: "Rent Paid" },
-  { key: "unpaid", label: "Rent Unpaid" },
-  { key: "past", label: "Past Tenants" },
-];
-
 const TenantFilterBar = ({
   filter,
   setFilter,
@@ -16,12 +8,16 @@ const TenantFilterBar = ({
   filter: string;
   setFilter: (f: string) => void;
   filterOptions?: { key: string; label: string }[];
-}) => (
+  }) => {
+
+  // console.log(filterOptions);
+
+return (
   <div
     className="sticky z-20 flex overflow-x-auto text-sm -mt-1 pb-1 bg-purple-300 border-gray-200"
     style={{ top: 140 }}
   >
-    {(filterOptions || TENANT_FILTERS).map((opt) => (
+    {(filterOptions || []).map((opt) => (
       <button
         key={opt.key}
         onClick={() => setFilter(opt.key)}
@@ -36,6 +32,7 @@ const TenantFilterBar = ({
       </button>
     ))}
   </div>
-);
+  );
+}
 
 export default TenantFilterBar;

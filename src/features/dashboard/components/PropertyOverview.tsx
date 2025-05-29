@@ -107,7 +107,7 @@ const PropertyOverview: React.FC<{ pgpalId: string; id: string }> = ({
     <div className="w-full max-w-6xl mx-auto my-8">
       <div className="mb-6 flex items-center gap-3">
         <SparklesIcon className="w-8 h-8 text-purple-500 animate-bounce" />
-        <h2 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-transparent bg-clip-text tracking-tight">
+        <h2 className="text-3xl mb-1 md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-transparent bg-clip-text tracking-tight">
           PG Analytics Overview
         </h2>
       </div>

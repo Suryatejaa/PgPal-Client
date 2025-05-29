@@ -43,10 +43,10 @@ const GlobalAlert = ({
   }, [onClose]);
 
   return (
-    <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-[100]">
+    <div className="fixed top-1 left-1/2 transform -translate-x-1/2 z-[100] w-full max-w-xs sm:max-w-md md:max-w-lg px-2 sm:px-0">
       <div
         ref={wrapperRef}
-        className={`flex items-center gap-2 px-1 py-2 rounded shadow-lg ${color}`}
+        className={`flex items-center gap-2 px-1 py-2 rounded shadow-lg ${color} w-full`}
       >
         <span className="">{message}</span>
       </div>

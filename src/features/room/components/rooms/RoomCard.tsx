@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Modal from "../Modal";
 import { useError } from "../../../../context/ErrorContext";
 import axiosInstance from "../../../../services/axiosInstance";
@@ -13,6 +13,7 @@ const RoomCard = ({
   room,
   onRoomUpdated,
   setAlert,
+  requestedUsers,
 }: {
   room: any;
   onRoomUpdated?: () => void;
@@ -20,6 +21,7 @@ const RoomCard = ({
     message: string;
     type?: "info" | "success" | "error";
   }) => void;
+  requestedUsers?: any[];
 }) => {
   const [showEdit, setShowEdit] = useState(false);
   const { setError } = useError();
@@ -96,17 +98,27 @@ const RoomCard = ({
       bed: null,
     });
     try {
-      const res = await axiosInstance.get(
-        `/tenant-service/tenants?ppid=${bed.tenantPpt}`
-      );
-      console.log(res.data[0]);
-      setBedModal({
-        open: true,
-        loading: false,
-        data: res.data[0],
-        error: null,
-        bed,
-      });
+      if (bed.tenantPpt) {
+        const res = await axiosInstance.get(
+          `/tenant-service/tenants?ppid=${bed.tenantPpt}`
+        );
+        console.log(res.data);
+        setBedModal({
+          open: true,
+          loading: false,
+          data: res.data[0],
+          error: null,
+          bed,
+        });
+      } else {
+        setBedModal({
+          open: true,
+          loading: false,
+          data: null,
+          error: null,
+          bed,
+        });
+      }
     } catch (err: any) {
       setBedModal({
         open: true,
@@ -128,19 +140,38 @@ const RoomCard = ({
         `/tenant-service/remove-tenant/${tenantId}`,
         data
       );
-      console.log(res.data);
+      console.log(res);
       setShowRemoveTenant(false);
       if (onRoomUpdated) onRoomUpdated();
       if (setAlert)
         setAlert({ message: "Tenant removed successfully!", type: "success" });
     } catch (err: any) {
       console.log(err);
-      setError(
-        err?.response?.data?.error || err?.error || "Failed to remove tenant."
-      );
+      setError(err?.response?.data?.error || err || "Failed to remove tenant.");
       if (setAlert)
         setAlert({
-          message: err?.response?.data?.error || "Failed to remove tenant.",
+          message: err || "Failed to remove tenant.",
+          type: "error",
+        });
+    }
+  };
+
+  const handleRetainTenant = async (vacateId: string) => {
+    try {
+      const res = await axiosInstance.post(
+        `/tenant-service/retain-tenant/${vacateId}`
+      );
+      console.log(res);
+      setShowRemoveTenant(false);
+      if (onRoomUpdated) onRoomUpdated();
+      if (setAlert)
+        setAlert({ message: "Tenant retained successfully!", type: "success" });
+    } catch (err: any) {
+      console.log(err);
+      setError(err?.response?.data?.error || err || "Failed to retain tenant.");
+      if (setAlert)
+        setAlert({
+          message: err || "Failed to retain tenant.",
           type: "error",
         });
     }
@@ -168,6 +199,18 @@ const RoomCard = ({
     }
   };
 
+  const [advanceBalance, setAdvanceBalance] = useState<any>();
+
+  useEffect(() => {
+    if (bedModal.data && bedModal.data.currentStay) {
+      setAdvanceBalance(
+        bedModal.data.currentStay.rentPaid - bedModal.data.currentStay.rent
+      );
+    } else {
+      setAdvanceBalance(undefined); // or 0, as appropriate
+    }
+  }, [bedModal.data]);
+
   // Add this state at the top of your component
   const [showUpdateRent, setShowUpdateRent] = useState(false);
 
@@ -181,7 +224,7 @@ const RoomCard = ({
       if (setAlert)
         setAlert({ message: "Rent updated successfully!", type: "success" });
     } catch (err: any) {
-      console.log(err)
+      console.log(err);
       if (setAlert) {
         setAlert({
           message: err?.response?.data?.error || "Failed to update rent.",
@@ -245,75 +288,186 @@ const RoomCard = ({
           />
         </Modal>
       )}
+      ...
+      {bedModal.open &&
+        bedModal.bed &&
+        (bedModal.bed.status === "occupied" ||
+          bedModal.bed.status === "noticeperiod") && (
+          <Modal
+            onClose={() =>
+              setBedModal({
+                open: false,
+                bed: null,
+                loading: true,
+                data: null,
+                error: null,
+              })
+            }
+            readonly
+          >
+            {(() => {
+              const tenantId = bedModal.data?.pgpalId;
+              const isPendingVacate = requestedUsers?.includes(tenantId);
 
-      {bedModal.open && bedModal.bed && bedModal.bed.status === "occupied" && (
-        <Modal
-          onClose={() =>
-            setBedModal({
-              open: false,
-              bed: null,
-              loading: true,
-              data: null,
-              error: null,
-            })
-          }
-          readonly
-        >
-          <div>
-            <div className="font-bold mb-2">Bed: {bedModal.bed.bedId}</div>
-            <div>
-              <span className="font-semibold">Name:</span> {bedModal.data.name}
-            </div>
-            <div>
-              <span className="font-semibold">Phone:</span>{" "}
-              {bedModal.data.phone}
-            </div>
-            <div>
-              <span className="font-semibold">Aadhar:</span>{" "}
-              {bedModal.data.aadhar}
-            </div>
-            <div>
-              <span className="font-semibold">Status:</span>{" "}
-              {bedModal.bed.tenantPpt}
-            </div>
-            <div>
-              <span className="font-semibold">In Notice Period:</span>{" "}
-              {bedModal.data.In_Notice_Period ? "Yes" : "No"}
-            </div>
-            <div>
-              <span className="font-semibold">Assigned At:</span>{" "}
-              {bedModal.data.currentStay?.assignedAt
-                ? new Date(
-                    bedModal.data.currentStay.assignedAt
-                  ).toLocaleString()
-                : "N/A"}
-            </div>
-            {/* Add more tenant details as needed */}
-            <button
-              className="mt-4 bg-red-600 text-white px-4 py-2 rounded"
-              onClick={() => {
-                setRemoveTenantBed(bedModal.bed); // <-- store the bed to remove
-                setShowRemoveTenant(true);
-                setBedModal({
-                  open: false,
-                  bed: null,
-                  loading: true,
-                  data: null,
-                  error: null,
-                });
-              }}
-            >
-              Remove Tenant
-            </button>
-            <button
-              className="mt-4 ml-2 bg-green-600 text-white px-4 py-2 rounded"
-              onClick={() => setShowUpdateRent(true)}
-            >
-              Update Rent
-            </button>
-          </div>
-        </Modal>
-      )}
+              if (isPendingVacate) {
+                return (
+                  <div>
+                    <div className="font-bold mb-2">
+                      Bed: {bedModal.bed.bedId}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Name:</span>{" "}
+                      {bedModal.data.name}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Phone:</span>{" "}
+                      {bedModal.data.phone}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Aadhar:</span>{" "}
+                      {bedModal.data.aadhar}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Status:</span>{" "}
+                      {bedModal.data.status}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Rent Paid:</span>{" "}
+                      {bedModal.data.currentStay.rentPaid}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Rent Due:</span>{" "}
+                      {bedModal.data.currentStay.rentDue}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Deposit:</span>{" "}
+                      {bedModal.data.currentStay.deposit}
+                    </div>
+                    {advanceBalance > 0 && (
+                      <div>
+                        <span className="font-semibold">Extra Payment:</span>{" "}
+                        {advanceBalance}
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-semibold">In Notice Period:</span>{" "}
+                      {bedModal.data.In_Notice_Period ? "Yes" : "No"}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Assigned At:</span>{" "}
+                      {bedModal.data.currentStay?.assignedAt
+                        ? new Date(
+                            bedModal.data.currentStay.assignedAt
+                          ).toLocaleString()
+                        : "N/A"}
+                    </div>
+                    {/* Approve/Reject Vacate Buttons */}
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        className="bg-green-600 text-white px-4 py-2 rounded"
+                        onClick={() => {
+                          // handleApproveVacate(tenantId)
+                        }}
+                      >
+                        Approve Vacate
+                      </button>
+                      <button
+                        className="bg-red-600 text-white px-4 py-2 rounded"
+                        onClick={() => {
+                          // handleRejectVacate(tenantId)
+                        }}
+                      >
+                        Reject Vacate
+                      </button>
+                    </div>
+                    <button
+                      className="mt-4 ml-2 bg-green-600 text-white px-4 py-2 rounded"
+                      onClick={() => setShowUpdateRent(true)}
+                    >
+                      Update Rent
+                    </button>
+                  </div>
+                );
+              } else {
+                return (
+                  <div>
+                    <div className="font-bold mb-2">
+                      Bed: {bedModal.bed.bedId}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Name:</span>{" "}
+                      {bedModal.data.name}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Phone:</span>{" "}
+                      {bedModal.data.phone}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Aadhar:</span>{" "}
+                      {bedModal.data.aadhar}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Status:</span>{" "}
+                      {bedModal.data.status}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Rent Paid:</span>{" "}
+                      {bedModal.data.currentStay.rentPaid}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Rent Due:</span>{" "}
+                      {bedModal.data.currentStay.rentDue}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Deposit:</span>{" "}
+                      {bedModal.data.currentStay.deposit}
+                    </div>
+                    {advanceBalance > 0 && (
+                      <div>
+                        <span className="font-semibold">Extra Payment:</span>{" "}
+                        {advanceBalance}
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-semibold">In Notice Period:</span>{" "}
+                      {bedModal.data.In_Notice_Period ? "Yes" : "No"}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Assigned At:</span>{" "}
+                      {bedModal.data.currentStay?.assignedAt
+                        ? new Date(
+                            bedModal.data.currentStay.assignedAt
+                          ).toLocaleString()
+                        : "N/A"}
+                    </div>
+                    <button
+                      className="mt-4 bg-red-600 text-white px-4 py-2 rounded"
+                      onClick={() => {
+                        setRemoveTenantBed(bedModal.bed);
+                        setShowRemoveTenant(true);
+                        setBedModal({
+                          open: false,
+                          bed: null,
+                          loading: true,
+                          data: null,
+                          error: null,
+                        });
+                      }}
+                    >
+                      Remove Tenant
+                    </button>
+                    <button
+                      className="mt-4 ml-2 bg-green-600 text-white px-4 py-2 rounded"
+                      onClick={() => setShowUpdateRent(true)}
+                    >
+                      Update Rent
+                    </button>
+                  </div>
+                );
+              }
+            })()}
+          </Modal>
+        )}
       {showRemoveTenant && (
         <Modal onClose={() => setShowRemoveTenant(false)}>
           <RemoveTenantForm

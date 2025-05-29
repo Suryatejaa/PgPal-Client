@@ -16,6 +16,7 @@ import StayHistory from "../../tenant/components/sections/StayHistory";
 import NearbyPGsSection from "../../property/components/sections/NearBySection";
 import axiosInstance from "../../../services/axiosInstance";
 import TenantLandingPage from "../../tenant/components/sections/TenantLandingPage";
+import TenantProfileSidebar from "../components/TenantProfileSidebar";
 
 const SECTION_LIST = [
   { key: "overview", label: "Property" },
@@ -59,6 +60,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
 
   const currentStayAndNearByPGs = () => {
     getCurrentStay().then((res) => {
+      console.log(res.data?.currentStay);
       const stay = res.data?.currentStay;
       setCurrentStay(stay);
       setLoading(false);
@@ -85,6 +87,12 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
           );
         }
       }
+    })
+    .catch((err) => {
+      console.error("Error fetching current stay:", err);
+      setLoading(false);
+      setCurrentStay(null);
+      setNearbyPGs([]);
     });
   };
 
@@ -226,7 +234,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
               }
               lat={currentStay.location?.coordinates?.[1]}
               lng={currentStay.location?.coordinates?.[0]}
-              isInNoticePeriod={currentStay.isInNoticePeriod}
+              isInNoticePeriod={currentStay.status === "noticeperiod"}
               noticePeriodStartDate={currentStay.noticePeriodStartDate}
               noticePeriodEndDate={currentStay.noticePeriodEndDate}
             />
@@ -245,6 +253,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
                   userId={userId}
                   userPgPalId={profileProps.profile?.pgpalId}
                   onVacateChange={() => setRefreshStayKey((k) => k + 1)}
+                  curretStay={currentStay}
                 />
               )}
               {selectedSection === "history" && (

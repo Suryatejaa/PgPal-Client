@@ -197,15 +197,17 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     setErrors({}); // Clear previous errors
-
+    
     if (form.password !== form.confirmPassword) {
       setErrors({ confirmPassword: "Passwords do not match" });
       setLoading(false);
       return;
     }
-
+    
     try {
-      await dispatch(registerUser(form)).unwrap();
+      const res = await dispatch(registerUser(form)).unwrap();
+      console.log('otp mode enabled');
+      console.log(res);
       setOtpMode(true); // Enable OTP input mode
     } catch (err: any) {
       if (err.errors) {

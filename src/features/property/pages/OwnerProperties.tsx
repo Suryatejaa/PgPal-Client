@@ -48,6 +48,7 @@ const OwnerProperties: React.FC<{
     message: string;
     type?: "info" | "success" | "error";
   } | null>(null);
+  const [requestedUsers, setRequestedUsers] = useState<string[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -93,6 +94,7 @@ const OwnerProperties: React.FC<{
     setShowForm(false);
   };
 
+  // console.log(requestedUsers)
   // Handle add card click (open form)
   const handleAddCardClick = () => {
     setShowForm(true);
@@ -288,10 +290,14 @@ const OwnerProperties: React.FC<{
               userName={userName}
               userRole={userRole}
               isOwner={selectedProperty?.ownerId === userId}
+              setRequestedUsers={setRequestedUsers}
             />
           )}
           {selectedSection === "rooms" && (
-            <RoomsSection property={selectedProperty} />
+            <RoomsSection
+              property={selectedProperty}
+              requestedUsers={requestedUsers}
+            />
           )}
           {selectedSection === "tenants" && (
             <TenantsSection property={selectedProperty} userId={userId} />

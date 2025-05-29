@@ -36,13 +36,21 @@ const TenantSection = ({
   const [tenants, setTenants] = useState<any[]>([]);
   const [vacates, setVacates] = useState<any[]>([]);
   const [filter, setFilter] = useState(
-      () => sessionStorage.getItem("tenantFilter") || "active"
-    );
+    () => sessionStorage.getItem("tenantFilter") || "active"
+  );
   const [showForm, setShowForm] = useState(false);
   const [alert, setAlert] = useState<{
     message: string;
     type?: "info" | "success" | "error";
   } | null>(null);
+
+  if (!property || !property._id) {
+    return (
+      <div className="text-red-500 text-center mt-4">
+        Property not found or invalid property ID.
+      </div>
+    );
+  }
 
   const [rooms, setRooms] = useState<any[]>([]);
   const [removingTenantId, setRemovingTenantId] = useState<string | null>(null);
@@ -77,10 +85,12 @@ const TenantSection = ({
   const handleRemoveTenant = async (tenantId: string, data: any) => {
     try {
       const res = await removeTenant(tenantId, data);
+      console.log(res)
       setAlert({ message: "Tenant removed successfully", type: "success" });
       setRemovingTenantId(null);
       fetchData();
     } catch (err: any) {
+      console.log(err)
       setAlert({ message: "Failed to remove tenant", type: "error" });
     }
   };
@@ -89,12 +99,9 @@ const TenantSection = ({
 
   const handleRetainTenant = async (vacate: any) => {
     try {
+      // console.log(vacate)
       // ✅ Use the roomId and bedId from the vacate record being shown
-      const res = await retainTenant(vacate._id, {
-        roomId: vacate.roomId,
-        bedId: vacate.bedId,
-        // ...any other required fields
-      });
+      const res = await retainTenant(vacate);
       console.log(res);
       setAlert({ message: "Tenant retained successfully", type: "success" });
       setRetainConfirm(null);
@@ -113,16 +120,19 @@ const TenantSection = ({
     } catch (err: any) {
       if (err.response.data.error === "Tenant not found") {
         setAlert({
-          message: "No tenants found for this property",type: "info",
+          message: "No tenants found for this property",
+          type: "info",
         });
-      } else {        
+      } else {
         setAlert({ message: "Failed to fetch tenants", type: "error" });
       }
       setTenants([]);
     }
+
     try {
       const vacateRes = await fetchVacateHistory(property.pgpalId);
-      setVacates(vacateRes.data || []);
+      console.log(vacateRes.data);
+      setVacates(Array.isArray(vacateRes.data.vacateHistory) ? vacateRes.data.vacateHistory : []);
     } catch {
       setVacates([]);
     }
@@ -135,27 +145,10 @@ const TenantSection = ({
 
   // Filter tenants
   const filteredTenants = tenants.filter((t) => {
-    if (filter === "active") return t.status === "active";
-    // if (filter === "inactive") {
-    //   if (t.status === "inactive") {
-    //     // Find latest stayHistory entry for this property
-    //     const latestStay =
-    //       t.stayHistory && t.stayHistory.length
-    //         ? t.stayHistory
-    //             .filter((s: any) => s.propertyId === property.pgpalId)
-    //             .sort(
-    //               (a: any, b: any) =>
-    //                 new Date(b.to).getTime() - new Date(a.to).getTime()
-    //             )[0]
-    //         : null;
-    //     // If latest stay is in notice period, include
-    //     if (latestStay && latestStay.isInNoticePeriod) return true;
-    //   }
-    //   return false;
-    // }
+    if (filter === "active") return t.status === "active" && !t.In_Notice_Period;
     if (filter === "inactive") {
-      console.log(t.status === "inactive" && t.isInNoticePeriod);
-      return t.status === "inactive" && t.isInNoticePeriod;
+      // console.log(t.status === "active" && t.In_Notice_Period);
+      return t.status === "active" && t.In_Notice_Period;
     }
     if (filter === "paid") return t.currentStay?.rentPaidStatus === "paid";
     if (filter === "unpaid") return t.currentStay?.rentPaidStatus === "unpaid";
@@ -198,7 +191,13 @@ const TenantSection = ({
     }
   };
 
-  const occupiedBeds = tenants.map((t) => t.currentStay?.bedId).filter(Boolean);
+  const occupiedBeds = tenants
+    .filter((t) => t.currentStay?.bedId && t.pgpalId)
+    .map((t) => ({
+      bedId: t.currentStay.bedId,
+      tenantId: t.pgpalId,
+    }));
+  // console.log(occupiedBeds)
 
   function matchesSearch(item: any) {
     const q = search.trim().toLowerCase();
@@ -216,16 +215,12 @@ const TenantSection = ({
 
   // For active/inactive/paid/unpaid
   const filteredTenantsWithSearch = filteredTenants.filter(matchesSearch);
+  const filteredVacatesWithSearch = (vacates || []).filter(matchesSearch);
+  const filteredInactiveVacatesWithSearch = (vacates || []).filter((v) => {
+    return v.status === "noticeperiod";
+  }).filter(matchesSearch);
 
-  // For past
-  const filteredVacatesWithSearch = vacates.filter(matchesSearch);
-
-  // For inactive
-  const filteredInactiveVacatesWithSearch = vacates
-    .filter(
-      (v) => v.status === "noticeperiod" && v.propertyId === property.pgpalId
-    )
-    .filter(matchesSearch);
+  // console.log(filteredInactiveVacatesWithSearch);
 
   const tenantsByFloorFiltered = React.useMemo(() => {
     const groups: Record<string, any[]> = {};
@@ -240,11 +235,9 @@ const TenantSection = ({
 
   const getTenantFilterCount = (key: string) => {
     if (key === "active")
-      return tenants.filter((t) => t.status === "active").length;
+      return tenants.filter((t) => t.status === "active" && !t.In_Notice_Period).length;
     if (key === "inactive") {
-      return vacates.filter(
-        (t) => t.status === "noticeperiod" && t.propertyId === property.pgpalId
-      ).length;
+      return tenants.filter((t) => t.In_Notice_Period).length;
     }
     if (key === "paid")
       return tenants.filter((t) => t.currentStay?.rentPaidStatus === "paid")
@@ -303,14 +296,14 @@ const TenantSection = ({
         ) : filter === "past" ? (
           <PastTenantsList
             vacates={filteredVacatesWithSearch}
-            onRetain={(v) => setRetainConfirm(v)}
             userId={userId}
-            occupiedBeds={occupiedBeds}
           />
         ) : filter === "inactive" ? (
           <InactiveTenantsList
             vacates={filteredInactiveVacatesWithSearch}
             propertyId={property.pgpalId}
+            onRetain={(v) => setRetainConfirm(v)}
+            occupiedBeds={occupiedBeds}
           />
         ) : (
           <TenantListByFloor
@@ -340,6 +333,7 @@ const TenantSection = ({
             onSubmit={(data: any) => handleRemoveTenant(removingTenantId, data)}
             onCancel={() => setRemovingTenantId(null)}
             isVacate={false}
+           
           />
         </Modal>
       )}

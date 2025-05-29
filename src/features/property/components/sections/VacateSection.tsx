@@ -2,21 +2,26 @@ import React, { useState, useEffect } from "react";
 import Modal from "../Modal";
 import RemoveTenantForm from "../../../tenant/components/RemoveTenant";
 import axiosInstance from "../../../../services/axiosInstance";
+import GlobalAlert from "../../../../components/GlobalAlert";
 
 const VacateSection = ({
   propertyId,
   userPgPalId,
   onVacateChange,
+  currentStay,
 }: {
   propertyId: string;
   userPgPalId: any;
   onVacateChange?: () => void;
+  currentStay?: any;
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [vacateRequest, setVacateRequest] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [alert, setAlert] = useState<string | null>(null);
+  const [globalAlert, setGlobalAlert] = useState<string | null>(null);
+  const [pendingApproval, setPendingApproval] = useState(false);
 
   // Fetch current vacate request for this tenant/property
   useEffect(() => {
@@ -26,7 +31,15 @@ const VacateSection = ({
         const res = await axiosInstance.get(
           `/tenant-service/vacate-request/${propertyId}/${userPgPalId}`
         );
-        setVacateRequest(res.data || null);
+        const vacateReq = res.data?.vacateRequests?.find(
+          (req: any) => req.status === "noticeperiod"
+        );
+        setVacateRequest(vacateReq || null);
+
+        const pendingReq = res.data?.vacateRequests?.find(
+          (req: any) => req.status === "pending_owner_approval"
+        );
+        setPendingApproval(!!pendingReq);
       } catch {
         setVacateRequest(null);
       } finally {
@@ -40,18 +53,27 @@ const VacateSection = ({
   const handleVacate = async (data: any) => {
     setActionLoading(true);
     setAlert(null);
+    setGlobalAlert(null);
     try {
       const res = await axiosInstance.post("/tenant-service/vacate", {
         ...data,
       });
       setAlert(
-        res.data?.Comments?.closureNote || "Vacate request created successfully"
+        res.data?.message ||
+          res.data?.error ||
+          res.data?.details?.status ||
+          "Vacate request created successfully"
       );
       setShowModal(false);
-      setVacateRequest(res.data);
+      setVacateRequest(res.data.vacateRequest || res.data);
       if (onVacateChange) onVacateChange();
     } catch (e: any) {
-      setAlert(e?.response?.data?.error || "Failed to raise vacate request");
+      // Show server error message in GlobalAlert if present, else fallback
+      setGlobalAlert(
+        e?.response?.data?.error ||
+          e?.response?.data?.message ||
+          "Failed to raise vacate request"
+      );
     } finally {
       setActionLoading(false);
     }
@@ -61,13 +83,18 @@ const VacateSection = ({
   const handleWithdraw = async () => {
     setActionLoading(true);
     setAlert(null);
+    setGlobalAlert(null);
     try {
-      const res = await axiosInstance.post("/tenant-service/withdraw-vacate");
+      const res = await axiosInstance.post("/tenant-service/withdraw-vacate", {
+        vacateRequestId: vacateRequest._id,
+      });
       setAlert(res.data?.message || "Vacate request withdrawn successfully");
       setVacateRequest(null);
       if (onVacateChange) onVacateChange();
     } catch (e: any) {
-      setAlert(e?.response?.data?.error || "Failed to withdraw vacate request");
+      setGlobalAlert(
+        e?.response?.data?.error || "Failed to withdraw vacate request"
+      );
     } finally {
       setActionLoading(false);
     }
@@ -80,47 +107,35 @@ const VacateSection = ({
     }
   }, [alert]);
 
-  let latestVacate = null;
-  if (Array.isArray(vacateRequest) && vacateRequest.length > 0) {
-    // Only consider requests that are not completed/vacated
-    const activeRequests = vacateRequest.filter(
-      (req) =>
-        req.status !== "completed" &&
-        req.status !== "vacated" &&
-        req.status !== "closed"
-    );
-    if (activeRequests.length > 0) {
-      latestVacate = activeRequests.reduce((latest, curr) =>
-        new Date(curr.createdAt) > new Date(latest.createdAt) ? curr : latest
-      );
-    }
-  }
-
-  const canWithdraw =
-    latestVacate &&
-    !latestVacate.removedByOwner &&
-    latestVacate.vacateRaisedAt &&
-    Date.now() - new Date(latestVacate.vacateRaisedAt).getTime() <
-      7 * 24 * 60 * 60 * 1000;
-
+  // Withdraw window logic (7 days from vacateRaisedAt)
+  let canWithdraw = false;
   let withdrawNote = "";
-  if (canWithdraw && latestVacate?.vacateRaisedAt) {
-    const withdrawEnd = new Date(
-      new Date(latestVacate.vacateRaisedAt).getTime() + 7 * 24 * 60 * 60 * 1000
-    );
-    withdrawNote = `You can withdraw this request until ${withdrawEnd.toLocaleDateString(
-      undefined,
-      {
+  if (vacateRequest && vacateRequest.vacateRaisedAt) {
+    const raisedAt = new Date(vacateRequest.vacateRaisedAt).getTime();
+    const now = Date.now();
+    const withdrawEnd = raisedAt + 7 * 24 * 60 * 60 * 1000;
+    canWithdraw = !vacateRequest.removedByOwner && now < withdrawEnd;
+    if (canWithdraw) {
+      withdrawNote = `You can withdraw this request until ${new Date(
+        withdrawEnd
+      ).toLocaleDateString(undefined, {
         weekday: "short",
         day: "numeric",
         month: "short",
         year: "numeric",
-      }
-    )}`;
+      })}`;
+    }
   }
 
   return (
     <div className="bg-white/80 rounded-xl shadow-lg p-6 border border-purple-200">
+      {globalAlert && (
+        <GlobalAlert
+          type="error"
+          message={globalAlert}
+          onClose={() => setGlobalAlert(null)}
+        />
+      )}
       {alert && (
         <div className="mb-3 text-sm text-green-700 bg-green-100 rounded px-3 py-2">
           {alert}
@@ -128,41 +143,41 @@ const VacateSection = ({
       )}
       {loading ? (
         <div>Loading...</div>
-      ) : latestVacate ? (
+      ) : vacateRequest ? (
         <div>
           <div className="mb-2 font-semibold text-purple-700">
             Vacate Request Status:{" "}
             <span className="text-black">{vacateRequest.status}</span>
           </div>
           <div className="mb-2 text-sm">
-            <b>Reason:</b> {latestVacate.reason}
+            <b>Reason:</b> {vacateRequest.reason}
             <br />
             <b>Immediate Vacate:</b>{" "}
-            {latestVacate.isImmediateVacate ? "Yes" : "No"}
+            {vacateRequest.isImmediateVacate ? "Yes" : "No"}
             <br />
-            <b>Deposit:</b>
-            {latestVacate.isDeppositRefunded
+            <b>Deposit:</b>{" "}
+            {vacateRequest.isDeppositRefunded
               ? "Refunded"
-              : `${latestVacate.previousSnapshot.deposit}`}
+              : vacateRequest.tenantDepositInfo || "-"}
             <br />
             <b>Vacate Date:</b>{" "}
-            {latestVacate.vacateDate
-              ? new Date(latestVacate.vacateDate).toLocaleDateString()
+            {vacateRequest.vacateDate
+              ? new Date(vacateRequest.vacateDate).toLocaleDateString()
               : "-"}
           </div>
           <div className="mb-1 text-xs text-gray-600">
-            {latestVacate.status === "noticeperiod" && (
+            {vacateRequest.status === "noticeperiod" && (
               <>
                 <b>Notice Period:</b>{" "}
-                {latestVacate.noticePeriodStartDate
+                {vacateRequest.noticePeriodStartDate
                   ? new Date(
-                      latestVacate.noticePeriodStartDate
+                      vacateRequest.noticePeriodStartDate
                     ).toLocaleDateString()
                   : "-"}{" "}
                 to{" "}
-                {latestVacate.noticePeriodEndDate
+                {vacateRequest.noticePeriodEndDate
                   ? new Date(
-                      latestVacate.noticePeriodEndDate
+                      vacateRequest.noticePeriodEndDate
                     ).toLocaleDateString()
                   : "-"}
               </>
@@ -174,7 +189,7 @@ const VacateSection = ({
             </div>
           )}
           {canWithdraw ? (
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2 mt-1">
               <button
                 className="bg-red-600 text-white px-4 py-2 rounded"
                 onClick={handleWithdraw}
@@ -183,9 +198,9 @@ const VacateSection = ({
                 Withdraw Vacate Request
               </button>
             </div>
-          ) : latestVacate.removedByOwner ? (
+          ) : vacateRequest.removedByOwner ? (
             <h3 className="text-red-600">
-              <b>You had been remove by Owner, contact owner to re-join.</b>
+              <b>You had been removed by Owner, contact owner to re-join.</b>
             </h3>
           ) : (
             <div className="text-gray-500 text-sm">
@@ -196,17 +211,25 @@ const VacateSection = ({
       ) : (
         <div>
           <button
-            className="bg-red-700 text-white px-4 py-2 rounded hover:bg-purple-800 transition"
+            className="bg-red-700 text-white px-4 py-2 rounded hover:bg-purple-800 transition disabled:opacity-60"
             onClick={() => setShowModal(true)}
+            disabled={pendingApproval}
           >
             Raise Vacate Request
           </button>
+          {pendingApproval && (
+            <div className="text-xs text-yellow-700 mt-2">
+              You have already raised a vacate request. Waiting for owner
+              approval.
+            </div>
+          )}
           {showModal && (
             <Modal onClose={() => setShowModal(false)}>
               <RemoveTenantForm
                 onSubmit={handleVacate}
                 onCancel={() => setShowModal(false)}
                 isVacate={true}
+                currentStay={currentStay}
               />
             </Modal>
           )}

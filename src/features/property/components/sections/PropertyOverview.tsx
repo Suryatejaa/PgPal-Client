@@ -19,12 +19,14 @@ const PropertyOverview = ({
   rules,
   userId,
   onVacateChange,
+  currentStay
 }: {
   overview: any;
   userPgPalId?: string;
     rules?: any;
   userId?: string;
-  onVacateChange?: () => void;
+    onVacateChange?: () => void;
+  currentStay?: any;
 }) => {
   const [selectedSubSection, setSelectedSubSection] = useState(
     () => sessionStorage.getItem("tenantSubSelectedSection") || "overview"
@@ -232,6 +234,7 @@ const PropertyOverview = ({
               propertyId={overview.pgpalId}
               userPgPalId={userPgPalId}
               onVacateChange={onVacateChange}
+              currentStay={currentStay}
             />
           </div>
         )}

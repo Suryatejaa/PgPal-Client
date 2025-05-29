@@ -80,16 +80,8 @@ export const registerUser = createAsyncThunk<
     const res = await axiosInstance.post(`${API_BASE}/register`, payload, {
       withCredentials: true,
     });
-
-    const { authToken, refreshToken, user } = res.data;
-
-    return {
-      ...user,
-      name: user.username || user.name,
-      phone: user.phoneNumber || user.phone,
-      token: authToken,
-      refreshToken,
-    };
+    // Just return the backend response (could be { message: "OTP sent" })
+    return res.data;
   } catch (err: any) {
     return thunkAPI.rejectWithValue(
       err.response?.data?.message || "Register failed"

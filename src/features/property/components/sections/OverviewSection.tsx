@@ -1,15 +1,18 @@
 import React, { use, useEffect, useState } from "react";
 import PropertyOverview from "../../../dashboard/components/PropertyOverview";
+import axiosInstance from "../../../../services/axiosInstance";
 import PropertyStats from "./StatsComponent";
 import AmenitiesSection from "./AmenitiesSection";
 import RulesSection from "./RulesSection";
 import ReviewsSection from "./ReviewsSection";
+import ApprovalSection from "./ApprovalSection";
 
 const OVERVIEW_TABS = [
   { key: "stats", label: "Stats" },
   { key: "amenities", label: "Amenities" },
   { key: "rules", label: "Rules" },
   { key: "reviews", label: "Reviews" },
+  { key: "approvals", label: "Approvals" },
 ];
 
 const OverviewSection = ({
@@ -18,21 +21,35 @@ const OverviewSection = ({
   userName,
   userRole,
   isOwner,
+  setRequestedUsers
 }: {
   property: any;
   userId: string;
   userName: string;
   userRole: string;
   isOwner: boolean;
+  setRequestedUsers: (users: any[]) => void;
 }) => {
   const [selectedTab, setSelectedTab] = useState(
     () => sessionStorage.getItem("selectedTab") || "stats"
   );
+  const [approvalCount, setApprovalCount] = useState(0);
   // console.log(property)
   useEffect(() => {
     // Save selected tab to session storage
     sessionStorage.setItem("selectedTab", selectedTab);
   }, [selectedTab]);
+
+  const handleAction = (approvalId: string, action: "approve" | "reject") => {
+    // Handle the approval or rejection action
+    try {
+      axiosInstance.post(`/tenant-service/vacates/${approvalId}/${action}`);
+    } catch (error) {
+      console.error("Error handling approval action:", error);
+    }
+    console.log(`Approval ID: ${approvalId}, Action: ${action}`);
+  };
+
   return (
     <div className="relative">
       {/* Sticky filter bar */}
@@ -52,6 +69,11 @@ const OverviewSection = ({
               }`}
           >
             {tab.label}
+            {tab.key === "approvals" && approvalCount > 0 && (
+              <span className="ml-1 text-xs text-red-600">
+                ({approvalCount})
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -89,6 +111,20 @@ const OverviewSection = ({
             userName={userName}
             userRole={userRole}
             isOwner={isOwner}
+          />
+        )}
+        {selectedTab === "approvals" && (
+          <ApprovalSection
+            propertyId={property.pgpalId}
+            userId={userId}
+            userName={userName}
+            userRole={userRole}
+            isOwner={isOwner}
+            handleAction={handleAction}
+            setCount={(c: number) => {
+              setApprovalCount(c);
+            }}
+            setRequestedUsers={setRequestedUsers}
           />
         )}
       </div>

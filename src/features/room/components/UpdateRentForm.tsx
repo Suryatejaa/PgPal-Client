@@ -43,6 +43,7 @@ const UpdateRentForm = ({ tenant, onSubmit, onCancel }: any) => {
           value={rentPaidDate}
           onChange={(e) => setRentPaidDate(e.target.value)}
           className="border rounded px-2 py-1 w-full"
+          max={new Date().toISOString().split("T")[0]} // Prevent future dates
         />
       </div>
       <div>
