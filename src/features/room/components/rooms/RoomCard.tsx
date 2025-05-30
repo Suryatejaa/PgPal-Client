@@ -14,6 +14,7 @@ const RoomCard = ({
   onRoomUpdated,
   setAlert,
   requestedUsers,
+  goToApprovals,
 }: {
   room: any;
   onRoomUpdated?: () => void;
@@ -22,6 +23,7 @@ const RoomCard = ({
     type?: "info" | "success" | "error";
   }) => void;
   requestedUsers?: any[];
+  goToApprovals: () => void;
 }) => {
   const [showEdit, setShowEdit] = useState(false);
   const { setError } = useError();
@@ -234,7 +236,29 @@ const RoomCard = ({
     }
   };
 
+  useEffect(() => {
+    if (
+      bedModal.open &&
+      bedModal.bed &&
+      (bedModal.bed.status === "occupied" ||
+        bedModal.bed.status === "noticeperiod")
+    ) {
+      // Re-fetch tenant data if modal is open and requestedUsers changes
+      handleOccupiedBedClick(bedModal.bed);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedUsers]);
+
+  const tenantId = bedModal.bed?.tenantPpt;
+  const isPendingVacate =
+    tenantId &&
+    Array.isArray(requestedUsers) &&
+    requestedUsers.includes(tenantId);
+
   // console.log(bedModal)
+  if (tenantId && requestedUsers) {
+    console.log("tenantId", tenantId, "requestedUsers", requestedUsers);
+  }
 
   return (
     <div className="bg-white rounded-lg shadow p-4 border border-gray-200">
@@ -362,24 +386,16 @@ const RoomCard = ({
                         : "N/A"}
                     </div>
                     {/* Approve/Reject Vacate Buttons */}
-                    <div className="flex gap-2 mt-4">
-                      <button
-                        className="bg-green-600 text-white px-4 py-2 rounded"
-                        onClick={() => {
-                          // handleApproveVacate(tenantId)
-                        }}
-                      >
-                        Approve Vacate
-                      </button>
-                      <button
-                        className="bg-red-600 text-white px-4 py-2 rounded"
-                        onClick={() => {
-                          // handleRejectVacate(tenantId)
-                        }}
-                      >
-                        Reject Vacate
-                      </button>
-                    </div>
+                    <p className="bg-yellow-200 rounded-lg p-2 mt-1 -mb-1">
+                      A immediate vacate has been requested for this bed.
+                    </p>
+                    <button
+                      className="bg-yellow-200 text-black px-4 py-2 rounded"
+                      onClick={goToApprovals}
+                    >
+                      Approve/Reject
+                    </button>
+
                     <button
                       className="mt-4 ml-2 bg-green-600 text-white px-4 py-2 rounded"
                       onClick={() => setShowUpdateRent(true)}
@@ -475,42 +491,54 @@ const RoomCard = ({
               handleRemoveTenant(removeTenantBed.tenantPpt, data)
             }
             onCancel={() => setShowRemoveTenant(false)}
+            isVacate={false}
+            currentStay={{
+              rentDue: removeTenantBed?.currentStay?.rentDue,
+              rentPaidStatus: removeTenantBed?.currentStay?.rentPaidStatus,
+              deposit: removeTenantBed?.currentStay?.deposit,
+            }}
           />
         </Modal>
       )}
-      {bedModal.open && bedModal.bed && bedModal.bed.status === "vacant" && (
-        <Modal
-          onClose={() =>
-            setBedModal({
-              open: false,
-              bed: null,
-              loading: true,
-              data: null,
-              error: null,
-            })
-          }
-          readonly
-        >
-          <div>
-            <div className="font-bold mb-2">Bed: {bedModal.bed.bedId}</div>
-            <div>Status: Vacant</div>
-            <button
-              className="mt-4 bg-purple-600 text-white px-4 py-2 rounded"
-              onClick={() => {
-                setShowAddTenant(true);
-                setBedModal({
-                  open: false,
-                  bed: null,
-                  loading: true,
-                  data: null,
-                  error: null,
-                });
-              }}
-            >
-              Assign Tenant
-            </button>
-          </div>
-        </Modal>
+      {bedModal.loading || !bedModal.data ? (
+        <div>Loading...</div>
+      ) : (
+        bedModal.open &&
+        bedModal.bed &&
+        bedModal.bed.status === "vacant" && (
+          <Modal
+            onClose={() =>
+              setBedModal({
+                open: false,
+                bed: null,
+                loading: true,
+                data: null,
+                error: null,
+              })
+            }
+            readonly
+          >
+            <div>
+              <div className="font-bold mb-2">Bed: {bedModal.bed.bedId}</div>
+              <div>Status: Vacant</div>
+              <button
+                className="mt-4 bg-purple-600 text-white px-4 py-2 rounded"
+                onClick={() => {
+                  setShowAddTenant(true);
+                  setBedModal({
+                    open: false,
+                    bed: null,
+                    loading: true,
+                    data: null,
+                    error: null,
+                  });
+                }}
+              >
+                Assign Tenant
+              </button>
+            </div>
+          </Modal>
+        )
       )}
       {showAddTenant && (
         <Modal onClose={() => setShowAddTenant(false)}>

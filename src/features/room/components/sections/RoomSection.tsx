@@ -9,9 +9,11 @@ import GlobalAlert from "../../../../components/GlobalAlert"; // adjust path as 
 const RoomsSection = ({
   property,
   requestedUsers,
+  goToApprovals
 }: {
   property: any;
   requestedUsers?: any[];
+  goToApprovals: () => void;
 }) => {
   const [rooms, setRooms] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -273,6 +275,7 @@ const RoomsSection = ({
                       onRoomUpdated={fetchRooms}
                       setAlert={setAlert}
                       requestedUsers={requestedUsers}
+                      goToApprovals={goToApprovals}
                     />
                   ))}
                 </div>

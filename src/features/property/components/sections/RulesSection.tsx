@@ -69,7 +69,6 @@ const RulesSection = ({
       setAlert({ message: "Failed to delete rule", type: "error" });
     }
   };
-  console.log(isOwner, userId);
 
   return (
     <div className="bg-white rounded-xl shadow p-4 mt-4 text-black">

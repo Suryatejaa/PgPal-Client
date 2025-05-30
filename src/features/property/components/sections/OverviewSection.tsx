@@ -6,6 +6,7 @@ import AmenitiesSection from "./AmenitiesSection";
 import RulesSection from "./RulesSection";
 import ReviewsSection from "./ReviewsSection";
 import ApprovalSection from "./ApprovalSection";
+import GlobalAlert from "../../../../components/GlobalAlert";
 
 const OVERVIEW_TABS = [
   { key: "stats", label: "Stats" },
@@ -21,38 +22,80 @@ const OverviewSection = ({
   userName,
   userRole,
   isOwner,
-  setRequestedUsers
+  requestedUsers,
+  loading = false,
+  approvals,
+  count,
+  selectTab,
+  setSelectTab,
+  onApprovalAction,
 }: {
   property: any;
   userId: string;
   userName: string;
   userRole: string;
   isOwner: boolean;
-  setRequestedUsers: (users: any[]) => void;
+  requestedUsers: any[];
+  loading?: boolean;
+  approvals: any[];
+  count: number;
+  selectTab?: string;
+  setSelectTab?: (tab: string) => void;
+  onApprovalAction?: () => void;
 }) => {
-  const [selectedTab, setSelectedTab] = useState(
-    () => sessionStorage.getItem("selectedTab") || "stats"
-  );
-  const [approvalCount, setApprovalCount] = useState(0);
-  // console.log(property)
-  useEffect(() => {
-    // Save selected tab to session storage
-    sessionStorage.setItem("selectedTab", selectedTab);
-  }, [selectedTab]);
+  const [localApprovals, setLocalApprovals] = useState(approvals);
+  const [alert, setAlert] = useState<{
+    message: string;
+    type?: "info" | "success" | "error";
+  } | null>(null);
 
-  const handleAction = (approvalId: string, action: "approve" | "reject") => {
-    // Handle the approval or rejection action
+  useEffect(() => {
+    setLocalApprovals(approvals);
+  }, [approvals]);
+
+  const [localCount, setLocalCount] = useState(count);
+  useEffect(() => {
+    setLocalCount(count);
+  }, [count]);
+
+  const handleAction = async (
+    approvalId: string,
+    action: "approve" | "reject"
+  ) => {
     try {
-      axiosInstance.post(`/tenant-service/vacates/${approvalId}/${action}`);
+      await axiosInstance.post(
+        `/tenant-service/vacates/${approvalId}/${action}`
+      );
+      setLocalApprovals((prev) => prev.filter((a) => a._id !== approvalId));
+      setLocalCount((prev) => prev - 1);
+      if (onApprovalAction) {
+        onApprovalAction();
+      }
+      setAlert({
+        message: `Request ${
+          action === "approve" ? "approved" : "rejected"
+        } successfully.`,
+        type: "success",
+      });
     } catch (error) {
+      setAlert({
+        message: "Error handling approval action.",
+        type: "error",
+      });
       console.error("Error handling approval action:", error);
     }
-    console.log(`Approval ID: ${approvalId}, Action: ${action}`);
   };
 
   return (
     <div className="relative">
       {/* Sticky filter bar */}
+      {alert && (
+        <GlobalAlert
+          message={alert.message}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
       <div
         className="sticky z-20 flex overflow-x-auto text-sm -mt-1 pb-1 bg-purple-300 border-gray-200"
         style={{ top: 140 }} // Adjust as needed for your header height
@@ -60,19 +103,17 @@ const OverviewSection = ({
         {OVERVIEW_TABS.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setSelectedTab(tab.key)}
+            onClick={() => setSelectTab && setSelectTab(tab.key)}
             className={`px-3 py-2 whitespace-nowrap font-semibold transition focus:outline-none
               ${
-                selectedTab === tab.key
+                selectTab === tab.key
                   ? "bg-transparent text-black rounded-t-md rounded-b-none border-none"
                   : "bg-transparent text-indigo-700 hover:text-purple-700 border-none"
               }`}
           >
             {tab.label}
-            {tab.key === "approvals" && approvalCount > 0 && (
-              <span className="ml-1 text-xs text-red-600">
-                ({approvalCount})
-              </span>
+            {tab.key === "approvals" && localCount > 0 && (
+              <span className="ml-1 text-xs text-red-600">({localCount})</span>
             )}
           </button>
         ))}
@@ -80,7 +121,7 @@ const OverviewSection = ({
 
       {/* Section content */}
       <div className="pt-2">
-        {selectedTab === "stats" && (
+        {selectTab === "stats" && (
           <>
             <PropertyOverview pgpalId={property.pgpalId} id={property._id} />
             <PropertyStats pgpalId={property.pgpalId} />
@@ -94,17 +135,17 @@ const OverviewSection = ({
             </div>
           </>
         )}
-        {selectedTab === "amenities" && (
+        {selectTab === "amenities" && (
           <AmenitiesSection propertyId={property._id} />
         )}
-        {selectedTab === "rules" && (
+        {selectTab === "rules" && (
           <RulesSection
             propertyId={property._id}
             isOwner={isOwner}
             userId={userId}
           />
         )}
-        {selectedTab === "reviews" && (
+        {selectTab === "reviews" && (
           <ReviewsSection
             propertyId={property._id}
             userId={userId}
@@ -113,7 +154,7 @@ const OverviewSection = ({
             isOwner={isOwner}
           />
         )}
-        {selectedTab === "approvals" && (
+        {selectTab === "approvals" && (
           <ApprovalSection
             propertyId={property.pgpalId}
             userId={userId}
@@ -121,10 +162,9 @@ const OverviewSection = ({
             userRole={userRole}
             isOwner={isOwner}
             handleAction={handleAction}
-            setCount={(c: number) => {
-              setApprovalCount(c);
-            }}
-            setRequestedUsers={setRequestedUsers}
+            requestedUsers={requestedUsers}
+            approvals={localApprovals}
+            loading={loading}
           />
         )}
       </div>

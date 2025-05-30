@@ -16,6 +16,8 @@ import KitchenSection from "../../kitchen/components/sections/KitchenSection";
 import ComplaintsSection from "../../complaints/components/sections/ComplaintsSection";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import GlobalAlert from "../../../components/GlobalAlert"; // adjust path as needed
+import axiosInstance from "../../../services/axiosInstance";
+import { useVacateRealtimeSync } from "../../../app/useNotificationSocket";
 
 const SECTION_LIST = [
   { key: "overview", label: "Overview" },
@@ -49,6 +51,19 @@ const OwnerProperties: React.FC<{
     type?: "info" | "success" | "error";
   } | null>(null);
   const [requestedUsers, setRequestedUsers] = useState<string[]>([]);
+  const [approvals, setApprovals] = useState<any[]>([]);
+  const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [selectTab, setSelectTab] = useState(
+    () => sessionStorage.getItem("selectTab") || "stats"
+  );
+  const handleApprovalAction = () => {
+    fetchApprovals(); // re-fetch approvals after an action
+  };
+
+  useEffect(() => {
+    sessionStorage.setItem("selectTab", selectTab);
+  }, [selectTab]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,6 +83,48 @@ const OwnerProperties: React.FC<{
   useEffect(() => {
     fetchProperties();
   }, []);
+
+  const fetchApprovals = async () => {
+    try {
+      setLoading(true);
+      const res = await axiosInstance.get(
+        `/tenant-service/vacateHistory/${selectedProperty?.pgpalId}` || ""
+      );
+      console.log(res);
+      const reqsForApprovals = res.data.vacateHistory.filter(
+        (req: any) => req.status === "pending_owner_approval"
+      );
+      console.log(reqsForApprovals[0]?.previousSnapshot);
+      const requestedUserIds = reqsForApprovals.map((req: any) => req.tenantId);
+      console.log(requestedUserIds.length);
+      setRequestedUsers(requestedUserIds || []);
+      console.log("Updated requestedUsers", requestedUserIds);
+      setCount(reqsForApprovals.length || 0);
+      setApprovals(reqsForApprovals || []);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error;
+      if (msg === "No vacate history found") {
+        // Don't show alert, just set approvals/requestedUsers to empty
+        setApprovals([]);
+        setRequestedUsers([]);
+        // Optionally: return here so you don't show an alert
+        return;
+      }
+      // For other errors, show alert
+      setAlert({
+        message: msg || err?.message || "Failed to fetch vacate history.",
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchApprovals();
+  }, [selectedProperty]);
+
+  useVacateRealtimeSync(fetchApprovals, userId, userRole);
 
   const fetchProperties = async () => {
     const res = await getOwnProperties();
@@ -290,13 +347,23 @@ const OwnerProperties: React.FC<{
               userName={userName}
               userRole={userRole}
               isOwner={selectedProperty?.ownerId === userId}
-              setRequestedUsers={setRequestedUsers}
+              requestedUsers={requestedUsers}
+              approvals={approvals}
+              count={count}
+              loading={loading}
+              selectTab={selectTab}
+              setSelectTab={setSelectTab}
+              onApprovalAction={handleApprovalAction}
             />
           )}
           {selectedSection === "rooms" && (
             <RoomsSection
               property={selectedProperty}
               requestedUsers={requestedUsers}
+              goToApprovals={() => {
+                setSelectedSection("overview");
+                setSelectTab("approvals");
+              }}
             />
           )}
           {selectedSection === "tenants" && (

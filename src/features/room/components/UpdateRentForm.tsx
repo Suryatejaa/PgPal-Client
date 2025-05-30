@@ -34,6 +34,7 @@ const UpdateRentForm = ({ tenant, onSubmit, onCancel }: any) => {
           onChange={(e) => setRentPaid(e.target.value)}
           className="border rounded px-2 py-1 w-full"
           required
+          min={0}
         />
       </div>
       <div>

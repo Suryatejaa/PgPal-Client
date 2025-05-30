@@ -11,61 +11,37 @@ const ApprovalSection = ({
   userRole,
   isOwner,
   handleAction,
-  setCount,
-  setRequestedUsers,
+  requestedUsers,
+  approvals = [],
+  loading = false,
 }: {
   propertyId: string;
   userId: string;
   userName: string;
   userRole: string;
   isOwner: boolean;
-  setCount?: (count: number) => void;
   handleAction: (approvalId: string, action: "approve" | "reject") => void;
-  setRequestedUsers?: (users: any[]) => void;
+  requestedUsers: any[];
+  approvals: any[];
+    loading?: boolean;
 }) => {
-  const [approvals, setApprovals] = useState<any[]>([]);
   const [alert, setAlert] = useState<{
     message: string;
     type?: "info" | "success" | "error";
   } | null>(null);
-  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  
 
-  const fetchApprovals = async () => {
-    try {
-      setLoading(true);
-      const res = await axiosInstance.get(
-        `/tenant-service/vacateHistory/${propertyId}`
-      );
-      console.log(res);
-      const reqsForApprovals = res.data.vacateHistory.filter(
-        (req: any) => req.status === "pending_owner_approval"
-      );
-      //   console.log(reqsForApprovals[0]?.previousSnapshot);
-      const requestedUserIds = reqsForApprovals.map(
-        (req: any) => req.tenantId
-      );
-      console.log(requestedUserIds)
-      setRequestedUsers?.(requestedUserIds || []);
-      setCount?.(reqsForApprovals.length || 0);
-      setApprovals(reqsForApprovals || []);
-    } catch (err: any) {
-      console.error(err);
-      setAlert({
-        message:
-          err?.response?.data?.error ||
-          err?.message ||
-          "Failed to fetch approvals.",
-        type: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchApprovals();
-  }, [propertyId]);
+  const filteredApprovals = approvals.filter((approval) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (approval.name && approval.name.toLowerCase().includes(q)) ||
+      (approval.bedId && approval.bedId.toLowerCase().includes(q)) ||
+      (approval.phone && approval.phone.toLowerCase().includes(q))
+    );
+  });
 
   return (
     <div className="p-4">
@@ -73,7 +49,20 @@ const ApprovalSection = ({
         <div>Loading...</div>
       ) : (
         <div>
-          <h2 className="text-lg font-semibold mb-4">Approval Requests</h2>
+          <div
+            className="sticky top-0 z-10 bg-white -mt-5"
+            style={{ marginBottom: "1rem" }}
+          >
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, bed ID, or phone"
+              className="w-full px-3 py-2 border rounded focus:outline-none"
+            />
+          </div>
+          <h2 className="text-lg font-semibold mb-2 -mt-2">Approval Requests</h2>
+
           {alert && (
             <GlobalAlert message={alert.message} type={alert.type || "info"} />
           )}
@@ -83,7 +72,7 @@ const ApprovalSection = ({
             <ul className="space-y-4">
               {approvals.map((approval) =>
                 approval && approval.previousSnapshot ? (
-                  <li key={approval._id} className="border p-4 rounded">
+                  <li key={approval._id} className="border p-4 bg-purple-200 rounded-xl">
                     <div className="flex justify-between items-center">
                       <div>
                         <p>
@@ -122,7 +111,7 @@ const ApprovalSection = ({
                         </div>
                       )}
                     </div>
-                    <div className="mt-2 text-sm text-gray-500">
+                    <div className="mt-0 text-sm text-gray-500">
                       Requested on:{" "}
                       {new Date(approval.vacateRaisedAt).toLocaleDateString()}
                       <br />

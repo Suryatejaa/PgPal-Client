@@ -2,6 +2,7 @@ import React from "react";
 import OwnerDashboard from "../../dashboard/pages/ownerDashboard";
 import TenantDashboard from "../../dashboard/pages/tenantDashboard";
 import { useAppSelector } from "../../../app/hooks";
+import { useNotificationSocket } from "../../../app/useNotificationSocket";
 
 const Dashboard = () => {
   // Get user role from Redux or localStorage
@@ -11,6 +12,7 @@ const Dashboard = () => {
     JSON.parse(localStorage.getItem("user") || "null");
 
   console.log(user.role);
+  useNotificationSocket(user._id, user.role);
 
   if (user?.role === "owner")
     return (
