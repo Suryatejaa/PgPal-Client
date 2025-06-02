@@ -59,41 +59,42 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
   // Fetch current stay and nearby PGs
 
   const currentStayAndNearByPGs = () => {
-    getCurrentStay().then((res) => {
-      console.log(res.data?.currentStay);
-      const stay = res.data?.currentStay;
-      setCurrentStay(stay);
-      setLoading(false);
+    getCurrentStay()
+      .then((res) => {
+        console.log(res.data?.currentStay);
+        const stay = res.data?.currentStay;
+        setCurrentStay(stay);
+        setLoading(false);
 
-      if (!stay) {
-        // Get device location for nearby PGs
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-              const { latitude, longitude } = pos.coords;
-              const pgRes = await getNearbyPGs(latitude, longitude);
-              setNearbyPGs(pgRes.data || []);
-            },
-            () => {
-              // fallback: Hyderabad
-              getNearbyPGs(17.385, 78.4867).then((pgRes) =>
-                setNearbyPGs(pgRes.data || [])
-              );
-            }
-          );
-        } else {
-          getNearbyPGs(17.385, 78.4867).then((pgRes) =>
-            setNearbyPGs(pgRes.data || [])
-          );
+        if (!stay) {
+          // Get device location for nearby PGs
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              async (pos) => {
+                const { latitude, longitude } = pos.coords;
+                const pgRes = await getNearbyPGs(latitude, longitude);
+                setNearbyPGs(pgRes.data || []);
+              },
+              () => {
+                // fallback: Hyderabad
+                getNearbyPGs(17.385, 78.4867).then((pgRes) =>
+                  setNearbyPGs(pgRes.data || [])
+                );
+              }
+            );
+          } else {
+            getNearbyPGs(17.385, 78.4867).then((pgRes) =>
+              setNearbyPGs(pgRes.data || [])
+            );
+          }
         }
-      }
-    })
-    .catch((err) => {
-      console.error("Error fetching current stay:", err);
-      setLoading(false);
-      setCurrentStay(null);
-      setNearbyPGs([]);
-    });
+      })
+      .catch((err) => {
+        console.error("Error fetching current stay:", err);
+        setLoading(false);
+        setCurrentStay(null);
+        setNearbyPGs([]);
+      });
   };
 
   useEffect(() => {
@@ -197,7 +198,9 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
         profile={profileProps.profile}
         userName={profileProps.profile?.username}
         setSidebarOpen={setSidebarOpen}
-        isActive={currentStay?.propertyId || currentStay?.propertyPpid ? true : false}
+        isActive={
+          currentStay?.propertyId || currentStay?.propertyPpid ? true : false
+        }
       />
       {/* Notifications */}
       <NotificationSection
@@ -206,6 +209,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
         userId={userPpid}
         setUnreadCount={notificationProps.setUnreadCount}
         isTenant={userRole === "tenant"}
+        property={currentStay?.propertyId || currentStay?.propertyPpid}
       />
       {/* Profile Sidebar */}
       <OwnerProfileSidebar

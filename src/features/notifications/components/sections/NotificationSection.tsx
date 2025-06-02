@@ -16,12 +16,14 @@ const NotificationSection = ({
   userId,
   setUnreadCount,
   isTenant,
+  property,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   userId: string;
   setUnreadCount: (count: number) => void;
   isTenant: boolean;
+  property: string;
 }) => {
   // Updated parameter types for better type safety
   const [notifications, setNotifications] = useState<
@@ -182,6 +184,63 @@ const NotificationSection = ({
     }
   };
 
+  const checkAttendanceStatus = async (
+    propertyPpid: string,
+    meal: string,
+    date: string
+  ) => {
+    try {
+      const response = await axiosInstance.get(
+        `http://localhost:4000/api/kitchen-service/meal/attendance?propertyPpid=${propertyPpid}&meal=${meal}&date=${date}`
+      );
+
+      if (response.status === 200 && response.data.attendance) {
+        const attendance = response.data.attendance;
+        const userAttendance = attendance.find(
+          (a: any) => a.tenantPpid === userId && a.confirmed
+        );
+        return !!userAttendance; // Return true if attendance is confirmed
+      }
+    } catch (error) {
+      console.error("Error checking attendance status:", error);
+    }
+    return false; // Default to false if an error occurs
+  };
+
+  useEffect(() => {
+    const fetchAttendanceStatus = async () => {
+      if (modal.notification?.type === "meal-attendance-reminder") {
+        const msg = modal.notification.message.split(" ");
+        let meal = msg[msg.length - 1];
+        if (meal.endsWith(".")) {
+          meal = meal.slice(0, -1);
+        }
+        const date =
+          modal.notification.title.split(" ")[
+            modal.notification.title.split(" ").length - 1
+          ];
+
+        const isConfirmed = await checkAttendanceStatus(
+          property,
+          meal,
+          date
+        );
+
+        setModal((prev) => ({
+          ...prev,
+          notification: {
+            ...prev.notification,
+            confirmed: isConfirmed,
+          },
+        }));
+      }
+    };
+
+    if (modal.open && modal.notification) {
+      fetchAttendanceStatus();
+    }
+  }, [modal.open, modal.notification, property]);
+
   return open ? (
     <div className="fixed inset-0 z-30 flex justify-end">
       <div
@@ -320,7 +379,8 @@ const NotificationSection = ({
                   )}
                 </div>
               )}
-              {modal.notification.type === "meal-attendance-reminder" && (
+              {modal.notification.type === "meal-attendance-reminder" &&
+              !modal.notification.confirmed ? ( // Only show the button if not confirmed
                 <button
                   className="bg-green-600 text-white px-3 py-1 mr-1 rounded"
                   onClick={() => {
@@ -332,6 +392,13 @@ const NotificationSection = ({
                   }}
                 >
                   Confirm
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="text-green-600 bg-gray-300 mr-1 px-3 py-1 rounded"
+                >
+                  Confirmed
                 </button>
               )}
               {!modal.notification.isRead && (
@@ -345,7 +412,7 @@ const NotificationSection = ({
                 >
                   Mark as Read
                 </button>
-              )}              
+              )}
               <button
                 className="bg-red-600 text-white px-3 py-1 ml-1 rounded"
                 onClick={() => {
