@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
 import {
   getNotifications,
   markNotificationAsRead,
   deleteNotification,
   deleteAllNotifications,
 } from "../../services/notificationApis";
-import { TrashIcon, CheckCircleIcon } from "@heroicons/react/24/outline"; // Add this import at the top
-import { XMarkIcon } from "@heroicons/react/24/outline"; // Add this import at the top
+import { CheckCircleIcon } from "@heroicons/react/24/solid"; // Fixed import
+import { TrashIcon } from "@heroicons/react/24/solid";
 import { markAllNotificationsAsRead } from "../../services/notificationApis";
+import { useState, useEffect } from "react";
+import axiosInstance from "../../../../services/axiosInstance";
 
 const NotificationSection = ({
   open,
@@ -22,7 +23,16 @@ const NotificationSection = ({
   setUnreadCount: (count: number) => void;
   isTenant: boolean;
 }) => {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  // Updated parameter types for better type safety
+  const [notifications, setNotifications] = useState<
+    {
+      _id: string;
+      isRead: boolean;
+      title: string;
+      message: string;
+      createdAt: string;
+    }[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState<{
     open: boolean;
@@ -93,6 +103,11 @@ const NotificationSection = ({
     await fetchNotifications();
   };
 
+  const handleConfirm = async () => {
+    // await deleteNotification(id);
+    await fetchNotifications();
+  };
+
   const handleDeleteAll = async () => {
     const Tenant = isTenant || false; // Ensure isTenant is a boolean
     const Owner = !isTenant; // Ensure Owner is the opposite of isTenant
@@ -131,6 +146,39 @@ const NotificationSection = ({
       } finally {
         setTenantLoading(false);
       }
+    }
+  };
+
+  const handleConfirmAttendance = async (title: string, message: string) => {
+    console.log(title, message);
+    const msg = message.split(" ");
+    let meal = msg[msg.length - 1]; // Assuming the last word is the meal type //remove  period at last
+    if (meal.endsWith(".")) {
+      meal = meal.slice(0, -1); // Remove period if present
+    }
+    const date = title.split(" ")[title.split(" ").length - 1]; // Assuming the last word is the date
+
+    console.log(meal, date);
+    try {
+      const response = await axiosInstance.put(
+        "http://localhost:4000/api/kitchen-service/meal/attendance",
+        JSON.stringify({ meal, date }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true, // Ensure cookies are sent with the request
+        }
+      );
+
+      if (!response || response.status !== 200) {
+        throw new Error("Failed to confirm attendance");
+      }
+
+      console.log("Attendance confirmed successfully");
+      await fetchNotifications(); // Refresh notifications after confirmation
+    } catch (error) {
+      console.error("Error confirming attendance:", error);
     }
   };
 
@@ -272,6 +320,20 @@ const NotificationSection = ({
                   )}
                 </div>
               )}
+              {modal.notification.type === "meal-attendance-reminder" && (
+                <button
+                  className="bg-green-600 text-white px-3 py-1 mr-1 rounded"
+                  onClick={() => {
+                    handleConfirmAttendance(
+                      modal.notification.title,
+                      modal.notification.message
+                    );
+                    setModal({ open: false, notification: null });
+                  }}
+                >
+                  Confirm
+                </button>
+              )}
               {!modal.notification.isRead && (
                 <button
                   className="bg-purple-600 text-white px-3 py-1 rounded"
@@ -283,7 +345,7 @@ const NotificationSection = ({
                 >
                   Mark as Read
                 </button>
-              )}
+              )}              
               <button
                 className="bg-red-600 text-white px-3 py-1 ml-1 rounded"
                 onClick={() => {

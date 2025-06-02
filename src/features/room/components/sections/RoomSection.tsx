@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "../Modal";
 import RoomCard from "../rooms/RoomCard";
 import AddRoomForm from "../rooms/AddRoomForm";
+import AddBulkRooms from "../rooms/AddBulkRooms";
 import axiosInstance from "../../../../services/axiosInstance";
 import { useError } from "../../../../context/ErrorContext";
 import GlobalAlert from "../../../../components/GlobalAlert"; // adjust path as needed
@@ -9,14 +10,17 @@ import GlobalAlert from "../../../../components/GlobalAlert"; // adjust path as 
 const RoomsSection = ({
   property,
   requestedUsers,
-  goToApprovals
+  goToApprovals,
+  fetchProperties,
 }: {
   property: any;
   requestedUsers?: any[];
   goToApprovals: () => void;
+  fetchProperties?: () => void;
 }) => {
   const [rooms, setRooms] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [showBulkForm, setShowBulkForm] = useState(false);
   const { setError } = useError();
   const [filter, setFilter] = useState(
     () => sessionStorage.getItem("filter") || "all"
@@ -147,6 +151,7 @@ const RoomsSection = ({
       });
       console.log(res);
       setShowForm(false);
+      fetchProperties?.();
       setAlert({ message: "Room added successfully!", type: "success" });
       await fetchRooms();
     } catch (err: any) {
@@ -208,12 +213,20 @@ const RoomsSection = ({
         />
       )}
       {rooms.length > 0 && (
-        <button
-          onClick={() => setShowForm(true)}
-          className="absolute right-0 top-8 mt-12 bg-purple-600 text-white px-4 py-1 rounded-b rounded-t-none font-semibold"
-        >
-          + Add Room
-        </button>
+        <div className="sticky top-0 z-20 bg-purple-300 p-2 flex justify-between items-center">
+          <button
+            onClick={() => setShowBulkForm(true)}
+            className="bg-purple-600 text-white px-4 py-1 rounded font-semibold"
+          >
+            Add Bulk Rooms
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-purple-600 text-white px-4 py-1 rounded font-semibold"
+          >
+            Add Room
+          </button>
+        </div>
       )}
       <div
         className="sticky z-20 flex overflow-x-auto text-sm -mt-1 pb-1 bg-purple-300 border-gray-200"
@@ -249,6 +262,14 @@ const RoomsSection = ({
       <div className="pt-1">
         {rooms.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[200px]">
+            {!showBulkForm && (
+              <button
+                onClick={() => setShowBulkForm(true)}
+                className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold mb-4"
+              >
+                + Add Bulk Rooms
+              </button>
+            )}
             {!showForm && (
               <button
                 onClick={() => setShowForm(true)}
@@ -289,6 +310,19 @@ const RoomsSection = ({
             onSubmit={handleAddRoom}
             onCancel={() => setShowForm(false)}
             existingRooms={rooms}
+          />
+        </Modal>
+      )}
+      {showBulkForm && (
+        <Modal onClose={() => setShowBulkForm(false)}>
+          <AddBulkRooms
+            propertyId={property._id}
+            onSuccess={() => {
+              setShowBulkForm(false);
+              fetchRooms();
+              fetchProperties?.();
+            }}
+            onClose={() => setShowBulkForm(false)}
           />
         </Modal>
       )}

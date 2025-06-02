@@ -12,7 +12,46 @@ const typeOptions = [
   { value: "eight", label: "Eight", beds: 8 },
 ];
 
-const defaultBed = { status: "vacant", tenant: null };
+type Tenant = {
+  name: string;
+  phone: string;
+  propertyId: string;
+  roomNumber: string;
+  bedId: string;
+  aadhar: string;
+  deposit: string;
+  noticePeriodInMonths: string;
+  rentPaid: string;
+  rentPaidMethod: string;
+};
+
+type Bed = {
+  status: "vacant" | "occupied";
+  tenant: Tenant | undefined;
+};
+
+type Room = {
+  roomNumber: string;
+  floor: string;
+  type: string;
+  rentPerBed: string;
+  beds: Bed[];
+};
+
+const defaultTenant: Tenant = {
+  name: "",
+  phone: "",
+  propertyId: "",
+  roomNumber: "",
+  bedId: "",
+  aadhar: "",
+  deposit: "",
+  noticePeriodInMonths: "",
+  rentPaid: "",
+  rentPaidMethod: "",
+};
+
+const defaultBed: Bed = { status: "vacant", tenant: undefined };
 
 const AddRoomForm = ({
   onSubmit,
@@ -24,7 +63,7 @@ const AddRoomForm = ({
   existingRooms?: { roomNumber: string; floor: string | number }[];
 }) => {
   const { setError } = useError();
-  const [room, setRoom] = useState({
+  const [room, setRoom] = useState<Room>({
     roomNumber: "",
     floor: "",
     type: "double",
@@ -45,7 +84,7 @@ const AddRoomForm = ({
         String(r.roomNumber) === String(room.roomNumber) &&
         String(r.floor) === String(room.floor)
     );
-  
+
   const isBedCountInvalid = room.beds.length !== maxBeds;
 
   React.useEffect(() => {
@@ -59,13 +98,12 @@ const AddRoomForm = ({
       setFormError(null);
     }
   }, [
-    room.beds.length,
+    isBedCountInvalid,
+    isDuplicateRoom,
+    maxBeds,
     room.type,
     room.roomNumber,
     room.floor,
-    isDuplicateRoom,
-    maxBeds,
-    isBedCountInvalid,
   ]);
 
   const isInvalid =
@@ -105,7 +143,7 @@ const AddRoomForm = ({
           rentPaidMethod: "",
         };
       } else {
-        beds[idx].tenant = null;
+        beds[idx].tenant = undefined;
       }
     } else if (field.startsWith("tenant.")) {
       if (!beds[idx].tenant) return;
@@ -162,11 +200,13 @@ const AddRoomForm = ({
           bed.status === "occupied"
             ? {
                 ...bed.tenant,
-                phone: bed.tenant.phone,
-                aadhar: bed.tenant.aadhar,
-                deposit: Number(bed.tenant.deposit),
-                noticePeriodInMonths: Number(bed.tenant.noticePeriodInMonths),
-                rentPaid: Number(bed.tenant.rentPaid),
+                phone: bed.tenant?.phone ?? "",
+                aadhar: bed.tenant?.aadhar ?? "",
+                deposit: Number(bed.tenant?.deposit ?? 0),
+                noticePeriodInMonths: Number(
+                  bed.tenant?.noticePeriodInMonths ?? 0
+                ),
+                rentPaid: Number(bed.tenant?.rentPaid ?? 0),
               }
             : undefined,
       })),

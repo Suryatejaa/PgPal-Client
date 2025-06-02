@@ -364,6 +364,7 @@ const OwnerProperties: React.FC<{
                 setSelectedSection("overview");
                 setSelectTab("approvals");
               }}
+              fetchProperties={fetchProperties}
             />
           )}
           {selectedSection === "tenants" && (

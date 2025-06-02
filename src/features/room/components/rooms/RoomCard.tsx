@@ -68,7 +68,7 @@ const RoomCard = ({
 
   const handleDeleteRoom = async () => {
     setShowConfirm(false);
-    if (!window.confirm("Are you sure you want to delete this room?")) return;
+    // if (!window.confirm("Are you sure you want to delete this room?")) return;
     try {
       await axiosInstance.delete(`/room-service/rooms/${room._id}`);
       setShowEdit(false);
@@ -88,7 +88,13 @@ const RoomCard = ({
   };
 
   const handleVacantBedClick = (bed: any) => {
-    setBedModal({ open: true, loading: true, data: null, error: null, bed });
+    setBedModal({
+      open: true,
+      loading: false, // No need to load data for vacant beds
+      data: null,
+      error: null,
+      bed,
+    });
   };
 
   const handleOccupiedBedClick = async (bed: any) => {
@@ -149,10 +155,17 @@ const RoomCard = ({
         setAlert({ message: "Tenant removed successfully!", type: "success" });
     } catch (err: any) {
       console.log(err);
-      setError(err?.response?.data?.error || err || "Failed to remove tenant.");
+      setError(
+        err?.response?.data?.error + " Please refresh the page." ||
+          err ||
+          "Failed to remove tenant."
+      );
       if (setAlert)
         setAlert({
-          message: err || "Failed to remove tenant.",
+          message:
+            err?.response?.data?.error + " Please refresh the page." ||
+            err ||
+            "Failed to remove tenant.",
           type: "error",
         });
     }
@@ -500,7 +513,7 @@ const RoomCard = ({
           />
         </Modal>
       )}
-      {bedModal.loading || !bedModal.data ? (
+      {bedModal.loading ? (
         <div>Loading...</div>
       ) : (
         bedModal.open &&
