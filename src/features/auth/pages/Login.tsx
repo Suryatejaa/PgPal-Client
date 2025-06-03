@@ -136,7 +136,7 @@ const Login = () => {
           disabled={!isFormValid || loading}
           className="w-full bg-gradient-to-br from-purple-600 to-indigo-700 text-white py-2 rounded-lg hover:bg-purple-700 transition disabled:opacity-50"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <div className="flex items-center justify-between text-sm text-gray-600 mt-4">

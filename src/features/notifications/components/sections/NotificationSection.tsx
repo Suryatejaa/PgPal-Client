@@ -152,15 +152,23 @@ const NotificationSection = ({
   };
 
   const handleConfirmAttendance = async (title: string, message: string) => {
-    console.log(title, message);
-    const msg = message.split(" ");
-    let meal = msg[msg.length - 1]; // Assuming the last word is the meal type //remove  period at last
-    if (meal.endsWith(".")) {
-      meal = meal.slice(0, -1); // Remove period if present
-    }
-    const date = title.split(" ")[title.split(" ").length - 1]; // Assuming the last word is the date
+    console.log('title:', title, '\nmessage:', message);
 
-    console.log(meal, date);
+    const msg = message.split(" ");
+
+    let date = msg[msg.length-1]
+   
+    if (date.endsWith(".")) {
+      date = date.slice(0, -1);
+    }
+
+    let meal = title.split(" ")[title.split(" ").length - 1]; 
+    if (meal.endsWith(".")) {
+      meal = date.slice(0, -1);
+    }
+
+    console.log(`Meal ${meal}, date ${date}`)
+
     try {
       const response = await axiosInstance.put(
         "http://localhost:4000/api/kitchen-service/meal/attendance",
@@ -190,12 +198,18 @@ const NotificationSection = ({
     date: string
   ) => {
     try {
+
+      // console.log(meal, date);
+
       const response = await axiosInstance.get(
         `http://localhost:4000/api/kitchen-service/meal/attendance?propertyPpid=${propertyPpid}&meal=${meal}&date=${date}`
       );
 
+      // console.log(response)
+
       if (response.status === 200 && response.data.attendance) {
         const attendance = response.data.attendance;
+        // console.log(attendance)
         const userAttendance = attendance.find(
           (a: any) => a.tenantPpid === userId && a.confirmed
         );
@@ -210,21 +224,21 @@ const NotificationSection = ({
   useEffect(() => {
     const fetchAttendanceStatus = async () => {
       if (modal.notification?.type === "meal-attendance-reminder") {
-        const msg = modal.notification.message.split(" ");
+        const msg = modal.notification.title.split(" ");
+        // console.log(modal.notification)
+
         let meal = msg[msg.length - 1];
         if (meal.endsWith(".")) {
           meal = meal.slice(0, -1);
         }
         const date =
-          modal.notification.title.split(" ")[
-            modal.notification.title.split(" ").length - 1
+          modal.notification.message.split(" ")[
+            modal.notification.message.split(" ").length - 1
           ];
 
-        const isConfirmed = await checkAttendanceStatus(
-          property,
-          meal,
-          date
-        );
+        // console.log("Checking attendance for meal:", meal, "on date:", date);
+        
+        const isConfirmed = await checkAttendanceStatus(property, meal, date);
 
         setModal((prev) => ({
           ...prev,
@@ -240,6 +254,8 @@ const NotificationSection = ({
       fetchAttendanceStatus();
     }
   }, [modal.open, modal.notification, property]);
+
+  // console.log(modal.notification);
 
   return open ? (
     <div className="fixed inset-0 z-30 flex justify-end">
@@ -401,6 +417,7 @@ const NotificationSection = ({
                   Confirmed
                 </button>
               )}
+
               {!modal.notification.isRead && (
                 <button
                   className="bg-purple-600 text-white px-3 py-1 rounded"
