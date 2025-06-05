@@ -12,11 +12,14 @@ import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import ConfirmDialog from "../../../components/ConfirmDialog";
 
 interface PropertyFormProps {
   initial?: any;
   onSubmit: (data: any) => void;
   onCancel?: () => void;
+  mode?: "create" | "edit";
+  onDelete?: (data: any) => void;
 }
 
 L.Icon.Default.mergeOptions({
@@ -84,13 +87,12 @@ function MapController({ position }: { position: any }) {
   return null;
 }
 
-// In your PropertyForm component, before return:
-// Function to search location using Nominatim
-
 const PropertyForm: React.FC<PropertyFormProps> = ({
   initial,
   onSubmit,
   onCancel,
+  onDelete,
+  mode,
 }) => {
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -121,9 +123,34 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
   // Add these states for search
   const [search, setSearch] = useState("");
   const [searching, setSearching] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmCheckboxChecked, setConfirmCheckboxChecked] = useState(false);
 
   const [form, setForm] = useState(() => {
     const base = initial || defaultForm;
+
+    // Handle location properly for edit mode
+    let location = { lat: "", lng: "" };
+    if (base.location) {
+      // If location has coordinates array (from MongoDB Point format)
+      if (
+        base.location.coordinates &&
+        Array.isArray(base.location.coordinates)
+      ) {
+        location = {
+          lng: base.location.coordinates[0],
+          lat: base.location.coordinates[1],
+        };
+      }
+      // If location already has lat/lng properties
+      else if (base.location.lat && base.location.lng) {
+        location = {
+          lat: base.location.lat,
+          lng: base.location.lng,
+        };
+      }
+    }
+
     return {
       ...defaultForm,
       ...base,
@@ -134,11 +161,12 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
       },
       contact: { ...defaultForm.contact, ...(base.contact || {}) },
       address: { ...defaultForm.address, ...(base.address || {}) },
-      location: { lat: "", lng: "", ...(base.location || {}) }, // <-- always default
+      location,
     };
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showMap, setShowMap] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false); // Fixed: renamed and proper logic
   const user = useAppSelector((state) => state.auth.user);
 
   const validate = (fieldValues = form) => {
@@ -162,17 +190,35 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     if (!fieldValues.totalBeds) temp.totalBeds = "Total Beds is required";
     if (!fieldValues.occupiedBeds)
       temp.occupiedBeds = "Occupied Beds is required";
+    if (!fieldValues.pgGenderType)
+      temp.pgGenderType = "PG Gender Type is required";
     if (!fieldValues.rentRange?.min) temp.rentRangeMin = "Min rent is required";
     if (!fieldValues.rentRange?.max) temp.rentRangeMax = "Max rent is required";
     if (!fieldValues.depositRange?.min)
       temp.depositRangeMin = "Min deposit is required";
     if (!fieldValues.depositRange?.max)
       temp.depositRangeMax = "Max deposit is required";
-    if (!fieldValues.location?.lat || !fieldValues.location?.lng)
+
+    // Only require location if it's not already set (for edit mode)
+    if (
+      (!fieldValues.location?.lat || !fieldValues.location?.lng) &&
+      !(initial?.location?.coordinates || initial?.location?.lat)
+    ) {
       temp.location = "Location is required";
+    }
 
     setErrors(temp);
-    return Object.keys(temp).length === 0;
+    const isValid = Object.keys(temp).length === 0;
+    console.log("Validation errors:", temp);
+    console.log("Form is valid:", isValid);
+    console.log("Current location:", fieldValues.location);
+    console.log("Initial location:", initial?.location);
+    setIsFormValid(isValid);
+    return isValid;
+  };
+
+  const handleDeleteProperty = () => {
+    setConfirmDialogOpen(true);
   };
 
   const handleSearch = async () => {
@@ -199,6 +245,16 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     }
     setSearching(false);
   };
+
+  // Run validation whenever form changes
+  React.useEffect(() => {
+    validate(form);
+  }, [form]);
+
+  // Initial validation on mount
+  React.useEffect(() => {
+    validate(form);
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -230,7 +286,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
       updatedForm = { ...form, [name]: value };
     }
     setForm(updatedForm);
-    validate(updatedForm);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -285,11 +340,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
       }
     }
   };
-
-  React.useEffect(() => {
-    validate(form);
-    // eslint-disable-next-line
-  }, []);
 
   return (
     <form
@@ -358,6 +408,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
           placeholder="Min Rent"
           type="number"
           className="w-1/2 p-2 rounded border"
+          min={0}
         />
         <input
           name="rentRange.max"
@@ -366,6 +417,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
           placeholder="Max Rent"
           type="number"
           className="w-1/2 p-2 rounded border"
+          min={0}
         />
       </div>
       {(errors.rentRangeMin || errors.rentRangeMax) && (
@@ -382,6 +434,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
           placeholder="Min Deposit"
           type="number"
           className="w-1/2 p-2 rounded border"
+          min={0}
         />
         <input
           name="depositRange.max"
@@ -390,6 +443,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
           placeholder="Max Deposit"
           type="number"
           className="w-1/2 p-2 rounded border"
+          min={0}
         />
       </div>
       {(errors.depositRangeMin || errors.depositRangeMax) && (
@@ -473,6 +527,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         placeholder="Zip Code"
         className="w-full p-2 rounded border"
         maxLength={6}
+        min={0}
       />
       {errors.zipCode && (
         <div className="text-red-500 text-xs">{errors.zipCode}</div>
@@ -484,6 +539,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         placeholder="Total Beds"
         type="number"
         className="w-full p-2 rounded border"
+        min={0}
       />
       {errors.totalBeds && (
         <div className="text-red-500 text-xs">{errors.totalBeds}</div>
@@ -496,6 +552,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         placeholder="Total Rooms"
         type="number"
         className="w-full p-2 rounded border"
+        min={0}
       />
       {errors.totalRooms && (
         <div className="text-red-500 text-xs">{errors.totalRooms}</div>
@@ -508,6 +565,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         placeholder="Occupied Beds"
         type="number"
         className="w-full p-2 rounded border"
+        min={0}
       />
       {errors.occupiedBeds && (
         <div className="text-red-500 text-xs">{errors.occupiedBeds}</div>
@@ -621,7 +679,10 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         <button
           type="submit"
           className="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50"
-          disabled={Object.keys(errors).length > 0}
+          disabled={!isFormValid} // Fixed: now properly enables when form is valid
+          onClick={() =>
+            console.log("Button clicked, isFormValid:", isFormValid)
+          }
         >
           Save
         </button>
@@ -634,6 +695,60 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
             Cancel
           </button>
         )}
+        {mode === "edit" && onDelete && (
+          <button
+            type="button"
+            onClick={handleDeleteProperty}
+            className="bg-red-600 text-white px-4 py-2 rounded"
+          >
+            Delete
+          </button>
+        )}
+        <ConfirmDialog
+          open={confirmDialogOpen}
+          title="Delete Property"
+          message={
+            <>
+              <p className="text-red-600 font-bold">
+                Warning: Deleting this property is irreversible and will remove
+                all associated data.
+              </p>
+              <p className="text-gray-700">
+                Please confirm that you understand the consequences by checking
+                the box below.
+              </p>
+              <div className="mt-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={confirmCheckboxChecked}
+                    onChange={(e) =>
+                      setConfirmCheckboxChecked(e.target.checked)
+                    }
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">
+                    I understand the consequences of deleting this property.
+                  </span>
+                </label>
+              </div>
+            </>
+          }
+          onConfirm={() => {
+            if (!confirmCheckboxChecked) {
+              alert("Please check the confirmation box before proceeding.");
+              return; // Prevent further execution
+            }
+
+            if (onDelete && initial?._id) {
+              onDelete(initial._id); // Execute deletion only if checkbox is checked
+            }
+            setConfirmDialogOpen(false); // Close the dialog
+          }}
+          onCancel={() => setConfirmDialogOpen(false)}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
       </div>
     </form>
   );

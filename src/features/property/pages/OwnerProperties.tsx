@@ -90,7 +90,7 @@ const OwnerProperties: React.FC<{
       const res = await axiosInstance.get(
         `/tenant-service/vacateHistory/${selectedProperty?.pgpalId}` || ""
       );
-      console.log(res);
+      console.log(selectedProperty?.pgpalId);
       const reqsForApprovals = res.data.vacateHistory.filter(
         (req: any) => req.status === "pending_owner_approval"
       );
@@ -102,7 +102,11 @@ const OwnerProperties: React.FC<{
       setCount(reqsForApprovals.length || 0);
       setApprovals(reqsForApprovals || []);
     } catch (err: any) {
-      const msg = err?.response?.data?.error;
+      console.log(err)
+      if (err?.response?.data?.error === "No vacate history found") {
+        setCount(0)
+      }
+        const msg = err?.response?.data?.error;
       if (msg === "No vacate history found") {
         // Don't show alert, just set approvals/requestedUsers to empty
         setApprovals([]);
@@ -125,6 +129,25 @@ const OwnerProperties: React.FC<{
   }, [selectedProperty]);
 
   useVacateRealtimeSync(fetchApprovals, userId, userRole);
+
+  const handleDeleteProperty = async (propertyId: string) => {
+    console.log(propertyId);
+    try {
+      const res = await axiosInstance.delete(`/property-service/${propertyId}`);
+      setAlert({
+        message: res.data.message || "Property deleted successfully!",
+        type: "success",
+      });
+      // Re-fetch properties after deletion
+      await fetchProperties();
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err.message;
+      setAlert({
+        message: msg || "Failed to delete property.",
+        type: "error",
+      });
+    }
+  };
 
   const fetchProperties = async () => {
     const res = await getOwnProperties();
@@ -293,6 +316,12 @@ const OwnerProperties: React.FC<{
               await fetchProperties();
             }}
             onCancel={() => setEditMode(false)}
+            mode="edit"
+            onDelete={async () => {
+              await handleDeleteProperty(selectedProperty._id);
+              setEditMode(false);
+              fetchProperties();
+            }}
           />
         </Modal>
       )}
@@ -368,7 +397,15 @@ const OwnerProperties: React.FC<{
             />
           )}
           {selectedSection === "tenants" && (
-            <TenantsSection property={selectedProperty} userId={userId} />
+            <TenantsSection
+              property={selectedProperty}
+              userId={userId}
+              requestedUsers={requestedUsers}
+              goToApprovals={() => {
+                setSelectedSection("overview");
+                setSelectTab("approvals");
+              }}
+            />
           )}
           {selectedSection === "kitchen" && (
             <KitchenSection property={selectedProperty} />

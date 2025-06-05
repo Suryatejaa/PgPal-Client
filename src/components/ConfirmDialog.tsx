@@ -12,7 +12,7 @@ const ConfirmDialog = ({
 }: {
   open: boolean;
   title?: string;
-  message: string;
+  message: any;
   onConfirm: () => void;
   onCancel: () => void;
   confirmText?: string;

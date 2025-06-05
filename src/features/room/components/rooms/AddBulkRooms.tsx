@@ -529,7 +529,7 @@ const BulkRoomForm: React.FC<Props> = ({
               </button>
               <button
                 onClick={handleSubmit}
-                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 bg-transparent text-sm font-semibold ${
+                className={`bg-blue-400 text-gray-800 px-4 py-2 rounded hover:bg-blue-600 bg-transparent text-sm font-semibold ${
                   isInvalid ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 disabled={isInvalid}

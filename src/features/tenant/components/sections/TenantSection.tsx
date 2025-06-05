@@ -29,9 +29,13 @@ const TENANT_FILTERS = [
 const TenantSection = ({
   property,
   userId,
+  requestedUsers,
+  goToApprovals,
 }: {
   property: any;
   userId: string;
+  requestedUsers?: any[];
+  goToApprovals: () => void;
 }) => {
   const [tenants, setTenants] = useState<any[]>([]);
   const [vacates, setVacates] = useState<any[]>([]);
@@ -85,12 +89,12 @@ const TenantSection = ({
   const handleRemoveTenant = async (tenantId: string, data: any) => {
     try {
       const res = await removeTenant(tenantId, data);
-      console.log(res)
+      console.log(res);
       setAlert({ message: "Tenant removed successfully", type: "success" });
       setRemovingTenantId(null);
       fetchData();
     } catch (err: any) {
-      console.log(err)
+      console.log(err);
       setAlert({ message: "Failed to remove tenant", type: "error" });
     }
   };
@@ -132,7 +136,11 @@ const TenantSection = ({
     try {
       const vacateRes = await fetchVacateHistory(property.pgpalId);
       console.log(vacateRes.data);
-      setVacates(Array.isArray(vacateRes.data.vacateHistory) ? vacateRes.data.vacateHistory : []);
+      setVacates(
+        Array.isArray(vacateRes.data.vacateHistory)
+          ? vacateRes.data.vacateHistory
+          : []
+      );
     } catch {
       setVacates([]);
     }
@@ -145,7 +153,8 @@ const TenantSection = ({
 
   // Filter tenants
   const filteredTenants = tenants.filter((t) => {
-    if (filter === "active") return t.status === "active" && !t.In_Notice_Period;
+    if (filter === "active")
+      return t.status === "active" && !t.In_Notice_Period;
     if (filter === "inactive") {
       // console.log(t.status === "active" && t.In_Notice_Period);
       return t.status === "active" && t.In_Notice_Period;
@@ -216,9 +225,11 @@ const TenantSection = ({
   // For active/inactive/paid/unpaid
   const filteredTenantsWithSearch = filteredTenants.filter(matchesSearch);
   const filteredVacatesWithSearch = (vacates || []).filter(matchesSearch);
-  const filteredInactiveVacatesWithSearch = (vacates || []).filter((v) => {
-    return v.status === "noticeperiod";
-  }).filter(matchesSearch);
+  const filteredInactiveVacatesWithSearch = (vacates || [])
+    .filter((v) => {
+      return v.status === "noticeperiod";
+    })
+    .filter(matchesSearch);
 
   // console.log(filteredInactiveVacatesWithSearch);
 
@@ -235,7 +246,8 @@ const TenantSection = ({
 
   const getTenantFilterCount = (key: string) => {
     if (key === "active")
-      return tenants.filter((t) => t.status === "active" && !t.In_Notice_Period).length;
+      return tenants.filter((t) => t.status === "active" && !t.In_Notice_Period)
+        .length;
     if (key === "inactive") {
       return tenants.filter((t) => t.In_Notice_Period).length;
     }
@@ -309,6 +321,8 @@ const TenantSection = ({
           <TenantListByFloor
             tenantsByFloor={tenantsByFloorFiltered}
             onRemove={setRemovingTenantId}
+            requestedUsers={requestedUsers}
+            goToApprovals={goToApprovals}
           />
         )}
       </div>
@@ -333,7 +347,6 @@ const TenantSection = ({
             onSubmit={(data: any) => handleRemoveTenant(removingTenantId, data)}
             onCancel={() => setRemovingTenantId(null)}
             isVacate={false}
-           
           />
         </Modal>
       )}

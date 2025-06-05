@@ -49,6 +49,8 @@ const OverviewSection = ({
     type?: "info" | "success" | "error";
   } | null>(null);
 
+  // console.log(count)
+
   useEffect(() => {
     setLocalApprovals(approvals);
   }, [approvals]);
@@ -63,9 +65,10 @@ const OverviewSection = ({
     action: "approve" | "reject"
   ) => {
     try {
-      await axiosInstance.post(
+      const res = await axiosInstance.post(
         `/tenant-service/vacates/${approvalId}/${action}`
       );
+      console.log(res)
       setLocalApprovals((prev) => prev.filter((a) => a._id !== approvalId));
       setLocalCount((prev) => prev - 1);
       if (onApprovalAction) {

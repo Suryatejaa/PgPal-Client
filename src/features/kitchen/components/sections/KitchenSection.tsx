@@ -249,6 +249,10 @@ const KitchenSection = ({ property }: { property: any }) => {
   }
 
   // Toggle component
+  // Replace the existing Toggle component with this one:
+
+  // Replace the existing Toggle component with this checkbox version:
+
   const Toggle = ({
     enabled,
     onToggle,
@@ -257,23 +261,24 @@ const KitchenSection = ({ property }: { property: any }) => {
     enabled: boolean;
     onToggle: (enabled: boolean) => void;
     label: string;
-  }) => (
-    <div className="flex items-center justify-between">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
-      <button
-        onClick={() => onToggle(!enabled)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
-          enabled ? "bg-purple-600" : "bg-gray-300"
-        }`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-            enabled ? "translate-x-6" : "translate-x-1"
-          }`}
-        />
-      </button>
-    </div>
-  );
+  }) => {
+    return (
+      <div className="flex items-center justify-between w-full p-2">
+        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <label className="flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => onToggle(e.target.checked)}
+            className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2"
+          />
+          <span className="ml-2 text-sm text-gray-600">
+            {enabled ? "On" : "Off"}
+          </span>
+        </label>
+      </div>
+    );
+  };
 
   const tenantDetails = () => {
     // Map attendance data with active tenants details
@@ -324,17 +329,32 @@ const KitchenSection = ({ property }: { property: any }) => {
                   {mealType}
                 </span>
               </div>
-              <Toggle
-                enabled={
-                  automationStates[mealType as keyof typeof automationStates]
-                }
-                onToggle={(enabled) => toggleAutomation(mealType, enabled)}
-                label={
-                  automationStates[mealType as keyof typeof automationStates]
+              <div className="flex items-center justify-between w-full">
+                <span className="text-sm font-medium text-gray-700">
+                  {automationStates[mealType as keyof typeof automationStates]
                     ? "Automated"
-                    : "Manual"
-                }
-              />
+                    : "Manual"}
+                </span>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={
+                      automationStates[
+                        mealType as keyof typeof automationStates
+                      ]
+                    }
+                    onChange={(e) =>
+                      toggleAutomation(mealType, e.target.checked)
+                    }
+                    className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-none focus:ring-2"
+                  />
+                  <span className="ml-2 text-sm text-gray-600">
+                    {automationStates[mealType as keyof typeof automationStates]
+                      ? "On"
+                      : "Off"}
+                  </span>
+                </label>
+              </div>
             </div>
           ))}
         </div>

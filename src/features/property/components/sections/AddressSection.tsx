@@ -1,6 +1,9 @@
 import React, { use, useState } from "react";
 import axiosInstance from "../../../../services/axiosInstance";
 import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 const AddressSection = ({
   property,
@@ -33,6 +36,22 @@ const AddressSection = ({
   } | null>(null);
 
   const showMissingLocation = !hasCoords && !showMap;
+
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerIcon2x,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+  });
+
+  const customMarkerIcon = new L.Icon({
+    iconUrl: markerIcon,
+    iconRetinaUrl: markerIcon2x,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
 
   // Get user's current location on mount
   React.useEffect(() => {
@@ -73,7 +92,7 @@ const AddressSection = ({
               setPosition(e.latlng);
             },
           });
-          return position ? <MarkerAny position={position} /> : null;
+          return position ? <MarkerAny position={position} icon={customMarkerIcon} /> : null;
         }
 
         // Component to handle map panning
@@ -148,8 +167,8 @@ const AddressSection = ({
                 zoom={13}
                 style={{ height: 300, width: "100%" }}
               >
-                <TileLayerAny url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png" />
-                {/* <TileLayerAny url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" /> */}
+                {/* <TileLayerAny url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png" /> */}
+                <TileLayerAny url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <LocationMarker position={position} setPosition={setPosition} />
                 <MapController
                   position={position}
