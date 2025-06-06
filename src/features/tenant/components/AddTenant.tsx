@@ -8,7 +8,7 @@ const defaultTenant = {
   bedId: "",
   aadhar: "",
   deposit: "",
-  noticePeriodInMonths: "",
+  noticePeriodInDays: "",
   rentPaid: "",
   rentPaidMethod: "",
 };
@@ -80,8 +80,8 @@ const AddTenant = ({
     else if (tenant.deposit === "" || tenant.deposit === null)
       setFormError("Deposit is required.");
     else if (
-      tenant.noticePeriodInMonths === "" ||
-      tenant.noticePeriodInMonths === null
+      tenant.noticePeriodInDays === "" ||
+      tenant.noticePeriodInDays === null
     )
       setFormError("Notice period is required.");
     else if (
@@ -106,7 +106,7 @@ const AddTenant = ({
     onSubmit({
       ...tenant,
       deposit: Number(tenant.deposit),
-      noticePeriodInMonths: Number(tenant.noticePeriodInMonths),
+      noticePeriodInDays: Number(tenant.noticePeriodInDays),
       rentPaid: Number(tenant.rentPaid),
       phone: String(tenant.phone),
       aadhar: String(tenant.aadhar),
@@ -190,15 +190,17 @@ const AddTenant = ({
         type="number"
         className="w-full p-2 border rounded"
         required
+        min={0}
       />
       <input
-        name="noticePeriodInMonths"
-        value={tenant.noticePeriodInMonths}
+        name="noticePeriodInDays"
+        value={tenant.noticePeriodInDays}
         onChange={handleChange}
-        placeholder="Notice Period (months)"
+        placeholder="Notice Period (days)"
         type="number"
         className="w-full p-2 border rounded"
         required
+        min={0}
       />
       <input
         name="rentPaid"
@@ -207,6 +209,7 @@ const AddTenant = ({
         placeholder="Rent Paid"
         type="number"
         className="w-full p-2 border rounded"
+        min={0}
       />
       {tenant.rentPaid !== "" && tenant.rentPaid !== "0" && (
         <select

@@ -15,7 +15,7 @@ export default function useOwnerNotifications(userId: string, userPpid: string,u
         const res = await getNotifications(
           isTenant
             ? { tenantId: userPpid, audience: "tenant" }
-            : { ownerId: userId, audience: "owner" }
+            : { ownerId: userPpid, audience: "owner" }
         );
         // console.log(res.data)
         const notifications = res.data || [];

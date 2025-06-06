@@ -3,7 +3,7 @@ export interface Tenant {
   phone: string;
   aadhar: string;
   deposit: string;
-  noticePeriodInMonths: string;
+  noticePeriodInDays: string;
   rentPaid: string;
   rentPaidMethod: string;
 }
@@ -57,8 +57,8 @@ export const defaultTenant: Tenant = {
   phone: "",
   aadhar: "",
   deposit: "",
-  noticePeriodInMonths: "1",
-  rentPaid: "0",
+  noticePeriodInDays: "",
+  rentPaid: "",
   rentPaidMethod: "cash",
 };
 

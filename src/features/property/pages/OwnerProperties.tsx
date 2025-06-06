@@ -102,11 +102,11 @@ const OwnerProperties: React.FC<{
       setCount(reqsForApprovals.length || 0);
       setApprovals(reqsForApprovals || []);
     } catch (err: any) {
-      console.log(err)
+      console.log(err);
       if (err?.response?.data?.error === "No vacate history found") {
-        setCount(0)
+        setCount(0);
       }
-        const msg = err?.response?.data?.error;
+      const msg = err?.response?.data?.error;
       if (msg === "No vacate history found") {
         // Don't show alert, just set approvals/requestedUsers to empty
         setApprovals([]);
@@ -202,39 +202,45 @@ const OwnerProperties: React.FC<{
   // If no properties, show only the add card or the form
   if (!properties || properties.length === 0) {
     return (
-      <div className="flex items-center space-x-4">
-        {!showForm ? (
-          <button
-            onClick={handleAddCardClick}
-            className="flex flex-col items-center justify-center w-56 h-40 bg-white/80 rounded-xl shadow-lg border-2 border-dashed border-purple-400 hover:bg-purple-50 transition"
-          >
-            <PlusIcon className="h-10 w-10 text-purple-600 mb-2" />
-            <span className="text-lg font-semibold text-purple-700">
-              Add Property
-            </span>
-          </button>
-        ) : null}
-        {showForm && (
-          <Modal onClose={handleFormCancel}>
-            <div className="sticky top-0 z-10 bg-white flex items-center justify-between">
-              <h3 className="text-2xl text-purple-700 font-bold">
-                Add New Property
-              </h3>
-              <button
-                onClick={handleFormCancel}
-                className="text-gray-500 hover:text-gray-700 text-2xl bg-transparent border-none cursor-pointer"
-                aria-label="Close"
-              >
-                &times;
-              </button>
-            </div>
-            <PropertyForm
-              initial={null}
-              onSubmit={handleFormSubmit}
-              onCancel={handleFormCancel}
-            />
-          </Modal>
-        )}
+      <div>
+        <div className="flex items-center space-x-4 mt-2 ">
+          {!showForm ? (
+            <button
+              onClick={handleAddCardClick}
+              className="flex flex-col items-center justify-center w-56 h-40 bg-white/80 rounded-xl shadow-lg border-2 border-dashed border-purple-400 hover:bg-purple-50 transition"
+            >
+              <PlusIcon className="h-10 w-10 text-purple-600 mb-2" />
+              <span className="text-lg font-semibold text-purple-700">
+                Add Property
+              </span>
+            </button>
+          ) : null}
+
+          {showForm && (
+            <Modal onClose={handleFormCancel}>
+              <div className="sticky top-0 z-10 bg-white flex items-center justify-between">
+                <h3 className="text-2xl text-purple-700 font-bold">
+                  Add New Property
+                </h3>
+                <button
+                  onClick={handleFormCancel}
+                  className="text-gray-500 hover:text-gray-700 text-2xl bg-transparent border-none cursor-pointer"
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
+              <PropertyForm
+                initial={null}
+                onSubmit={handleFormSubmit}
+                onCancel={handleFormCancel}
+              />
+            </Modal>
+          )}
+        </div>
+        <div className="flex items-center justify-center w-full h-40 text-purple-600 font-bold animate-pulse">
+          <span className="text-lg">No Properties Found</span>
+        </div>
       </div>
     );
   }

@@ -20,7 +20,7 @@ type Tenant = {
   bedId: string;
   aadhar: string;
   deposit: string;
-  noticePeriodInMonths: string;
+  noticePeriodInDays: string;
   rentPaid: string;
   rentPaidMethod: string;
 };
@@ -46,7 +46,7 @@ const defaultTenant: Tenant = {
   bedId: "",
   aadhar: "",
   deposit: "",
-  noticePeriodInMonths: "",
+  noticePeriodInDays: "",
   rentPaid: "",
   rentPaidMethod: "",
 };
@@ -138,7 +138,7 @@ const AddRoomForm = ({
           bedId: "",
           aadhar: "",
           deposit: "",
-          noticePeriodInMonths: "",
+          noticePeriodInDays: "",
           rentPaid: "",
           rentPaidMethod: "",
         };
@@ -203,9 +203,7 @@ const AddRoomForm = ({
                 phone: bed.tenant?.phone ?? "",
                 aadhar: bed.tenant?.aadhar ?? "",
                 deposit: Number(bed.tenant?.deposit ?? 0),
-                noticePeriodInMonths: Number(
-                  bed.tenant?.noticePeriodInMonths ?? 0
-                ),
+                noticePeriodInDays: Number(bed.tenant?.noticePeriodInDays ?? 0),
                 rentPaid: Number(bed.tenant?.rentPaid ?? 0),
               }
             : undefined,
@@ -326,15 +324,15 @@ const AddRoomForm = ({
                   required
                 />
                 <input
-                  value={bed.tenant.noticePeriodInMonths}
+                  value={bed.tenant.noticePeriodInDays}
                   onChange={(e) =>
                     handleBedChange(
                       idx,
-                      "tenant.noticePeriodInMonths",
+                      "tenant.noticePeriodInDays",
                       e.target.value
                     )
                   }
-                  placeholder="Notice Period (months)"
+                  placeholder="Notice Period (days)"
                   type="number"
                   className="w-full p-1 border rounded"
                   required

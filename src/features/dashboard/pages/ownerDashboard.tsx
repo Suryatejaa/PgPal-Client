@@ -24,6 +24,7 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ userId, userName, userR
   }, []);
 
   // console.log(userId, userName, userRole, userPpid);
+  // console.log(userRole === "owner");
   return (
     <div className="min-h-screen bg-purple-100 text-purple-800">
       {notificationProps.alert && (
@@ -42,7 +43,7 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ userId, userName, userR
       <NotificationSection
         open={notificationProps.notificationOpen}
         setOpen={notificationProps.setNotificationOpen}
-        userId={userId}
+        userId={userPpid}
         setUnreadCount={notificationProps.setUnreadCount}
         isTenant={userRole === "tenant"}
       />

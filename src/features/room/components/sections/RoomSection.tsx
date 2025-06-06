@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "../Modal";
 import RoomCard from "../rooms/RoomCard";
 import AddRoomForm from "../rooms/AddRoomForm";
-import AddBulkRooms from "../rooms/AddBulkRooms";
+import AddBulkRooms from "../rooms/bulkForm/AddBulkRooms";
 import axiosInstance from "../../../../services/axiosInstance";
 import { useError } from "../../../../context/ErrorContext";
 import GlobalAlert from "../../../../components/GlobalAlert"; // adjust path as needed

@@ -152,7 +152,7 @@ const validateBed = (
       errors[`${roomKey}-${bedIdx}-deposit`] = "Deposit required";
       hasError = true;
     }
-    if (!bed.tenant.noticePeriodInMonths) {
+    if (!bed.tenant.noticePeriodInDays) {
       errors[`${roomKey}-${bedIdx}-notice`] = "Notice period required";
       hasError = true;
     }

@@ -74,7 +74,7 @@ const CurrentStayHeader = ({
             <br />
             <strong>Rent:</strong> ₹{stay.rent}
             <br />
-            <strong>Advance Payment</strong>: ₹{stay.advanceBalance}
+            <strong>Advance Payment</strong>: ₹{stay.advanceBalance || 0}
             <br />
             <strong>Rent Due:</strong> ₹{stay.rentDue}
             <br />

@@ -43,6 +43,8 @@ const NotificationSection = ({
   const [tenantDetails, setTenantDetails] = useState<any>(null);
   const [tenantLoading, setTenantLoading] = useState(false);
 
+  // console.log(isTenant)
+
   const fetchNotifications = async () => {
     setLoading(true);
     const Tenant = isTenant || false; // Ensure isTenant is a boolean
