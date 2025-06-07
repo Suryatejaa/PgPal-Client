@@ -43,7 +43,7 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ userId, userName, userR
       <NotificationSection
         open={notificationProps.notificationOpen}
         setOpen={notificationProps.setNotificationOpen}
-        userId={userPpid}
+        userId={userId}
         setUnreadCount={notificationProps.setUnreadCount}
         isTenant={userRole === "tenant"}
       />

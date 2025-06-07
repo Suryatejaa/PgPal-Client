@@ -10,14 +10,15 @@ import {
   forgotPasswordVerify,
 } from "../services/apiServices";
 
-const Login = () => {
+
+const TenantLogin = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { loading, error } = useAppSelector((state) => state.auth);
 
   const [credential, setCredential] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("owner");
+  const [role, setRole] = useState("tenant");
   const [showPassword, setShowPassword] = useState(false); // Toggle for password visibility
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [otpStep, setOtpStep] = useState(false);
@@ -63,9 +64,9 @@ const Login = () => {
       );
       alert("Password reset successful!");
       setIsModalOpen(false);
-      setOtp("");
-      setNewPassword("");
-      setConfirmPassword("");
+      setOtp("")
+      setNewPassword("")
+      setConfirmPassword("")
     } catch (err: any) {
       console.error("Error verifying OTP:", err.response?.data?.message);
       alert(err.response?.data?.message || "Failed to reset password.");
@@ -101,7 +102,6 @@ const Login = () => {
             )}
           </button>
         </div>
-
         <button
           type="submit"
           disabled={!isFormValid || loading}
@@ -123,8 +123,7 @@ const Login = () => {
           </button>
         </div>
       </form>
-      <Modal
-        isOpen={isModalOpen}
+      <Modal isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
           setOtpStep(false);
@@ -151,11 +150,11 @@ const Login = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-gray-800">Reset Password</h2>
-            <p className="text-sm text-gray-600">
-              An OTP has been sent to your registered email. Please enter it
-              below.
-            </p>
+              <h2 className="text-lg font-bold text-gray-800">Reset Password</h2>
+              <p className="text-sm text-gray-600">
+                An OTP has been sent to your registered email. Please enter it
+                below.
+              </p>
             <input
               placeholder="Enter OTP"
               value={otp}
@@ -189,4 +188,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default TenantLogin;

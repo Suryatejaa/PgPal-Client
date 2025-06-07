@@ -51,11 +51,22 @@ const CurrentStayHeader = ({
           <div className="mb-2 p-2 bg-yellow-100 text-yellow-800 rounded">
             <b>You are in notice period.</b>
             {noticePeriodStartDate && noticePeriodEndDate && (
-              <span>
+                <span>
                 {" "}
-                ({new Date(noticePeriodStartDate).toLocaleDateString()} to{" "}
-                {new Date(noticePeriodEndDate).toLocaleDateString()})
-              </span>
+                (
+                {new Date(noticePeriodStartDate).toLocaleString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }).replace(/ /g, "/")}
+                {" to "}
+                {new Date(noticePeriodEndDate).toLocaleString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }).replace(/ /g, "/")}
+                )
+                </span>
             )}
           </div>
         )}

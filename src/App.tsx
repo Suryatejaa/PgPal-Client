@@ -1,14 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
+import TenantLogin from "./features/auth/pages/TenantLogin";
+import TenantRegister from "./features/auth/pages/TenantRegister";
 import Dashboard from "./features/auth/pages/Dashboard";
+// import TenantDashboard from "./features/auth/pages/TenantDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
-import { setUserFromCookies } from "./features/auth/authSlice";
-import { ErrorProvider, useError } from "./context/ErrorContext";
 import { initializeAuth } from "./features/auth/authSlice";
+import { ErrorProvider, useError } from "./context/ErrorContext";
 import ExplorePGsPage from "./features/dashboard/pages/ExplorePage";
+
+const APP_TYPE = import.meta.env.MODE || "owner"; // 'owner' or 'tenant'
+console.log("Current APP_TYPE:", APP_TYPE);
+console.log("All env vars:", import.meta.env.MODE);
 
 const GlobalErrorBar = () => {
   const { error, setError } = useError();
@@ -37,18 +43,25 @@ function App() {
 function AppContent() {
   const dispatch = useAppDispatch();
   const loading = useAppSelector((state) => state.auth.loadingFromCookies);
-  const { setError } = useError();
 
   useEffect(() => {
     dispatch(initializeAuth());
   }, [dispatch]);
-  // if (loading) return <div className="w-full text-center py-10">Loading...</div>;
 
   if (loading) {
     console.log("Still loading cookies, hold your horses...");
-    return null; // or show a spinner
+    return null;
   }
 
+  // Render different apps based on APP_TYPE
+  if (APP_TYPE === "tenant") {
+    return <TenantApp />;
+  }
+
+  return <OwnerApp />;
+}
+
+function OwnerApp() {
   return (
     <>
       <GlobalErrorBar />
@@ -79,5 +92,27 @@ function AppContent() {
   );
 }
 
+function TenantApp() {
+  return (
+    <>
+      <GlobalErrorBar />
+      <Router>
+        <Routes>
+          <Route path="/" element={<TenantLogin />} />
+          <Route path="/signUp" element={<TenantRegister />} />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<div>404 Not Found</div>} />
+        </Routes>
+      </Router>
+    </>
+  );
+}
+
 export default App;
-// useAppSelector is now imported from hooks, so this implementation is removed.

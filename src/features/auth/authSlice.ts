@@ -58,6 +58,7 @@ export const loginUser = createAsyncThunk<
       refreshToken,
     };// return user object with tokens
   } catch (err: any) {
+    console.log(err)
     const message =
       err?.response?.data?.message || err.message || "Login failed";
     return thunkAPI.rejectWithValue(message);

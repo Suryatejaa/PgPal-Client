@@ -5,9 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:owner": "vite --mode owner",
+    "dev:tenant": "vite --mode tenant",
     "build": "tsc -b && vite build",
+    "build:owner": "vite build --mode owner",
+    "build:tenant": "vite build --mode tenant",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start:owner": "cross-env VITE_APP_TYPE=owner vite",
+    "start:tenant": "cross-env VITE_APP_TYPE=tenant vite"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -39,6 +45,7 @@
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.21",
+    "cross-env": "^7.0.3",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
