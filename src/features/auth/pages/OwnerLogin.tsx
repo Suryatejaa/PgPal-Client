@@ -16,14 +16,14 @@ import {
   forgotPasswordVerify,
 } from "../services/apiServices";
 
-const TenantLogin = () => {
+const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { loading, error } = useAppSelector((state) => state.auth);
 
   const [credential, setCredential] = useState("");
   const [password, setPassword] = useState("");
-  const role = "tenant"; // Fixed role for tenant login
+  const role = "owner"; // Fixed role for owner login
   const [showPassword, setShowPassword] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [otpStep, setOtpStep] = useState(false);
@@ -71,7 +71,6 @@ const TenantLogin = () => {
       );
       alert("Password reset successful!");
       setIsModalOpen(false);
-      setOtpStep(false);
       setOtp("");
       setNewPassword("");
       setConfirmPassword("");
@@ -80,9 +79,8 @@ const TenantLogin = () => {
       alert(err.response?.data?.message || "Failed to reset password.");
     }
   };
-
   return (
-    <AuthLayout app_type="tenant">
+    <AuthLayout app_type="owner">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Credential Input */}
         <div className="space-y-2">
@@ -304,4 +302,4 @@ const TenantLogin = () => {
   );
 };
 
-export default TenantLogin;
+export default Login;

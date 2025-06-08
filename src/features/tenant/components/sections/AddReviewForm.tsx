@@ -6,7 +6,7 @@ function AddReviewForm({
   onReviewAdded,
 }: {
   propertyId: string;
-  onReviewAdded: (r: any) => void;
+  onReviewAdded: () => void;
 }) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");

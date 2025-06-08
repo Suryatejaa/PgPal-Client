@@ -1,4 +1,4 @@
-import { BellIcon } from "@heroicons/react/24/outline";
+import { BellAlertIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom"; // <-- Add this import
 
 type OwnerDashboardTopBarProps = {
@@ -44,10 +44,9 @@ const OwnerDashboardTopBar = ({
           </button>
         )}
         <div className="relative">
-          <BellIcon
+          <BellAlertIcon
             className="w-7 h-7 -mr-1 cursor-pointer text-white hover:text-yellow-300"
             onClick={() => setNotificationOpen(true)}
-            title="Notifications"
           />
           {unreadCount > 0 && (
             <span className="absolute -top-1.5 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[20px] text-center">

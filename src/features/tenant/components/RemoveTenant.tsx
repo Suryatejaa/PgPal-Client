@@ -9,7 +9,7 @@ const VacateForm = ({
   onSubmit: (data: any) => void;
   onCancel: () => void;
   isVacate: boolean;
-  currentStay: {
+  currentStay?: {
     rentDue?: number;
     rentPaidStatus?: string;
     deposit?: number;

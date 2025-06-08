@@ -19,13 +19,13 @@ const PropertyOverview = ({
   rules,
   userId,
   onVacateChange,
-  currentStay
+  currentStay,
 }: {
   overview: any;
   userPgPalId?: string;
-    rules?: any;
+  rules?: any;
   userId?: string;
-    onVacateChange?: () => void;
+  onVacateChange?: () => void;
   currentStay?: any;
 }) => {
   const [selectedSubSection, setSelectedSubSection] = useState(

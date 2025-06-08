@@ -257,7 +257,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
                   userId={userId}
                   userPgPalId={profileProps.profile?.pgpalId}
                   onVacateChange={() => setRefreshStayKey((k) => k + 1)}
-                  curretStay={currentStay}
+                  currentStay={currentStay}
                 />
               )}
               {selectedSection === "history" && (

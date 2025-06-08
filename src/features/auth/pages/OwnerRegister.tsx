@@ -22,7 +22,7 @@ import {
   checkPhoneAvailability,
 } from "../services/apiServices";
 
-const TenantRegister = () => {
+const OwnerRegister = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   //   const { loading, error } = useAppSelector((state) => state.auth);
@@ -33,7 +33,7 @@ const TenantRegister = () => {
     password: "",
     confirmPassword: "", // Added confirmPassword field
     phoneNumber: "",
-    role: "tenant",
+    role: "owner",
     gender: "male",
   });
 
@@ -232,7 +232,7 @@ const TenantRegister = () => {
   };
 
   return (
-    <AuthLayout app_type="tenant">
+    <AuthLayout app_type="owner">
       {" "}
       <div>
         {!otpMode ? (
@@ -534,4 +534,4 @@ const TenantRegister = () => {
   );
 };
 
-export default TenantRegister;
+export default OwnerRegister;

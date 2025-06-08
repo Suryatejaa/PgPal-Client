@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./features/auth/pages/Login";
-import Register from "./features/auth/pages/Register";
+import Login from "./features/auth/pages/OwnerLogin";
+import Register from "./features/auth/pages/OwnerRegister";
 import TenantLogin from "./features/auth/pages/TenantLogin";
 import TenantRegister from "./features/auth/pages/TenantRegister";
 import Dashboard from "./features/auth/pages/Dashboard";
@@ -11,6 +11,8 @@ import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { initializeAuth } from "./features/auth/authSlice";
 import { ErrorProvider, useError } from "./context/ErrorContext";
 import ExplorePGsPage from "./features/dashboard/pages/ExplorePage";
+import OwnerLandingPage from "./features/landingPages/pages/OwnerLandingpage";
+import TenantLandingPage from "./features/landingPages/pages/TenantLandingPage/TenantLandingPage";
 
 const APP_TYPE = import.meta.env.MODE || "owner"; // 'owner' or 'tenant'
 console.log("Current APP_TYPE:", APP_TYPE);
@@ -67,7 +69,8 @@ function OwnerApp() {
       <GlobalErrorBar />
       <Router>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<OwnerLandingPage />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/signUp" element={<Register />} />
           <Route
             path="/dashboard"
@@ -98,13 +101,22 @@ function TenantApp() {
       <GlobalErrorBar />
       <Router>
         <Routes>
-          <Route path="/" element={<TenantLogin />} />
+          <Route path="/" element={<TenantLandingPage />} />
+          <Route path="/login" element={<TenantLogin />} />
           <Route path="/signUp" element={<TenantRegister />} />
           <Route
             path="/dashboard"
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/explore"
+            element={
+              <PrivateRoute>
+                <ExplorePGsPage />
               </PrivateRoute>
             }
           />
