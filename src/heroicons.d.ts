@@ -31,6 +31,13 @@ declare module '@heroicons/react/24/outline' {
   export const ClockIcon: React.FC<React.SVGProps<SVGSVGElement>>;
   export const WifiIcon: React.FC<React.SVGProps<SVGSVGElement>>;
   export const DocumentDuplicateIcon: React.FC<React.SVGProps<SVGSVGElement>>;
-  
+  export const ChartBarIcon: React.FC<React.SVGProps<SVGSVGElement>>;
+  export const CurrencyRupeeIcon: React.FC<React.SVGProps<SVGSVGElement>>;
+  export const UserGroupIcon: React.FC<React.SVGProps<SVGSVGElement>>;
+  export const BuildingOfficeIcon: React.FC<React.SVGProps<SVGSVGElement>>;
+  export const BellIcon: React.FC<React.SVGProps<SVGSVGElement>>;
+
     // Add other icons as needed
-  }
+}
+
+export * from '@heroicons/react/solid';

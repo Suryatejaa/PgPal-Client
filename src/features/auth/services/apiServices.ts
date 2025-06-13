@@ -1,8 +1,7 @@
 import axiosInstance from "../../../services/axiosInstance";
 
-
 export const forgotPasswordRequest = async (credential: string) => {
-  return axiosInstance.post("http://localhost:4000/api/auth-service/forgot-password-request", { credential });
+  return axiosInstance.post("/auth-service/forgot-password-request", { credential });
 };
 
 export const forgotPasswordVerify = async (
@@ -10,7 +9,7 @@ export const forgotPasswordVerify = async (
   newPassword: string,
   confirmPassword: string
 ) => {
-  return axiosInstance.post("http://localhost:4000/api/auth-service/forgot-password-verify-otp", {
+  return axiosInstance.post("/auth-service/forgot-password-verify-otp", {
     otp,
     newPassword,
     confirmPassword,
@@ -18,22 +17,28 @@ export const forgotPasswordVerify = async (
 };
 
 export const checkUsernameAvailability = async (username: string) => {
-  const res = await fetch(
-    `http://localhost:4000/api/auth-service/check-username?username=${encodeURIComponent(username)}`
-  );
-  return res.json(); // { available: true/false }
+  const response = await axiosInstance.get(`/auth-service/check-usernames?username=${username}`, {
+    headers: {
+      "x-internal-service": "true", 
+    },
+  });
+  return response.data; // { available: true/false }
 };
 
 export const checkEmailAvailability = async (email: string) => {
-    const res = await fetch(
-      `http://localhost:4000/api/auth-service/check-email?email=${encodeURIComponent(email)}`
-    );
-    return res.json(); // { available: true/false }
-  };
-  
-  export const checkPhoneAvailability = async (phoneNumber: string) => {
-    const res = await fetch(
-      `http://localhost:4000/api/auth-service/check-phonenumber?phoneNumber=${encodeURIComponent(phoneNumber)}`
-    );
-    return res.json(); // { available: true/false }
-  };
+  const response = await axiosInstance.get(`/auth-service/check-email?email=${email}`, {
+    headers: {
+      "x-internal-service": "true",
+    },
+  });
+  return response.data; // { available: true/false }
+};
+
+export const checkPhoneAvailability = async (phoneNumber: string) => {
+  const response = await axiosInstance.get(`/auth-service/check-phonenumber?phoneNumber=${phoneNumber}`, {
+    headers: {
+      "x-internal-service": "true",
+    },
+  });
+  return response.data; // { available: true/false }
+};

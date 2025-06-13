@@ -12,9 +12,18 @@ type OwnerDashboardProps = {
   userName: string;
   userRole: string;
   userPpid: string;
+  isTrialClaimed?: boolean; // Optional, if needed for trial-specific features
+  currentPlan?: string; // Optional, if needed for plan-specific features
 };
 
-const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ userId, userName, userRole, userPpid }) => {
+const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
+  userId,
+  userName,
+  userRole,
+  userPpid,
+  currentPlan,
+  isTrialClaimed,
+}) => {
   const profileProps = useOwnerProfile();
   const notificationProps = useOwnerNotifications(userId, userPpid, userRole);
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
@@ -50,6 +59,9 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ userId, userName, userR
       <OwnerProfileSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        currentPlan={currentPlan}
+        role={userRole}
+        isTrialClaimed={isTrialClaimed}
         {...profileProps}
       />
       <div className="pt-12 w-full">
@@ -59,6 +71,8 @@ const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ userId, userName, userR
             userName={userName}
             userRole={userRole}
             userPpid={userPpid}
+            userPlan={currentPlan}
+            isTrialClaimed={isTrialClaimed}
           />
         </div>
       </div>

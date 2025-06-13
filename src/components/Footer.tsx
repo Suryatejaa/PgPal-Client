@@ -65,13 +65,13 @@ const Footer: React.FC = () => {
 
           {/* Company Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Company</h3>
+            <h3 className="text-lg text-purple-400 font-semibold mb-4">Company</h3>
             <ul className="space-y-2">
               {footerLinks.company.map((link, index) => (
                 <li key={index}>
                   <button
                     onClick={() => navigate(link.href)}
-                    className="text-black hover:text-purple-400 text-sm transition-colors duration-200"
+                    className="text-white bg-transparent pl-0 py-0 hover:text-purple-400 text-sm transition-colors duration-200"
                   >
                     {link.label}
                   </button>
@@ -82,13 +82,13 @@ const Footer: React.FC = () => {
 
           {/* Support Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Support</h3>
+            <h3 className="text-lg text-purple-400 font-semibold mb-4">Support</h3> 
             <ul className="space-y-2">
               {footerLinks.support.map((link, index) => (
                 <li key={index}>
                   <button
                     onClick={() => navigate(link.href)}
-                    className="text-black hover:text-purple-400 text-sm transition-colors duration-200"
+                    className="text-white bg-transparent pl-0 py-0 hover:text-purple-400 text-sm transition-colors duration-200"
                   >
                     {link.label}
                   </button>
@@ -99,13 +99,13 @@ const Footer: React.FC = () => {
 
           {/* Services Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Services</h3>
+            <h3 className="text-lg text-purple-400 font-semibold mb-4">Services</h3>
             <ul className="space-y-2">
               {footerLinks.services.map((link, index) => (
                 <li key={index}>
                   <button
                     onClick={() => navigate(link.href)}
-                    className="text-black hover:text-purple-400 text-sm transition-colors duration-200"
+                    className="text-white bg-transparent pl-0 py-0 hover:text-purple-400 text-sm transition-colors duration-200"
                   >
                     {link.label}
                   </button>

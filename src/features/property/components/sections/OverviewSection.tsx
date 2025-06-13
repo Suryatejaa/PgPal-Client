@@ -7,6 +7,7 @@ import RulesSection from "./RulesSection";
 import ReviewsSection from "./ReviewsSection";
 import ApprovalSection from "./ApprovalSection";
 import GlobalAlert from "../../../../components/GlobalAlert";
+import { useNavigate } from "react-router-dom";
 
 const OVERVIEW_TABS = [
   { key: "stats", label: "Stats" },
@@ -29,6 +30,8 @@ const OverviewSection = ({
   selectTab,
   setSelectTab,
   onApprovalAction,
+  userPlan,
+  isTrialClaimed
 }: {
   property: any;
   userId: string;
@@ -38,10 +41,12 @@ const OverviewSection = ({
   requestedUsers: any[];
   loading?: boolean;
   approvals: any[];
-  count: number;
+    count: number;
+  isTrialClaimed?: boolean; // Optional, if needed for trial-specific features
   selectTab?: string;
   setSelectTab?: (tab: string) => void;
   onApprovalAction?: () => void;
+  userPlan: string; // Optional, if needed for plan-specific features
 }) => {
   const [localApprovals, setLocalApprovals] = useState(approvals);
   const [alert, setAlert] = useState<{
@@ -50,6 +55,7 @@ const OverviewSection = ({
   } | null>(null);
 
   // console.log(count)
+  const Navigate = useNavigate();
 
   useEffect(() => {
     setLocalApprovals(approvals);
@@ -68,7 +74,7 @@ const OverviewSection = ({
       const res = await axiosInstance.post(
         `/tenant-service/vacates/${approvalId}/${action}`
       );
-      console.log(res)
+      console.log(res);
       setLocalApprovals((prev) => prev.filter((a) => a._id !== approvalId));
       setLocalCount((prev) => prev - 1);
       if (onApprovalAction) {
@@ -126,16 +132,160 @@ const OverviewSection = ({
       <div className="pt-2">
         {selectTab === "stats" && (
           <>
-            <PropertyOverview pgpalId={property.pgpalId} id={property._id} />
-            <PropertyStats pgpalId={property.pgpalId} />
-            <div className="flex flex-col items-center w-full">
-              <div className="bg-white rounded-xl shadow p-4 text-gray-800 w-full max-w-6xl mt-4">
-                <div className="text-center">
-                  <strong>Contact:</strong> {property.contact?.phone} |{" "}
-                  {property.contact?.email}
+            {userPlan === "free" || userPlan === "trial" ? (
+              // Locked stats section for free/trial users
+              <div className="relative">
+                {/* Blurred content preview */}
+                <div className="filter blur-md pointer-events-none">
+                  <PropertyOverview
+                    pgpalId={property.pgpalId}
+                    id={property._id}
+                  />
+                  <PropertyStats pgpalId={property.pgpalId} />
+                  <div className="flex flex-col items-center w-full">
+                    <div className="bg-white rounded-xl shadow p-4 text-gray-800 w-full max-w-6xl mt-4">
+                      <div className="text-center">
+                        <strong>Contact:</strong> {property.contact?.phone} |{" "}
+                        {property.contact?.email}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Upgrade overlay */}
+                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-start justify-center pt-8">
+                  <div className="bg-white rounded-2xl p-8 mx-4 max-w-md text-center shadow-2xl">
+                    <div className="mb-4">
+                      <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg
+                          className="w-8 h-8 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                        🚀 Unlock Detailed Analytics
+                      </h3>
+                      <p className="text-gray-600 mb-6">
+                        Get comprehensive insights into your property
+                        performance, occupancy rates, revenue analytics, and
+                        much more!
+                      </p>
+                    </div>
+
+                    <div className="space-y-3 mb-6 text-left">
+                      <div className="flex items-center text-sm text-gray-700">
+                        <svg
+                          className="w-4 h-4 text-green-500 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        Real-time occupancy tracking
+                      </div>
+                      <div className="flex items-center text-sm text-gray-700">
+                        <svg
+                          className="w-4 h-4 text-green-500 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        Revenue and payment analytics
+                      </div>
+                      <div className="flex items-center text-sm text-gray-700">
+                        <svg
+                          className="w-4 h-4 text-green-500 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        Tenant satisfaction metrics
+                      </div>
+                      <div className="flex items-center text-sm text-gray-700">
+                        <svg
+                          className="w-4 h-4 text-green-500 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        Export detailed reports
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        // Navigate to pricing/upgrade page
+                        Navigate("/pricing", { state: { from: "overview", isTrialClaimed } });
+                      }}
+                      className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-purple-600 hover:to-indigo-700 transition duration-200 shadow-lg"
+                    >
+                      {userPlan === "trial" && isTrialClaimed
+                        ? "Upgrade to Pro"
+                        : "Start Free Trial"}
+                    </button>
+
+                    <p className="text-xs text-gray-500 mt-3">
+                      {userPlan === "trial" && isTrialClaimed
+                        ? "Your trial period is ending soon!"
+                        : "Upgrade now and get 30% off your first month!"}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              // Full stats access for paid users
+              <>
+                <PropertyOverview
+                  pgpalId={property.pgpalId}
+                  id={property._id}
+                />
+                <PropertyStats pgpalId={property.pgpalId} />
+                <div className="flex flex-col items-center w-full">
+                  <div className="bg-white rounded-xl shadow p-4 text-gray-800 w-full max-w-6xl mt-4">
+                    <div className="text-center">
+                      <strong>Contact:</strong> {property.contact?.phone} |{" "}
+                      {property.contact?.email}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
         {selectTab === "amenities" && (

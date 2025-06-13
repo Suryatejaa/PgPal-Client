@@ -151,7 +151,14 @@ const QuickSetupForm: React.FC<Props> = ({
           </button>
           <button
             onClick={onGenerateRooms}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${
+              !quickSetup.startRoom ||
+              !quickSetup.endRoom ||
+              !quickSetup.rentPerBed ||
+              !quickSetup.floorNumber
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
             disabled={
               !quickSetup.startRoom ||
               !quickSetup.endRoom ||

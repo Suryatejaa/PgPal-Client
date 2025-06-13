@@ -133,11 +133,16 @@ const OwnerRegister = () => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" }); // Clear field-specific errors
+    const { name, value } = e.target;
 
-    if (e.target.name === "username") {
-      if (e.target.value && !usernameRegex.test(e.target.value)) {
+    // Convert username to lowercase automatically
+    const processedValue = name === "username" ? value.toLowerCase() : value;
+
+    setForm({ ...form, [name]: processedValue });
+    setErrors({ ...errors, [name]: "" }); // Clear field-specific errors
+
+    if (name === "username") {
+      if (processedValue && !usernameRegex.test(processedValue)) {
         setErrors((prev) => ({
           ...prev,
           username:
@@ -146,33 +151,33 @@ const OwnerRegister = () => {
         setUsernameAvailable(null); // Reset availability if invalid
       } else {
         setErrors((prev) => ({ ...prev, username: "" }));
-        if (e.target.value) checkUsername(e.target.value);
+        if (processedValue) checkUsername(processedValue);
       }
     }
-    if (e.target.name === "email") checkEmail(e.target.value);
-    if (e.target.name === "phoneNumber") checkPhone(e.target.value);
+    if (name === "email") checkEmail(value);
+    if (name === "phoneNumber") checkPhone(value);
 
-    if (e.target.name === "email") {
-      if (e.target.value && !emailRegex.test(e.target.value)) {
+    if (name === "email") {
+      if (value && !emailRegex.test(value)) {
         setErrors((prev) => ({ ...prev, email: "Invalid email format" }));
         setEmailAvailable(null); // Reset availability if invalid
       } else {
         setErrors((prev) => ({ ...prev, email: "" }));
-        if (e.target.value) checkEmail(e.target.value); // Only check if valid
+        if (value) checkEmail(value); // Only check if valid
       }
     }
 
-    if (e.target.name === "phoneNumber") {
-      if (e.target.value && !phoneRegex.test(e.target.value)) {
+    if (name === "phoneNumber") {
+      if (value && !phoneRegex.test(value)) {
         setErrors((prev) => ({ ...prev, phoneNumber: "Invalid phone number" }));
         setPhoneAvailable(null); // Reset availability if invalid
       } else {
         setErrors((prev) => ({ ...prev, phoneNumber: "" }));
-        if (e.target.value) checkPhone(e.target.value); // Only check if valid
+        if (value) checkPhone(value); // Only check if valid
       }
     }
-    if (e.target.name === "password") {
-      if (e.target.value && !passwordRegex.test(e.target.value)) {
+    if (name === "password") {
+      if (value && !passwordRegex.test(value)) {
         setErrors((prev) => ({
           ...prev,
           password:
@@ -222,7 +227,14 @@ const OwnerRegister = () => {
       await dispatch(
         verifyOtp({ otp: parseInt(otp, 10), email: form.email })
       ).unwrap();
-      navigate("/dashboard"); // Redirect to dashboard on success
+      navigate("/pricing", {
+        state: {
+          from: "register",
+          isTrialClaimed: false,
+          currentPlan: "free"
+        },
+
+      }); // Redirect to pricing on success
     } catch (err: any) {
       console.error("OTP verification failed:", err);
       alert(err || "Invalid OTP. Please try again.");

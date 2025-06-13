@@ -18,6 +18,7 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import GlobalAlert from "../../../components/GlobalAlert"; // adjust path as needed
 import axiosInstance from "../../../services/axiosInstance";
 import { useVacateRealtimeSync } from "../../../app/useNotificationSocket";
+import useSubscriptionLimits from "../../../app/useSubscriptionLimits";
 
 const SECTION_LIST = [
   { key: "overview", label: "Overview" },
@@ -33,7 +34,9 @@ const OwnerProperties: React.FC<{
   userName: string;
   userRole: string;
   userPpid: string;
-}> = ({ userId, userName, userRole, userPpid }) => {
+  userPlan?: string;
+  isTrialClaimed?: boolean; // Optional, if needed for trial-specific features
+}> = ({ userId, userName, userRole, userPpid, isTrialClaimed }) => {
   const [properties, setProperties] = useState<any[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<any>(() => {
     const stored = sessionStorage.getItem("selectedProperty");
@@ -57,9 +60,14 @@ const OwnerProperties: React.FC<{
   const [selectTab, setSelectTab] = useState(
     () => sessionStorage.getItem("selectTab") || "stats"
   );
+  const { canAddProperty, getLimitMessage, currentPlan, isUnlimited, limits } =
+    useSubscriptionLimits();
+
   const handleApprovalAction = () => {
     fetchApprovals(); // re-fetch approvals after an action
   };
+
+  // console.log("limits:", limits.maxProperties === -1);
 
   useEffect(() => {
     sessionStorage.setItem("selectTab", selectTab);
@@ -165,7 +173,6 @@ const OwnerProperties: React.FC<{
     }
   };
 
-  // Handle property card click (just select, don't open form)
   const handleCardClick = (property: any) => {
     console.log(property.ownerId);
     console.log(userId);
@@ -173,10 +180,15 @@ const OwnerProperties: React.FC<{
     sessionStorage.setItem("selectedProperty", JSON.stringify(property));
     setShowForm(false);
   };
-
-  // console.log(requestedUsers)
-  // Handle add card click (open form)
+  // Handle property card click (just select, don't open form)
   const handleAddCardClick = () => {
+    if (!canAddProperty(properties.length)) {
+      setAlert({
+        message: getLimitMessage("property"),
+        type: "error",
+      });
+      return;
+    }
     setShowForm(true);
     setSelectedProperty(null);
   };
@@ -267,11 +279,32 @@ const OwnerProperties: React.FC<{
         ))}
         <button
           onClick={handleAddCardClick}
-          className="min-w-[220px] w-56 h-40 bg-white/80 rounded-xl mt-1 -ml-1 shadow-lg border-2 border-dashed border-purple-400 flex flex-col items-center justify-center hover:bg-purple-50 transition"
+          disabled={!canAddProperty(properties.length)}
+          className={`min-w-[220px] w-56 h-40 rounded-xl mt-1 -ml-1 shadow-lg border-2 border-dashed flex flex-col items-center justify-center transition ${
+            canAddProperty(properties.length)
+              ? "bg-white/80 border-purple-400 hover:bg-purple-50"
+              : "bg-gray-100 border-gray-300 cursor-not-allowed opacity-50"
+          }`}
         >
-          <PlusIcon className="h-10 w-10 text-purple-600 mb-2" />
-          <span className="text-lg font-semibold text-purple-700">
+          <PlusIcon
+            className={`h-10 w-10 mb-2 ${
+              canAddProperty(properties.length)
+                ? "text-purple-600"
+                : "text-gray-400"
+            }`}
+          />
+          <span
+            className={`text-lg font-semibold ${
+              canAddProperty(properties.length)
+                ? "text-purple-700"
+                : "text-gray-500"
+            }`}
+          >
             Add Property
+          </span>
+          <span className="text-xs text-gray-500 mt-1">
+            {properties.length}/
+            {limits.maxProperties === -1 ? "∞" : limits.maxProperties}
           </span>
         </button>
       </div>
@@ -389,6 +422,8 @@ const OwnerProperties: React.FC<{
               selectTab={selectTab}
               setSelectTab={setSelectTab}
               onApprovalAction={handleApprovalAction}
+              userPlan={currentPlan}
+              isTrialClaimed={isTrialClaimed}
             />
           )}
           {selectedSection === "rooms" && (

@@ -111,17 +111,30 @@ const RoomsSection = ({
   }, [rooms, filter, search]);
 
   // Fetch rooms function
+  const [loading, setLoading] = useState(false); // Add loading state
+
+  // Fetch rooms function
   const fetchRooms = async () => {
     setError(null);
+    setLoading(true);
+    setRooms([]);
+
     if (property?._id) {
       try {
+        console.log("Fetching rooms for property:", property._id);
         const res = await axiosInstance.get(
-          `/room-service/${property._id}/rooms`
+          `/room-service/${property._id}/rooms`,
+          {
+            params: { _t: Date.now() },
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+            },
+          }
         );
+        console.log("Fresh room data received:", res.data);
         setRooms(res.data.rooms || []);
       } catch (err: any) {
         const expected = "No rooms found";
-        console.log(err?.response?.data?.error !== expected);
         if (err?.response?.data?.error !== expected) {
           setError(
             err?.response?.data?.error ||
@@ -130,12 +143,14 @@ const RoomsSection = ({
           );
         }
         setRooms([]);
+      } finally {
+        setLoading(false);
       }
     } else {
       setRooms([]);
+      setLoading(false);
     }
   };
-
   useEffect(() => {
     setRooms([]);
     fetchRooms();
@@ -144,11 +159,13 @@ const RoomsSection = ({
 
   const handleAddRoom = async (roomData: any) => {
     setError(null);
+    setLoading(true);
     try {
       const res = await axiosInstance.post("/room-service/rooms", {
         propertyId: property._id,
         rooms: [roomData],
       });
+      setLoading(false);
       console.log(res);
       setShowForm(false);
       fetchProperties?.();
@@ -156,6 +173,7 @@ const RoomsSection = ({
       await fetchRooms();
     } catch (err: any) {
       console.log(err.response.data.error);
+      setLoading(false);
       setError(
         err?.response?.data?.error || err?.message || "Failed to add room."
       );
@@ -310,6 +328,7 @@ const RoomsSection = ({
             onSubmit={handleAddRoom}
             onCancel={() => setShowForm(false)}
             existingRooms={rooms}
+            loading={loading}
           />
         </Modal>
       )}
@@ -323,6 +342,7 @@ const RoomsSection = ({
               fetchProperties?.();
             }}
             onClose={() => setShowBulkForm(false)}
+            setAlert={setAlert}
           />
         </Modal>
       )}

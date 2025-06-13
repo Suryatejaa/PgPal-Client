@@ -186,10 +186,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
     if (!fieldValues.address.state) temp.state = "State is required";
     if (!fieldValues.address.country) temp.country = "Country is required";
     if (!fieldValues.address.zipCode) temp.zipCode = "Zip Code is required";
-    if (!fieldValues.totalRooms) temp.totalRooms = "Total Rooms is required";
-    if (!fieldValues.totalBeds) temp.totalBeds = "Total Beds is required";
-    if (!fieldValues.occupiedBeds)
-      temp.occupiedBeds = "Occupied Beds is required";
     if (!fieldValues.pgGenderType)
       temp.pgGenderType = "PG Gender Type is required";
     if (!fieldValues.rentRange?.min) temp.rentRangeMin = "Min rent is required";
@@ -295,19 +291,11 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
         name,
         contact,
         address,
-        totalRooms,
-        totalBeds,
-        occupiedBeds,
         pgGenderType,
         rentRange,
         depositRange,
         location,
       } = form;
-
-      const available =
-        form.availableBeds !== ""
-          ? Number(form.availableBeds)
-          : Number(totalBeds) - Number(occupiedBeds);
 
       if (
         typeof form.location.lat === "number" &&
@@ -319,9 +307,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
           name,
           contact,
           address,
-          totalRooms: Number(totalRooms),
-          totalBeds: Number(totalBeds),
-          occupiedBeds: Number(occupiedBeds),
           pgGenderType,
           rentRange: {
             min: Number(rentRange.min),
@@ -531,44 +516,6 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
       />
       {errors.zipCode && (
         <div className="text-red-500 text-xs">{errors.zipCode}</div>
-      )}
-      <input
-        name="totalBeds"
-        value={form.totalBeds}
-        onChange={handleChange}
-        placeholder="Total Beds"
-        type="number"
-        className="w-full p-2 rounded border"
-        min={0}
-      />
-      {errors.totalBeds && (
-        <div className="text-red-500 text-xs">{errors.totalBeds}</div>
-      )}
-
-      <input
-        name="totalRooms"
-        value={form.totalRooms}
-        onChange={handleChange}
-        placeholder="Total Rooms"
-        type="number"
-        className="w-full p-2 rounded border"
-        min={0}
-      />
-      {errors.totalRooms && (
-        <div className="text-red-500 text-xs">{errors.totalRooms}</div>
-      )}
-
-      <input
-        name="occupiedBeds"
-        value={form.occupiedBeds}
-        onChange={handleChange}
-        placeholder="Occupied Beds"
-        type="number"
-        className="w-full p-2 rounded border"
-        min={0}
-      />
-      {errors.occupiedBeds && (
-        <div className="text-red-500 text-xs">{errors.occupiedBeds}</div>
       )}
 
       {/* Map Picker */}

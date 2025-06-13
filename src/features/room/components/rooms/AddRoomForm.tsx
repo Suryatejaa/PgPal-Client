@@ -57,9 +57,11 @@ const AddRoomForm = ({
   onSubmit,
   onCancel,
   existingRooms = [],
+  loading,
 }: {
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  loading: boolean;
   existingRooms?: { roomNumber: string; floor: string | number }[];
 }) => {
   const { setError } = useError();
@@ -376,10 +378,10 @@ const AddRoomForm = ({
         <button
           type="submit"
           className={`bg-purple-600 text-white px-4 py-2 rounded transition 
-            ${isInvalid || !!formError ? "opacity-50 cursor-not-allowed" : ""}`}
-          disabled={isInvalid || !!formError}
+            ${isInvalid || !!formError || loading ? "opacity-50 cursor-not-allowed" : ""}`}
+          disabled={isInvalid || !!formError || loading}
         >
-          Save
+          {loading ? "Adding..." : "Add Room"}
         </button>
         <button
           type="button"

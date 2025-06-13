@@ -10,6 +10,8 @@ export interface User {
     gender: string;
     token?: string;
     refreshToken?: string;
+    currentPlan?: string;
+    isTrialClaimed?: boolean;
 }
 
 export interface AuthState {

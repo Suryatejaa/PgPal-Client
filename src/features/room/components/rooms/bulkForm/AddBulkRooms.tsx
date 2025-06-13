@@ -26,12 +26,13 @@ interface Props {
   propertyId: string;
   existingRooms?: { roomNumber: string; floor: string }[];
   onClose?: () => void;
+  setAlert: (alert: { type: "error" | "success"; message: string }) => void;
 }
 
 const defaultQuickSetup: QuickSetup = {
   startRoom: "",
   endRoom: "",
-  floorNumber: "1",
+  floorNumber: "",
   type: "double",
   rentPerBed: "",
   defaultStatus: "vacant",
@@ -44,6 +45,7 @@ const BulkRoomForm: React.FC<Props> = ({
   onSuccess,
   existingRooms = [],
   onClose,
+  setAlert,
 }) => {
   const [floors, setFloors] = useState<Floor[]>([
     { floorNumber: "1", rooms: [] },
@@ -53,10 +55,10 @@ const BulkRoomForm: React.FC<Props> = ({
   }>({ "1": true });
   const [showQuickSetup, setShowQuickSetup] = useState(true);
   const [quickSetup, setQuickSetup] = useState<QuickSetup>(defaultQuickSetup);
-  const [alert, setAlert] = useState<{
-    type: "error" | "success";
-    message: string;
-  } | null>(null);
+  // const [alert, setAlert] = useState<{
+  //   type: "error" | "success";
+  //   message: string;
+  // } | null>(null);
 
   const {
     validationErrors,
@@ -66,9 +68,11 @@ const BulkRoomForm: React.FC<Props> = ({
     clearFieldError,
   } = useRoomValidation(floors, existingRooms);
 
+  // console.log(onsubmit,onSuccess,propertyId,existingRooms,onClose)
+  const [loading, setLoading] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     const requiredFieldErrors = validateRequiredFields(floors);
     if (Object.keys(requiredFieldErrors).length > 0) {
       setValidationErrors((prev) => ({ ...prev, ...requiredFieldErrors }));
@@ -108,15 +112,17 @@ const BulkRoomForm: React.FC<Props> = ({
         propertyId,
         rooms: roomsData,
       });
-
+      console.log(res);
       if (onSuccess) {
         onSuccess();
       } else if (onSubmit) {
         onSubmit(roomsData);
       }
+      setLoading(false);
       setAlert({ type: "success", message: "Rooms added successfully!" });
     } catch (err: any) {
       console.error(err);
+      setLoading(false);
       const errorMessage = err?.response?.data?.error || "Failed to add rooms";
       setAlert({ type: "error", message: errorMessage });
       setValidationErrors((prev) => ({ ...prev, submit: errorMessage }));
@@ -238,13 +244,13 @@ const BulkRoomForm: React.FC<Props> = ({
 
   return (
     <div className="p-1">
-      {alert && (
+      {/* {alert && (
         <GlobalAlert
           type={alert.type}
           message={alert.message}
           onClose={() => setAlert(null)}
         />
-      )}
+      )} */}
 
       <div className="flex justify-between items-center mb-1">
         <h2 className="text-lg font-semibold">Add Bulk Rooms</h2>
@@ -296,11 +302,11 @@ const BulkRoomForm: React.FC<Props> = ({
               <button
                 onClick={handleSubmit}
                 className={`bg-blue-700 border-2 border-blue-700 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm font-semibold ${
-                  hasErrors ? "opacity-50 cursor-not-allowed" : ""
+                  hasErrors || loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-                disabled={hasErrors}
+                disabled={hasErrors || loading}
               >
-                Save All Rooms
+                {loading ? "Adding..." : "Add All Rooms"}
               </button>
             </div>
           </div>

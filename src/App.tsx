@@ -4,6 +4,7 @@ import Register from "./features/auth/pages/OwnerRegister";
 import TenantLogin from "./features/auth/pages/TenantLogin";
 import TenantRegister from "./features/auth/pages/TenantRegister";
 import Dashboard from "./features/auth/pages/Dashboard";
+import AdminLogin from "./features/auth/pages/AdminLogin";
 // import TenantDashboard from "./features/auth/pages/TenantDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import { useEffect } from "react";
@@ -11,10 +12,11 @@ import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { initializeAuth } from "./features/auth/authSlice";
 import { ErrorProvider, useError } from "./context/ErrorContext";
 import ExplorePGsPage from "./features/dashboard/pages/ExplorePage";
-import OwnerLandingPage from "./features/landingPages/pages/OwnerLandingpage";
+import OwnerLandingPage from "./features/landingPages/pages/OwnerLandingPage/OwnerLandingpage";
 import TenantLandingPage from "./features/landingPages/pages/TenantLandingPage/TenantLandingPage";
+import Pricing from "./features/landingPages/pages/OwnerLandingPage/Pricing";
 
-const APP_TYPE = import.meta.env.MODE || "owner"; // 'owner' or 'tenant'
+const APP_TYPE = import.meta.env.MODE // 'owner' or 'tenant'
 console.log("Current APP_TYPE:", APP_TYPE);
 console.log("All env vars:", import.meta.env.MODE);
 
@@ -59,8 +61,13 @@ function AppContent() {
   if (APP_TYPE === "tenant") {
     return <TenantApp />;
   }
-
-  return <OwnerApp />;
+  if (APP_TYPE === "admin") {
+    return <AdminApp />;
+  }
+  if (APP_TYPE === "owner") {
+    return <OwnerApp />;
+  }
+  return null;
 }
 
 function OwnerApp() {
@@ -72,6 +79,7 @@ function OwnerApp() {
           <Route path="/" element={<OwnerLandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signUp" element={<Register />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route
             path="/dashboard"
             element={
@@ -117,6 +125,28 @@ function TenantApp() {
             element={
               <PrivateRoute>
                 <ExplorePGsPage />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<div>404 Not Found</div>} />
+        </Routes>
+      </Router>
+    </>
+  );
+}
+
+function AdminApp() {
+  return (
+    <>
+      <GlobalErrorBar />
+      <Router>
+        <Routes>
+          <Route path="/" element={<AdminLogin />} />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
               </PrivateRoute>
             }
           />
