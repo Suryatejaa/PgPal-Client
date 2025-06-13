@@ -25,16 +25,20 @@ export interface Room {
 }
 
 export interface RoomAnalytics {
-  summary: {
-    totalRooms: number;
-    availableRooms: number;
-    occupiedRooms: number;
-    totalBeds: number;
-    availableBeds: number;
-    occupiedBeds: number;
-    averageRent: number;
-    totalProperties: number;
-  };
+  data: any;
+  totalRooms: number;
+  occupancyRate: number;
+  vacantBeds:any
+  availableRooms: number;
+  occupiedRooms: number;
+  totalBeds: number;
+  availableBeds: number;
+  occupiedBeds: number;
+  averageRent: number;
+  totalProperties: number;
+  roomsByType: any[];
+  roomsByStatus: any[];
+  lastUpdated: string;
   typeDistribution: {
     [key: string]: number;
   };
@@ -95,7 +99,7 @@ export interface AdvancedAnalytics {
 
 export interface SystemHealth {
   cpuUsage: number;
-  memoryUsage: number;  diskUsage: number;
+  memoryUsage: number; diskUsage: number;
   activeConnections: number;
   responseTime: number;
   errorRate: number;
@@ -112,6 +116,7 @@ export interface ExportFile {
 class RoomService {  // Dashboard Analytics
   async getDashboardOverview(): Promise<RoomAnalytics> {
     const response = await axiosInstance.get(`${ROOM_BASE_URL}/dashboard/overview`);
+    console.log(response.data.data);
     return response.data.data || response.data; // Handle wrapped response
   }
 

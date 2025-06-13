@@ -72,7 +72,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
   const handleTabChange = (tabId: string) => {
     sessionStorage.setItem("adminActiveTab", tabId);
     setActiveTab(tabId);
-  }
+  };
 
   const tabs: TabItem[] = [
     {
@@ -195,10 +195,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
     injectCustomStyles();
     loadDashboardData();
   }, []);
+
+  // Update the loadDashboardData function to handle the correct data structure
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      setError(null); // Default fallback data
+      setError(null);
+
+      // Default fallback data
       const defaultPropertyOverview = {
         summary: {
           totalProperties: 0,
@@ -226,48 +230,40 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
           timestamp: new Date().toISOString(),
         },
         timestamp: new Date().toISOString(),
-      }; // Default fallback data
+      };
+
+      // Updated default fallback data to match API structure
       const defaultRoomAnalytics = {
-        summary: {
-          totalRooms: 0,
-          availableRooms: 0,
-          occupiedRooms: 0,
-          totalBeds: 0,
-          availableBeds: 0,
-          occupiedBeds: 0,
-          averageRent: 0,
-          totalProperties: 0,
-        },
-        typeDistribution: {},
-        recentActivity: {
-          recentRooms: [],
-          recentlyOccupied: [],
-        },
-        systemMetrics: {
-          database: {
-            collections: 0,
-            dataSize: 0,
-            storageSize: 0,
-            indexes: 0,
-            indexSize: 0,
-          },
-          cache: {},
-          timestamp: new Date().toISOString(),
-        },
-        timestamp: new Date().toISOString(),
+        totalRooms: 0,
+        totalBeds: 0,
+        occupiedBeds: 0,
+        vacantBeds: 0,
+        occupancyRate: 0,
+        recentRooms: 0,
+        roomsByType: [],
+        roomsByStatus: [],
+        occupancyStats: [],
+        lastUpdated: new Date().toISOString(),
+        // Calculated fields for compatibility
+        availableRooms: 0,
+        occupiedRooms: 0,
+        averageRent: 0,
+        totalProperties: 0,
       };
 
       // Load data from both services
       const [
         propertyOverviewData,
-        roomAnalyticsData,
+        roomAnalyticsResponse,
         propertiesData,
         roomsData,
       ] = await Promise.all([
         propertyService
           .getDashboardOverview()
           .catch(() => defaultPropertyOverview),
-        roomService.getDashboardOverview().catch(() => defaultRoomAnalytics),
+        roomService
+          .getDashboardOverview()
+          .catch(() => ({ data: defaultRoomAnalytics })),
         propertyService
           .getAllProperties({ limit: 10 })
           .catch(() => ({ properties: [], total: 0, page: 1, totalPages: 0 })),
@@ -276,13 +272,43 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
           .catch(() => ({ rooms: [], total: 0, page: 1, totalPages: 0 })),
       ]);
 
-      console.log(propertyOverviewData);
-      console.log(roomAnalyticsData);
-      console.log(propertiesData);
-      console.log(roomsData);
+      console.log("Room Analytics Response:", roomAnalyticsResponse);
+
+      // Extract the actual data from the nested structure
+      const roomAnalyticsData =
+        (roomAnalyticsResponse && "data" in roomAnalyticsResponse
+          ? roomAnalyticsResponse.data
+          : roomAnalyticsResponse) || defaultRoomAnalytics;
+      // Calculate additional fields for dashboard compatibility
+      const processedRoomAnalytics = {
+        ...roomAnalyticsData,
+        // Calculate available and occupied rooms from status data
+        availableRooms:
+          roomAnalyticsData.roomsByStatus?.find(
+            (status: any) => status._id === "vacant"
+          )?.count || 0,
+        occupiedRooms:
+          roomAnalyticsData.roomsByStatus?.find(
+            (status: any) => status._id === "partially occupied"
+          )?.count || 0,
+        // Calculate average rent (you might need to get this from rooms data)
+        averageRent: 0, // Will be calculated from rooms data
+        totalProperties: 1, // Default for now
+      };
+
+      // Calculate average rent from rooms data
+      if (roomsData.rooms && roomsData.rooms.length > 0) {
+        const totalRent = roomsData.rooms.reduce(
+          (sum, room) => sum + (room.rentPerBed || 0),
+          0
+        );
+        processedRoomAnalytics.averageRent = Math.round(
+          totalRent / roomsData.rooms.length
+        );
+      }
 
       setPropertyOverview(propertyOverviewData || defaultPropertyOverview);
-      setRoomAnalytics(roomAnalyticsData || defaultRoomAnalytics);
+      setRoomAnalytics(processedRoomAnalytics);
       setProperties(propertiesData.properties || []);
       setRooms(roomsData.rooms || []);
     } catch (err) {
@@ -396,14 +422,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
 
     return (
       <div className="space-y-6">
-        {" "}
         {/* Property Service Stats */}
         {propertyOverview && (
           <>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 Property Management
-              </h2>{" "}
+              </h2>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 <StatsCard
                   title="Total Properties"
@@ -439,48 +464,75 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
             </div>
           </>
         )}
-        {/* Room Service Stats */}
+
+        {/* Room Service Stats - Updated to use correct API response structure */}
         {roomAnalytics && (
           <>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 Room Management
-              </h2>{" "}
+              </h2>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 <StatsCard
                   title="Total Rooms"
-                  value={(
-                    roomAnalytics.summary?.totalRooms || 0
-                  ).toLocaleString()}
+                  value={(roomAnalytics.totalRooms || 0).toLocaleString()}
                   icon={propertyIcons.rooms}
                 />
                 <StatsCard
                   title="Available Rooms"
-                  value={(
-                    roomAnalytics.summary?.availableRooms || 0
-                  ).toLocaleString()}
+                  value={(roomAnalytics.availableRooms || 0).toLocaleString()}
                   changeType="positive"
                   icon={propertyIcons.rooms}
                 />
                 <StatsCard
                   title="Occupied Rooms"
-                  value={(
-                    roomAnalytics.summary?.occupiedRooms || 0
-                  ).toLocaleString()}
+                  value={(roomAnalytics.occupiedRooms || 0).toLocaleString()}
+                  changeType="positive"
+                  icon={propertyIcons.rooms}
+                />
+                <StatsCard
+                  title="Occupancy Rate"
+                  value={`${(roomAnalytics.occupancyRate || 0).toFixed(1)}%`}
+                  icon={propertyIcons.revenue}
+                />
+              </div>
+            </div>
+
+            {/* Additional Room Statistics */}
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Bed Management
+              </h2>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+                <StatsCard
+                  title="Total Beds"
+                  value={(roomAnalytics.totalBeds || 0).toLocaleString()}
+                  icon={propertyIcons.rooms}
+                />
+                <StatsCard
+                  title="Occupied Beds"
+                  value={(roomAnalytics.occupiedBeds || 0).toLocaleString()}
+                  changeType="positive"
+                  icon={propertyIcons.rooms}
+                />
+                <StatsCard
+                  title="Available Beds"
+                  value={(roomAnalytics.vacantBeds || 0).toLocaleString()}
                   changeType="positive"
                   icon={propertyIcons.rooms}
                 />
                 <StatsCard
                   title="Average Rent"
                   value={`₹${(
-                    roomAnalytics.summary?.averageRent || 0
+                    roomAnalytics.averageRent || 0
                   ).toLocaleString()}`}
                   icon={propertyIcons.revenue}
                 />
               </div>
             </div>
           </>
-        )}{" "}
+        )}
+
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border border-gray-200">
@@ -523,36 +575,32 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
 
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border border-gray-200">
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
-              Recent Rooms
+              Room Statistics by Type
             </h3>
             <div className="space-y-3">
-              {rooms.slice(0, 5).map((room) => (
+              {roomAnalytics?.roomsByType?.map((typeData, index) => (
                 <div
-                  key={room._id}
+                  key={typeData._id || index}
                   className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
                 >
                   <div className="flex-1 min-w-0 mr-3">
-                    <p className="text-sm font-medium text-gray-900">
-                      Room {room.roomNumber}
+                    <p className="text-sm font-medium text-gray-900 capitalize">
+                      {typeData._id} Rooms
                     </p>
                     <p className="text-xs text-gray-500">
-                      {room.type} • {room.totalBeds} beds
+                      {typeData.totalBeds} total beds
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-xs sm:text-sm font-medium text-gray-900">
-                      ₹{room.rentPerBed.toLocaleString()}/bed
+                      {typeData.count} rooms
                     </p>
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        room.status === "available"
-                          ? "bg-green-100 text-green-800"
-                          : room.status === "occupied"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {room.status}
+                    <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                      {(
+                        (typeData.count / roomAnalytics.totalRooms) *
+                        100
+                      ).toFixed(1)}
+                      %
                     </span>
                   </div>
                 </div>
@@ -563,6 +611,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
       </div>
     );
   };
+
   const renderProperties = () => (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
