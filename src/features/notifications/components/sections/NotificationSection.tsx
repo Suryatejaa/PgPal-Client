@@ -154,26 +154,26 @@ const NotificationSection = ({
   };
 
   const handleConfirmAttendance = async (title: string, message: string) => {
-    console.log('title:', title, '\nmessage:', message);
+    console.log("title:", title, "\nmessage:", message);
 
     const msg = message.split(" ");
 
-    let date = msg[msg.length-1]
-   
+    let date = msg[msg.length - 1];
+
     if (date.endsWith(".")) {
       date = date.slice(0, -1);
     }
 
-    let meal = title.split(" ")[title.split(" ").length - 1]; 
+    let meal = title.split(" ")[title.split(" ").length - 1];
     if (meal.endsWith(".")) {
       meal = date.slice(0, -1);
     }
 
-    console.log(`Meal ${meal}, date ${date}`)
+    console.log(`Meal ${meal}, date ${date}`);
 
     try {
       const response = await axiosInstance.put(
-        "http://localhost:4000/api/kitchen-service/meal/attendance",
+        "http://46.62.142.3:4000/api/kitchen-service/meal/attendance",
         JSON.stringify({ meal, date }),
         {
           headers: {
@@ -200,11 +200,10 @@ const NotificationSection = ({
     date: string
   ) => {
     try {
-
       // console.log(meal, date);
 
       const response = await axiosInstance.get(
-        `http://localhost:4000/api/kitchen-service/meal/attendance?propertyPpid=${propertyPpid}&meal=${meal}&date=${date}`
+        `http://46.62.142.3:4000/api/kitchen-service/meal/attendance?propertyPpid=${propertyPpid}&meal=${meal}&date=${date}`
       );
 
       // console.log(response)
@@ -239,7 +238,7 @@ const NotificationSection = ({
           ];
 
         // console.log("Checking attendance for meal:", meal, "on date:", date);
-        
+
         const isConfirmed = await checkAttendanceStatus(property, meal, date);
 
         setModal((prev) => ({

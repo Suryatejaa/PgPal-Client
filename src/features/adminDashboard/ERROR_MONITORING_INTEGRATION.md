@@ -164,7 +164,7 @@ import TestErrorMonitoring from "./test/TestErrorMonitoring";
 ### Environment Variables
 
 ```env
-REACT_APP_GATEWAY_URL=http://localhost:4000
+REACT_APP_GATEWAY_URL=http://46.62.142.3:4000
 ```
 
 ### Monitoring Service Configuration
@@ -172,7 +172,7 @@ REACT_APP_GATEWAY_URL=http://localhost:4000
 ```typescript
 // Base URL for gateway API
 const GATEWAY_BASE_URL =
-  process.env.REACT_APP_GATEWAY_URL || "http://localhost:4000";
+  process.env.REACT_APP_GATEWAY_URL || "http://46.62.142.3:4000";
 
 // Auto-refresh interval (30 seconds)
 const REFRESH_INTERVAL = 30000;
@@ -237,10 +237,10 @@ const ALERT_THRESHOLDS = {
 
 ```bash
 # Check gateway status
-curl http://localhost:4000/gateway/health
+curl http://46.62.142.3:4000/gateway/health
 
 # Verify endpoints are accessible
-curl http://localhost:4000/gateway/errors?limit=5
+curl http://46.62.142.3:4000/gateway/errors?limit=5
 ```
 
 #### Component Not Loading

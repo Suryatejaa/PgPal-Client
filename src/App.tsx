@@ -15,10 +15,15 @@ import ExplorePGsPage from "./features/dashboard/pages/ExplorePage";
 import OwnerLandingPage from "./features/landingPages/pages/OwnerLandingPage/OwnerLandingpage";
 import TenantLandingPage from "./features/landingPages/pages/TenantLandingPage/TenantLandingPage";
 import Pricing from "./features/landingPages/pages/OwnerLandingPage/Pricing";
+import {APP_CONFIG} from "./config/app";
 
-const APP_TYPE = import.meta.env.MODE // 'owner' or 'tenant'
+const APP_TYPE = APP_CONFIG.APP_TYPE // Default to tenant if not set
 console.log("Current APP_TYPE:", APP_TYPE);
-console.log("All env vars:", import.meta.env.MODE);
+console.log(
+  "Environment:",
+  APP_CONFIG.IS_PRODUCTION ? "Production" : "Development"
+);
+console.log("API URL:", APP_CONFIG.API_URL);
 
 const GlobalErrorBar = () => {
   const { error, setError } = useError();

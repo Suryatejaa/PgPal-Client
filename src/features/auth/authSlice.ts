@@ -4,7 +4,8 @@ import type { AuthState, User } from "./types";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 
-const API_BASE = "http://localhost:4000/api/auth-service";
+const API_BASE = import.meta.env.VITE_API_URL + "/auth-service";
+
 
 export const initializeAuth = createAsyncThunk(
   "auth/initializeAuth",
@@ -12,7 +13,7 @@ export const initializeAuth = createAsyncThunk(
     try {
       // Try to get user info from the protected /me endpoint
       const res = await axiosInstance.get(
-        "http://localhost:4000/api/auth-service/me",
+        `${API_BASE}/me`,
         { withCredentials: true }
       );
       console.log(res.data);
@@ -22,13 +23,13 @@ export const initializeAuth = createAsyncThunk(
       // If 401, try to refresh
       try {
         const refreshRes = await axiosInstance.post(
-          "http://localhost:4000/api/auth-service/refresh-token",
+          "http://46.62.142.3:4000/api/auth-service/refresh-token",
           {},
           { withCredentials: true }
         );
         // After refresh, try /me again
         const meRes = await axiosInstance.get(
-          "http://localhost:4000/api/auth-service/me",
+          "http://46.62.142.3:4000/api/auth-service/me",
           { withCredentials: true }
         );
         return meRes.data.user;
@@ -118,7 +119,7 @@ export const verifyOtp = createAsyncThunk<
 >("auth/verifyOtp", async ({ otp, email }, thunkAPI) => {
   try {
     const res = await axiosInstance.post(
-      "http://localhost:4000/api/auth-service/otp/verify",
+      "http://46.62.142.3:4000/api/auth-service/otp/verify",
       { otp, email },
       { withCredentials: true }
     );

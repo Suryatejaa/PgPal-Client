@@ -1,12 +1,32 @@
-import axios from "axios";
-import Cookies from "js-cookie";
+import axios from 'axios';
 
-const API_BASE = "http://localhost:4000/api";
+const API_BASE = import.meta.env.VITE_API_URL || "https://api.purple-pgs.space";
 
 const axiosInstance = axios.create({
   baseURL: API_BASE,
   withCredentials: true,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
+
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Ensure credentials are always sent
+    config.withCredentials = true;
+    
+    // Add environment info for debugging
+    if (import.meta.env.DEV) {
+      console.log('API Request:', config.method?.toUpperCase(), config.url);
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 let isRefreshing = false;
 let failedQueue: any[] = [];
@@ -19,6 +39,7 @@ const processQueue = (error: any, token: string | null = null) => {
       prom.resolve(token);
     }
   });
+  
   failedQueue = [];
 };
 
@@ -27,64 +48,38 @@ axiosInstance.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
-    const skipRefresh =
-    originalRequest.url?.includes("/login") ||
-    originalRequest.url?.includes("/register") ||
-    originalRequest.url?.includes("/refresh-token");
-
-    // If 401 and not already retried
-    if (error.response?.status === 401 && !originalRequest._retry && !skipRefresh) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Queue the request until refresh is done
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        })
-          .then(token => {
-            originalRequest.headers["Authorization"] = `Bearer ${token}`;
-            return axiosInstance(originalRequest);
-          })
-          .catch(err => Promise.reject(err));
+        }).then(() => {
+          return axiosInstance(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        // Call your refresh endpoint
-        const res = await axios.post(
-          `${API_BASE}/auth-service/refresh-token`,
-          {},
-          {
-            withCredentials: true,
-            headers: {
-              'x-internal-service': 'true'
-            }
-          }
-        );
-        const { authToken } = res.data;
-
-        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${authToken}`;
-        processQueue(null, authToken);
-        isRefreshing = false;
-
-        originalRequest.headers["Authorization"] = `Bearer ${authToken}`;
+        await axiosInstance.post('/auth-service/refresh-token', {}, {
+          withCredentials: true
+        });
+        
+        processQueue(null);
         return axiosInstance(originalRequest);
-      }  catch (refreshError: any) {
-        processQueue(refreshError, null);
-        isRefreshing = false;
-
-        // If refresh fails, clear tokens and let Redux handle logout
-        if (
-          refreshError?.response?.status === 401 ||
-          refreshError?.response?.status === 403
-        ) {
-          Cookies.remove("token");
-          Cookies.remove("refreshToken");
-          // Optionally: dispatch a logout action if you have access to the store here
-          // import store from '../../app/store';
-          // store.dispatch({ type: 'auth/logout' });
+      } catch (refreshError) {
+        processQueue(refreshError);
+        
+        // Redirect to login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
         }
+        
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 

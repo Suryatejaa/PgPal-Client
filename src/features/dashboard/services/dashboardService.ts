@@ -1,7 +1,7 @@
 import axiosInstance from "../../../services/axiosInstance";
 
 
-const API = "http://localhost:4000/api/dashboard-service";
+const API = "http://46.62.142.3:4000/api/dashboard-service";
 
 export const getOverview = (pgpalId: string) =>
   axiosInstance.get(`${API}/overview/${pgpalId}`);
