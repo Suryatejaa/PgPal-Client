@@ -1,15 +1,19 @@
 import axios from 'axios';
-
-const API_BASE = import.meta.env.VITE_API_URL || "https://api.purple-pgs.space";
+import { API_CONFIG } from '../config/api';
 
 const axiosInstance = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_CONFIG.BASE_URL,
   withCredentials: true,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+if (import.meta.env.DEV) {
+  console.log('🌐 API Base URL:', API_CONFIG.BASE_URL);
+  console.log('🔌 WebSocket URL:', API_CONFIG.WEBSOCKET_URL);
+}
 
 axiosInstance.interceptors.request.use(
   (config) => {

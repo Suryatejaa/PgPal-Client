@@ -6,32 +6,27 @@ import { jwtDecode } from "jwt-decode";
 
 const API_BASE = import.meta.env.VITE_API_URL + "/auth-service";
 
-
 export const initializeAuth = createAsyncThunk(
   "auth/initializeAuth",
   async (_, thunkAPI) => {
     try {
       // Try to get user info from the protected /me endpoint
-      const res = await axiosInstance.get(
-        `${API_BASE}/me`,
-        { withCredentials: true }
-      );
+      const res = await axiosInstance.get("/auth-service/me", {
+        withCredentials: true
+      });
       console.log(res.data);
       // Return user object from server
       return res.data.user;
     } catch (err) {
       // If 401, try to refresh
       try {
-        const refreshRes = await axiosInstance.post(
-          "http://46.62.142.3:4000/api/auth-service/refresh-token",
-          {},
-          { withCredentials: true }
-        );
+        const refreshRes = await axiosInstance.post("/auth-service/refresh-token", {}, {
+          withCredentials: true
+        });
         // After refresh, try /me again
-        const meRes = await axiosInstance.get(
-          "http://46.62.142.3:4000/api/auth-service/me",
-          { withCredentials: true }
-        );
+        const meRes = await axiosInstance.get("/auth-service/me", {
+          withCredentials: true
+        });
         return meRes.data.user;
       } catch (refreshErr) {
         // If refresh fails, user is not authenticated
@@ -40,12 +35,13 @@ export const initializeAuth = createAsyncThunk(
     }
   }
 );
+
 export const loginUser = createAsyncThunk<
   User,
   { credential: string; password: string; role: string }
 >("auth/login", async (payload, thunkAPI) => {
   try {
-    const res = await axiosInstance.post(`${API_BASE}/login`, payload, {
+    const res = await axiosInstance.post("/auth-service/login", payload, {
       withCredentials: true,
     });
     const { authToken, refreshToken, user } = res.data;
@@ -57,7 +53,7 @@ export const loginUser = createAsyncThunk<
       phone: user.phoneNumber || user.phone,
       token: authToken,
       refreshToken,
-    };// return user object with tokens
+    };
   } catch (err: any) {
     console.log(err)
     const message =
@@ -65,7 +61,6 @@ export const loginUser = createAsyncThunk<
     return thunkAPI.rejectWithValue(message);
   }
 });
-
 
 export const registerUser = createAsyncThunk<
   User,
@@ -79,10 +74,9 @@ export const registerUser = createAsyncThunk<
   }
 >("auth/register", async (payload, thunkAPI) => {
   try {
-    const res = await axiosInstance.post(`${API_BASE}/register`, payload, {
+    const res = await axiosInstance.post("/auth-service/register", payload, {
       withCredentials: true,
     });
-    // Just return the backend response (could be { message: "OTP sent" })
     return res.data;
   } catch (err: any) {
     return thunkAPI.rejectWithValue(
@@ -95,15 +89,10 @@ export const logoutUser = createAsyncThunk(
   "auth/logout",
   async (_, thunkAPI) => {
     try {
-      await axiosInstance.post(
-        `${API_BASE}/logout`,
-        {}, // No body required
-        {
-          withCredentials: true, // Ensure cookies are sent
-        }
-      );
-
-      return true; // Indicate successful logout
+      await axiosInstance.post("/auth-service/logout", {}, {
+        withCredentials: true,
+      });
+      return true;
     } catch (err: any) {
       const message =
         err?.response?.data?.message || err.message || "Logout failed";
@@ -113,13 +102,12 @@ export const logoutUser = createAsyncThunk(
 );
 
 export const verifyOtp = createAsyncThunk<
-  any, // Replace with the appropriate type for the server response
-  { otp: number; email: string }, // Payload type
-  { rejectValue: string } // Error type
+  any,
+  { otp: number; email: string },
+  { rejectValue: string }
 >("auth/verifyOtp", async ({ otp, email }, thunkAPI) => {
   try {
-    const res = await axiosInstance.post(
-      "http://46.62.142.3:4000/api/auth-service/otp/verify",
+    const res = await axiosInstance.post("/auth-service/otp/verify", 
       { otp, email },
       { withCredentials: true }
     );
@@ -134,13 +122,13 @@ export const verifyOtp = createAsyncThunk<
       token: authToken,
       refreshToken,
     };
-
-    return res.data; // Return the response data
   } catch (err: any) {
     const message = err.response?.data?.message || "OTP verification failed";
     return thunkAPI.rejectWithValue(message);
   }
 });
+
+// ... rest of the slice remains the same
 
 interface TokenPayload {
   _id: string;

@@ -140,11 +140,10 @@ const NotificationSection = ({
     ) {
       setTenantLoading(true);
       try {
-        const res = await fetch(
-          `/api/tenant-service/tenants?ppid=${notification.createdBy}`
+        const res = await axiosInstance.get(
+          `/tenant-service/tenants?ppid=${notification.createdBy}`
         );
-        const data = await res.json();
-        setTenantDetails(data[0]);
+        setTenantDetails(res.data[0]);
       } catch {
         setTenantDetails(null);
       } finally {
@@ -173,7 +172,7 @@ const NotificationSection = ({
 
     try {
       const response = await axiosInstance.put(
-        "http://46.62.142.3:4000/api/kitchen-service/meal/attendance",
+        "/kitchen-service/meal/attendance",
         JSON.stringify({ meal, date }),
         {
           headers: {
@@ -203,7 +202,7 @@ const NotificationSection = ({
       // console.log(meal, date);
 
       const response = await axiosInstance.get(
-        `http://46.62.142.3:4000/api/kitchen-service/meal/attendance?propertyPpid=${propertyPpid}&meal=${meal}&date=${date}`
+        `/kitchen-service/meal/attendance?propertyPpid=${propertyPpid}&meal=${meal}&date=${date}`
       );
 
       // console.log(response)

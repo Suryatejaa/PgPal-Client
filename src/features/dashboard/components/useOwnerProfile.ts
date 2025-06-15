@@ -53,10 +53,8 @@ export default function useOwnerProfile() {
   const phoneRegex = /^[0-9]{10}$/;
 
   const fetchProfile = () => {
-    const res = axiosInstance
-      .get("http://46.62.142.3:4000/api/auth-service/me", {
-        withCredentials: true,
-      })
+    axiosInstance
+      .get("/auth-service/me", { withCredentials: true })
       .then((res: any) => res.data.user)
       .then(setProfile)
       .catch(() => setProfile(null));
@@ -73,9 +71,7 @@ export default function useOwnerProfile() {
     usernameCheckTimeout.current = setTimeout(async () => {
       try {
         const res = await axiosInstance.get(
-          `http://46.62.142.3:4000/api/auth-service/check-username?username=${encodeURIComponent(
-            username
-          )}`
+          `/auth-service/check-username?username=${encodeURIComponent(username)}`
         );
         const data = await res.data;
         setUsernameAvailable(data.available);
@@ -107,9 +103,7 @@ export default function useOwnerProfile() {
     emailCheckTimeout.current = setTimeout(async () => {
       try {
         const res = await axiosInstance.get(
-          `http://46.62.142.3:4000/api/auth-service/check-email?email=${encodeURIComponent(
-            email
-          )}`
+          `/auth-service/check-email?email=${encodeURIComponent(email)}`
         );
         const data = await res.data;
         setEmailAvailable(data.available);
@@ -134,9 +128,7 @@ export default function useOwnerProfile() {
     phoneCheckTimeout.current = setTimeout(async () => {
       try {
         const res = await axiosInstance.get(
-          `http://46.62.142.3:4000/api/auth-service/check-phonenumber?phoneNumber=${encodeURIComponent(
-            phone
-          )}`
+          `/auth-service/check-phonenumber?phoneNumber=${encodeURIComponent(phone)}`
         );
         const data = await res.data;
         setPhoneAvailable(data.available);
@@ -205,15 +197,9 @@ export default function useOwnerProfile() {
     if (!newUsername || newUsername === profile?.username) return;
     setUpdatingUsername(true);
     try {
-      const res = await axiosInstance.put(
-        "http://46.62.142.3:4000/api/auth-service/me",
-        {
-          username: newUsername,
-        },
-        {
-          withCredentials: true,
-        }
-      );
+      const res = await axiosInstance.put("/auth-service/me", {
+        username: newUsername,
+      }, { withCredentials: true });
       const updated = await res.data;
       setProfile((prev: any) => ({ ...prev, username: updated.username }));
       setEditingUsername(false);
@@ -230,16 +216,10 @@ export default function useOwnerProfile() {
     setUpdatingEmail(true);
     setEmailPhoneError(null);
     try {
-      const res = await axiosInstance.put(
-        "http://46.62.142.3:4000/api/auth-service/me",
-        {
-          email: newEmail,
-          phoneNumber: newPhone,
-        },
-        {
-          withCredentials: true,
-        }
-      );
+      const res = await axiosInstance.put("/auth-service/me", {
+        email: newEmail,
+        phoneNumber: newPhone,
+      }, { withCredentials: true });
       setOtpMode(true);
       setEditingEmailPhone(true);
     } catch (err) {
@@ -255,7 +235,7 @@ export default function useOwnerProfile() {
     setOtpError(null);
     try {
       const res = await axiosInstance.post(
-        "http://46.62.142.3:4000/api/auth-service/email-otp/verify",
+        "/auth-service/email-otp/verify",
         {
           email: newEmail,
           otp,
@@ -315,7 +295,7 @@ export default function useOwnerProfile() {
     setPasswordError(null);
     try {
       const res = await axiosInstance.put(
-        "http://46.62.142.3:4000/api/auth-service/me",
+        "/auth-service/me",
         {
           currentPassword: oldPassword,
           newPassword: newPassword,
