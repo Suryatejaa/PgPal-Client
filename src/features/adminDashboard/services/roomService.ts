@@ -1,6 +1,6 @@
 // Room Service API Client
 import axiosInstance from '../../../services/axiosInstance';
-const ROOM_BASE_URL = '/admin/room-service';
+const ROOM_BASE_URL = '/room-service/admin';
 
 export interface Room {
   _id: string;

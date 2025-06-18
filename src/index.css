@@ -1,80 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/* Global CSS Reset for Cross-Browser Consistency */
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    color-scheme: light;
+  }
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  background-color: inherit;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #1f2937;
+    /* gray-800 */
     background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
   }
-  a:hover {
-    color: #747bff;
+
+  /* Button and Input Resets */
+  button,
+  input,
+  select,
+  textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
   }
+
+  /* Form elements */
+  input,
+  select,
+  textarea {
+    background-color: inherit;
+    border: inherit;
+  }
+
+  /* Link resets */
+  a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+
+  /* Ensure consistent text rendering across all elements */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div,
+  button,
+  input,
+  select,
+  textarea,
+  label {
+    color: inherit;
+    font-family: inherit;
+  }
+
+  /* Remove default button styles */
   button {
-    background-color: #f9f9f9;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  /* SVG color inheritance */
+  svg {
+    color: inherit;
+    fill: currentColor;
+  }
+}
+
+/* Custom component styles for consistency */
+@layer components {
+
+  /* Button base styles */
+  .btn-base {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .btn-primary {
+    @apply btn-base bg-purple-600 text-white border border-purple-600 hover:bg-purple-700 hover:border-purple-700 active:bg-purple-800;
+  }
+
+  .btn-secondary {
+    @apply btn-base bg-white text-purple-600 border border-purple-600 hover:bg-purple-50 active:bg-purple-100;
+  }
+
+  .btn-outline {
+    @apply btn-base bg-transparent text-white border-2 border-white hover:bg-white hover:text-purple-700 active:bg-gray-100;
+  }
+
+  .btn-ghost {
+    @apply btn-base bg-white/10 backdrop-blur-sm text-white border border-white/20 hover:bg-white/20 active:bg-white/30;
+  }
+
+  /* Input base styles */
+  .input-base {
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 bg-white;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Card styles */
+  .card-base {
+    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+  }
+
+  /* Text styles with forced colors */
+  .text-white-force {
+    color: #ffffff !important;
+  }
+
+  .text-gray-900-force {
+    color: #111827 !important;
+  }
+
+  .text-purple-600-force {
+    color: #9333ea !important;
+  }
+
+  .bg-white-force {
+    background-color: #ffffff !important;
+  }
+
+  .bg-transparent-force {
+    background-color: transparent !important;
+  }
+}
+
+/* Utilities for mobile consistency */
+@layer utilities {
+
+  /* Force color inheritance */
+  .color-inherit {
+    color: inherit !important;
+  }
+
+  /* Mobile-specific fixes */
+  @media (max-width: 768px) {
+    .mobile-text-white {
+      color: #ffffff !important;
+    }
+
+    .mobile-bg-transparent {
+      background-color: transparent !important;
+    }
+
+    .mobile-border-white {
+      border-color: #ffffff !important;
+    }
+  }
+
+  /* Dark background text fix */
+  .on-dark {
+    color: #ffffff;
+  }
+
+  .on-dark * {
+    color: inherit;
+  }
+
+  /* Light background text fix */
+  .on-light {
+    color: #1f2937;
+  }
+
+  .on-light * {
+    color: inherit;
+  }
+}
+
+/* Browser-specific fixes */
+/* WebKit (Safari, Chrome on iOS) */
+@supports (-webkit-appearance: none) {
+
+  button,
+  input[type="button"],
+  input[type="submit"] {
+    -webkit-appearance: none;
+  }
+
+  .text-white {
+    color: #ffffff !important;
+  }
+}
+
+/* Firefox */
+@-moz-document url-prefix() {
+  button {
+    background: none;
+  }
+
+  .text-white {
+    color: #ffffff !important;
+  }
+}
+
+/* Edge/IE fixes */
+@supports (-ms-ime-align: auto) {
+  .text-white {
+    color: #ffffff !important;
   }
 }

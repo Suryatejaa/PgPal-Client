@@ -15,7 +15,8 @@ import ExplorePGsPage from "./features/dashboard/pages/ExplorePage";
 import OwnerLandingPage from "./features/landingPages/pages/OwnerLandingPage/OwnerLandingpage";
 import TenantLandingPage from "./features/landingPages/pages/TenantLandingPage/TenantLandingPage";
 import Pricing from "./features/landingPages/pages/OwnerLandingPage/Pricing";
-import {APP_CONFIG} from "./config/app";
+import { APP_CONFIG } from "./config/app";
+import BaseLandingPage from "./features/landingPages/pages/Base_LandingPage/BaseLandingPage";
 
 const APP_TYPE = APP_CONFIG.APP_TYPE // Default to tenant if not set
 console.log("Current APP_TYPE:", APP_TYPE);
@@ -63,6 +64,9 @@ function AppContent() {
   }
 
   // Render different apps based on APP_TYPE
+  if (APP_TYPE === "base") {
+    return <BaseApp />;
+  }
   if (APP_TYPE === "tenant") {
     return <TenantApp />;
   }
@@ -73,6 +77,24 @@ function AppContent() {
     return <OwnerApp />;
   }
   return null;
+}
+
+function BaseApp() {
+  return (
+    <>
+      <GlobalErrorBar />
+      <Router>
+        <Routes>
+          <Route path="/" element={<BaseLandingPage />} />
+          <Route path="/tenant-landing" element={<TenantLandingPage />} />
+          <Route path="/owner-landing" element={<OwnerLandingPage />} />
+          <Route path="/about" element={<div>About Page</div>} />
+          <Route path="/contact" element={<div>Contact Page</div>} />
+          <Route path="*" element={<div>404 Not Found</div>} />
+        </Routes>
+      </Router>
+    </>
+  );
 }
 
 function OwnerApp() {

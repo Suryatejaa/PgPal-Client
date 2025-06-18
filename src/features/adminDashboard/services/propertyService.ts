@@ -1,6 +1,6 @@
 // Property Service API Client
 import axiosInstance from "../../../services/axiosInstance";
-const PROPERTY_BASE_URL = '/admin/property-service';
+const PROPERTY_BASE_URL = '/property-service/admin';
 
 export interface Property {
   _id: string;

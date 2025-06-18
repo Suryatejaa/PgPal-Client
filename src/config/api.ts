@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-    BASE_URL: import.meta.env.VITE_API_URL || 'https://api.purple-pgs.space',
+    BASE_URL: import.meta.env.VITE_API_URL || 'https://api.purple-pgs.space/api',
     WEBSOCKET_URL: import.meta.env.VITE_WEBSOCKET_URL || 'wss://ws.purple-pgs.space',
     
     // Service endpoints
