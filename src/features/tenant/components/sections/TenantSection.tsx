@@ -3,12 +3,12 @@ import Modal from "../../components/Modal";
 import GlobalAlert from "../../../../components/GlobalAlert";
 import axiosInstance from "../../../../services/axiosInstance";
 import AddTenant from "../AddTenant";
-import TenantListByFloor from "../filters/TenantListByFloor";
 import RemoveTenantForm from "../RemoveTenant";
 import TenantFilterBar from "../filters/TenantFilterBar";
 import PastTenantsList from "../filters/PastTenantsList";
 import InactiveTenantsList from "../filters/InactiveTenantsList";
 import { retainTenant } from "../../services/tenantApi";
+import TenantListByFloor from "./TenantListByFloor";
 
 import {
   fetchTenants,
