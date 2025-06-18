@@ -1,8 +1,0 @@
-{
-  "name": "pgpaal-base",
-  "version": "1.0.0",
-  "scripts": {
-    "build": "echo 'Already built'",
-    "start": "echo 'Static site deployed'"
-  }
-}

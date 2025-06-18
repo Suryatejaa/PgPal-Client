@@ -2,78 +2,60 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
-  // Load env file based on mode in the current working directory
+  // Load .env file based on the current mode
   const env = loadEnv(mode, process.cwd(), '')
-  
-  const isDev = mode.includes('development') || mode === 'development'
-  const isProd = mode.includes('production') || mode === 'production'
-  
-  // Determine app type - always output to 'dist' for build script consistency
-  let appType = env.VITE_APP_TYPE || 'base';
-  let outDir = 'dist'; // Always use 'dist' so build script can rename it
-  
-  // Determine app type based on mode or env variable
-  if (mode.includes('owner')) {
-    appType = 'owner';
-  } else if (mode.includes('tenant')) {
-    appType = 'tenant';
-  } else if (mode.includes('admin')) {
-    appType = 'admin';
-  } else if (mode === 'production') {
-    appType = 'base';
-  }
-  
-  // Override with explicit env variable if set
-  if (env.VITE_APP_TYPE) {
-    appType = env.VITE_APP_TYPE;
-  }
-  
-  console.log(`🚀 Running in ${mode} mode`);
-  console.log(`🔧 Environment: ${isDev ? 'Development' : 'Production'}`);
-  console.log(`📡 API URL: ${env.VITE_API_URL}`);
-  console.log(`🔌 WebSocket URL: ${env.VITE_WEBSOCKET_URL}`);
+
+  // --- Simplified and Corrected Logic ---
+
+  // The single source of truth for the app type is the VITE_APP_TYPE
+  // environment variable, which is reliably set by `cross-env` in package.json.
+  const appType = env.VITE_APP_TYPE || 'base';
+
+  // The proxy target should be the BASE URL of your backend.
+  // The '/api' path from your frontend requests will be automatically appended.
+  const proxyApiTarget = env.VITE_API_URL;
+  const proxyWsTarget = env.VITE_WEBSOCKET_URL;
+
+  const isDev = mode.includes('development');
+
+  console.log(`🚀 Running Vite in mode: ${mode}`);
   console.log(`👤 App Type: ${appType}`);
-  console.log(`📁 Output Directory: ${outDir}`);
-  
+  console.log(`📡 API Proxy Target: ${proxyApiTarget}`);
+  console.log(`🔌 WebSocket Proxy Target: ${proxyWsTarget}`);
+
   return {
     base: '/',
     plugins: [react()],
     define: {
-      __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
-      __IS_DEV__: isDev,
-      __IS_PROD__: isProd,
-      __APP_TYPE__: JSON.stringify(appType), // Make app type available in runtime
+      // Make the app type available in your runtime code
+      'import.meta.env.VITE_APP_TYPE': JSON.stringify(appType),
     },
     server: {
       host: true,
       port: 5173,
-      proxy: isDev ? {
+      // The proxy is only needed for local development to avoid CORS issues.
+      proxy: isDev && proxyApiTarget ? {
+        // Requests to /api/... will be sent to your backend server
         '/api': {
-          target: env.VITE_API_URL || 'http://localhost:4000',
+          target: proxyApiTarget,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/api/, '')
+          // We REMOVE the rewrite rule. The backend gateway expects paths like /api/auth-service/...
         },
+        // Proxy WebSocket connections
         '/socket.io': {
-          target: env.VITE_WEBSOCKET_URL || 'ws://localhost:4000',
+          target: proxyWsTarget,
           changeOrigin: true,
           ws: true,
         }
       } : undefined
     },
     build: {
-      outDir,
-      sourcemap: !isProd,
-      minify: isProd ? 'esbuild' : false,
-      rollupOptions: {
-        output: {
-          manualChunks: isProd ? {
-            vendor: ['react', 'react-dom'],
-            router: ['react-router-dom'],
-            ui: ['@heroicons/react'],
-          } : undefined
-        }
-      }
+      // The outDir is set by the npm script (e.g., --outDir dist-tenant)
+      // This is just a fallback.
+      outDir: `dist-${appType}`,
+      sourcemap: !mode.includes('production'),
+      minify: mode.includes('production') ? 'esbuild' : false,
     },
     preview: {
       host: true,

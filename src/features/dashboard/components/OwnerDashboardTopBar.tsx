@@ -36,7 +36,7 @@ const OwnerDashboardTopBar = ({
       <div className="flex items-center">
         {showExplore && (
           <button
-            className="mr-3 p-0 bg-transparent text-purple-700 hover:border-none transition focus:outline-none rounded-full h-9 w-9 flex items-center justify-center"
+            className=" p-0 bg-transparent text-purple-700 hover:border-none transition focus:outline-none rounded-full h-9 w-9 flex items-center justify-center"
             onClick={() => navigate("/explore")}
             title="Explore PGs"
           >
@@ -45,7 +45,7 @@ const OwnerDashboardTopBar = ({
         )}
         <div className="relative">
           <BellAlertIcon
-            className="w-7 h-7 -mr-1 cursor-pointer text-white hover:text-yellow-300"
+            className="w-7 h-7 mr-1 cursor-pointer text-white hover:text-yellow-300"
             onClick={() => setNotificationOpen(true)}
           />
           {unreadCount > 0 && (
@@ -55,7 +55,7 @@ const OwnerDashboardTopBar = ({
           )}
         </div>
         <button
-          className="-mr-4 flex items-center bg-transparent rounded-full  h-9 focus:outline-none hover:focus:outline-none border-none"
+          className="flex items-center bg-transparent rounded-full  h-9 focus:outline-none hover:focus:outline-none border-none"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open profile"
         >

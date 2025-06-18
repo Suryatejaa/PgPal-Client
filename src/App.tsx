@@ -5,11 +5,10 @@ import TenantLogin from "./features/auth/pages/TenantLogin";
 import TenantRegister from "./features/auth/pages/TenantRegister";
 import Dashboard from "./features/auth/pages/Dashboard";
 import AdminLogin from "./features/auth/pages/AdminLogin";
-// import TenantDashboard from "./features/auth/pages/TenantDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
-import { initializeAuth } from "./features/auth/authSlice";
+import { setUserFromCookies } from "./features/auth/authSlice"; // Changed this import
 import { ErrorProvider, useError } from "./context/ErrorContext";
 import ExplorePGsPage from "./features/dashboard/pages/ExplorePage";
 import OwnerLandingPage from "./features/landingPages/pages/OwnerLandingPage/OwnerLandingpage";
@@ -18,7 +17,7 @@ import Pricing from "./features/landingPages/pages/OwnerLandingPage/Pricing";
 import { APP_CONFIG } from "./config/app";
 import BaseLandingPage from "./features/landingPages/pages/Base_LandingPage/BaseLandingPage";
 
-const APP_TYPE = APP_CONFIG.APP_TYPE // Default to tenant if not set
+const APP_TYPE = APP_CONFIG.APP_TYPE;
 console.log("Current APP_TYPE:", APP_TYPE);
 console.log(
   "Environment:",
@@ -55,7 +54,8 @@ function AppContent() {
   const loading = useAppSelector((state) => state.auth.loadingFromCookies);
 
   useEffect(() => {
-    dispatch(initializeAuth());
+    // Only check local cookies/tokens - NO API CALLS
+    dispatch(setUserFromCookies());
   }, [dispatch]);
 
   if (loading) {
