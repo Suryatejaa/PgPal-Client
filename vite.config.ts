@@ -55,7 +55,7 @@ export default defineConfig(({ mode }) => {
       // This is just a fallback.
       outDir: appType === 'base' ? 'dist' : `dist-${appType}`,
       sourcemap: !mode.includes('production'),
-      minify: mode.includes('production') ? 'esbuild' : false,
+      minify: mode.includes('production') ? 'esbuild' : false
     },
     preview: {
       host: true,
