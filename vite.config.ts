@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => {
     build: {
       // The outDir is set by the npm script (e.g., --outDir dist-tenant)
       // This is just a fallback.
-      outDir: `dist-${appType}`,
+      outDir: appType === 'base' ? 'dist' : `dist-${appType}`,
       sourcemap: !mode.includes('production'),
       minify: mode.includes('production') ? 'esbuild' : false,
     },
