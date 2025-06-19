@@ -33,7 +33,7 @@ const OwnerDashboardTopBar = ({
       <h1 className="text-2xl font-bold">
         Purple PG<span className="text-sm"> ({role})</span>
       </h1>
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
         {showExplore && (
           <button
             className=" p-0 bg-transparent text-purple-700 hover:border-none transition focus:outline-none rounded-full h-9 w-9 flex items-center justify-center"
@@ -45,7 +45,7 @@ const OwnerDashboardTopBar = ({
         )}
         <div className="relative">
           <BellAlertIcon
-            className="w-7 h-7 mr-1 cursor-pointer text-white hover:text-yellow-300"
+            className="w-7 h-7 cursor-pointer text-white hover:text-yellow-300"
             onClick={() => setNotificationOpen(true)}
           />
           {unreadCount > 0 && (
@@ -59,8 +59,8 @@ const OwnerDashboardTopBar = ({
           onClick={() => setSidebarOpen(true)}
           aria-label="Open profile"
         >
-          <span className="inline-block w-9 h-9 rounded-full bg-white text-purple-700 flex items-center justify-center font-bold text-sm">
-            {profile?.profile?.username?.[0] || userName?.[0] || "P"}
+          <span className="inline-block w-9 h-9 rounded-full bg-white text-purple-700 flex items-center justify-center font-bold text-xl">
+            {profile?.profile?.username?.[0].toUpperCase() || userName?.[0].toUpperCase() || "P"}
           </span>
         </button>
       </div>

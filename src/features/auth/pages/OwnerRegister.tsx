@@ -202,8 +202,8 @@ const OwnerRegister = () => {
 
     try {
       const res = await dispatch(registerUser(form)).unwrap();
-      console.log("otp mode enabled");
-      console.log(res);
+      // console.log("otp mode enabled");
+      // console.log(res);
       setOtpMode(true); // Enable OTP input mode
     } catch (err: any) {
       if (err.errors) {

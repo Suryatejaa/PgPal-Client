@@ -77,7 +77,7 @@ export default function useOwnerProfile() {
         setUsernameAvailable(data.available);
         setUsernameError(data.available ? null : "Username not available");
       } catch(e:any) {
-        console.log(e)
+        //console.log(e)
         setUsernameAvailable(null);
         setUsernameError("Error checking username");
       } finally {
@@ -224,7 +224,7 @@ export default function useOwnerProfile() {
       setOtpMode(true);
       setEditingEmailPhone(true);
     } catch (err) {
-      console.log(err)
+      //console.log(err)
       setEmailPhoneError("Failed to update email and phone");
     } finally {
       setUpdatingEmail(false);

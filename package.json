@@ -11,7 +11,7 @@
     "dev:owner:prod-api": "cross-env VITE_APP_TYPE=owner vite --mode owner-development-prod-api",
     "dev:tenant:prod-api": "cross-env VITE_APP_TYPE=tenant vite --mode tenant-development-prod-api",
     "dev:admin:prod-api": "cross-env VITE_APP_TYPE=admin vite --mode admin-development-prod-api",
-    "build": "vite build --mode production --outDir dist-base",
+    "build": "vite build --mode production --outDir dist",
     "build:base": "cross-env VITE_APP_TYPE=base vite build --mode production --outDir dist",
     "build:owner": "cross-env VITE_APP_TYPE=owner vite build --mode owner-production --outDir dist-owner",
     "build:tenant": "cross-env VITE_APP_TYPE=tenant vite build --mode tenant-production --outDir dist-tenant",

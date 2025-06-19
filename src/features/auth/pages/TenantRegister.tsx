@@ -86,7 +86,7 @@ const TenantRegister = () => {
     usernameCheckTimeout.current = setTimeout(async () => {
       try {
         const data = await checkUsernameAvailability(username);
-        console.log(data)
+        // console.log(data)
         setUsernameAvailable(data.available);
       } catch (e) {
         console.error("Error checking username availability:", e);
@@ -204,8 +204,8 @@ const TenantRegister = () => {
 
     try {
       const res = await dispatch(registerUser(form)).unwrap();
-      console.log("otp mode enabled");
-      console.log(res);
+      // console.log("otp mode enabled");
+      // console.log(res);
       setOtpMode(true); // Enable OTP input mode
     } catch (err: any) {
       if (err.errors) {

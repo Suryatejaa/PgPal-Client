@@ -8,7 +8,7 @@ import AdminLogin from "./features/auth/pages/AdminLogin";
 import PrivateRoute from "./components/PrivateRoute";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
-import { setUserFromCookies } from "./features/auth/authSlice"; // Changed this import
+import { initializeAuth, setUserFromCookies } from "./features/auth/authSlice"; // Changed this import
 import { ErrorProvider, useError } from "./context/ErrorContext";
 import ExplorePGsPage from "./features/dashboard/pages/ExplorePage";
 import OwnerLandingPage from "./features/landingPages/pages/OwnerLandingPage/OwnerLandingpage";
@@ -54,13 +54,26 @@ function AppContent() {
   const loading = useAppSelector((state) => state.auth.loadingFromCookies);
 
   useEffect(() => {
+    // Set a flag to indicate this is initial page load
+    const isInitialLoad = !sessionStorage.getItem("app-initialized");
+
     // Only check local cookies/tokens - NO API CALLS
     dispatch(setUserFromCookies());
+
+    // Mark that app has been initialized this session
+    // sessionStorage.setItem("app-initialized", "true");
+    dispatch(initializeAuth());
   }, [dispatch]);
 
   if (loading) {
-    console.log("Still loading cookies, hold your horses...");
-    return null;
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mx-auto"></div>
+          <p className="mt-3">Initializing...</p>
+        </div>
+      </div>
+    );
   }
 
   // Render different apps based on APP_TYPE

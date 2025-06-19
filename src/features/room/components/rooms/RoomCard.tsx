@@ -110,7 +110,7 @@ const RoomCard = ({
         const res = await axiosInstance.get(
           `/tenant-service/tenants?ppid=${bed.tenantPpt}`
         );
-        console.log(res.data);
+        //console.log(res.data);
         setBedModal({
           open: true,
           loading: false,
@@ -148,13 +148,13 @@ const RoomCard = ({
         `/tenant-service/remove-tenant/${tenantId}`,
         data
       );
-      console.log(res);
+      //console.log(res);
       setShowRemoveTenant(false);
       if (onRoomUpdated) onRoomUpdated();
       if (setAlert)
         setAlert({ message: "Tenant removed successfully!", type: "success" });
     } catch (err: any) {
-      console.log(err);
+      //console.log(err);
       setError(
         err?.response?.data?.error + " Please refresh the page." ||
           err ||
@@ -176,13 +176,13 @@ const RoomCard = ({
       const res = await axiosInstance.post(
         `/tenant-service/retain-tenant/${vacateId}`
       );
-      console.log(res);
+      //console.log(res);
       setShowRemoveTenant(false);
       if (onRoomUpdated) onRoomUpdated();
       if (setAlert)
         setAlert({ message: "Tenant retained successfully!", type: "success" });
     } catch (err: any) {
-      console.log(err);
+      //console.log(err);
       setError(err?.response?.data?.error || err || "Failed to retain tenant.");
       if (setAlert)
         setAlert({
@@ -196,13 +196,13 @@ const RoomCard = ({
   const handleAddTenant = async (data: any) => {
     try {
       const res = await axiosInstance.post("/tenant-service", data);
-      console.log(res.data);
+      //console.log(res.data);
       setShowAddTenant(false);
       if (onRoomUpdated) onRoomUpdated();
       if (setAlert)
         setAlert({ message: "Tenant added successfully!", type: "success" });
     } catch (err: any) {
-      console.log(err);
+      //console.log(err);
       setError(
         err?.response?.data?.error || err?.error || "Failed to add tenant."
       );
@@ -233,13 +233,13 @@ const RoomCard = ({
   const handleUpdateRent = async (data: any) => {
     try {
       const res = await axiosInstance.post("/rent-service/update", data);
-      console.log(res);
+      //console.log(res);
       setShowUpdateRent(false);
       if (onRoomUpdated) onRoomUpdated();
       if (setAlert)
         setAlert({ message: "Rent updated successfully!", type: "success" });
     } catch (err: any) {
-      console.log(err);
+      //console.log(err);
       if (setAlert) {
         setAlert({
           message: err?.response?.data?.error || "Failed to update rent.",
@@ -268,9 +268,9 @@ const RoomCard = ({
     Array.isArray(requestedUsers) &&
     requestedUsers.includes(tenantId);
 
-  // console.log(bedModal)
+  // //console.log(bedModal)
   if (tenantId && requestedUsers) {
-    console.log("tenantId", tenantId, "requestedUsers", requestedUsers);
+    //console.log("tenantId", tenantId, "requestedUsers", requestedUsers);
   }
 
   return (

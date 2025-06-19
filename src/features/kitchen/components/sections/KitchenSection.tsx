@@ -55,10 +55,10 @@ const KitchenSection = ({ property }: { property: any }) => {
     setLoading(true);
     try {
       const res = await getMenus(property.pgpalId);
-      console.log(res);
+      //console.log(res);
       setMenus(res.data.menus || []);
     } catch (e: any) {
-      console.log(e);
+      //console.log(e);
       if (e.response.data.message === "No menus found") {
         setAlert(null);
       } else {
@@ -93,7 +93,7 @@ const KitchenSection = ({ property }: { property: any }) => {
       setShowForm(false);
       setAlert({ message: "Menu added!", type: "success" });
     } catch (e: any) {
-      console.log(data, e);
+      //console.log(data, e);
       setAlert({
         message: e?.response?.data?.error || "Failed to add menu",
         type: "error",
@@ -118,11 +118,11 @@ const KitchenSection = ({ property }: { property: any }) => {
   const handleDeleteMenu = async (menuNo: number) => {
     try {
       const res = await deleteMenu(property.pgpalId, menuNo);
-      console.log(res.data);
+      //console.log(res.data);
       await fetchMenus();
       setAlert({ message: "Menu deleted!", type: "success" });
     } catch (e: any) {
-      console.log("Error deleting menu:", property.pgpalId, menuNo, e);
+      //console.log("Error deleting menu:", property.pgpalId, menuNo, e);
       setAlert({
         message: e?.response?.data?.error || "Failed to delete menu",
         type: "error",
@@ -180,7 +180,7 @@ const KitchenSection = ({ property }: { property: any }) => {
       );
       setAlert({ message: "Notifications sent!", type: "success" });
     } catch (e: any) {
-      console.log(e);
+      //console.log(e);
       setAlert({
         message: e?.response?.data?.error || "Failed to send notifications",
         type: "error",
@@ -206,7 +206,7 @@ const KitchenSection = ({ property }: { property: any }) => {
         type: "success",
       });
     } catch (e: any) {
-      console.log(e);
+      //console.log(e);
       setAlert({
         message:
           e?.response?.data?.error || "Failed to update automation status",
@@ -301,7 +301,7 @@ const KitchenSection = ({ property }: { property: any }) => {
 
   useEffect(() => {
     const res = tenantDetails();
-    console.log(res);
+    //console.log(res);
   }, [attendance, activeTenants]);
 
   const renderNotificationsSection = () => (

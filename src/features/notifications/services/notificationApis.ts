@@ -34,7 +34,7 @@ export const deleteAllNotifications = (params?: { ownerId?: string; tenantId?: s
   const query = new URLSearchParams();
   if (params?.ownerId) query.append("ownerId", params.ownerId);
   if (params?.tenantId) query.append("tenantId", params.tenantId);
-  console.log(query.toString())
+  // console.log(query.toString())
   return axiosInstance.delete(
     `/notification-service/delete-all${query.toString() ? "?" + query.toString() : ""}`
   );

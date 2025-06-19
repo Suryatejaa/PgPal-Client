@@ -116,7 +116,7 @@ export interface ExportFile {
 class RoomService {  // Dashboard Analytics
   async getDashboardOverview(): Promise<RoomAnalytics> {
     const response = await axiosInstance.get(`${ROOM_BASE_URL}/dashboard/overview`);
-    console.log(response.data.data);
+    // console.log(response.data.data);
     return response.data.data || response.data; // Handle wrapped response
   }
 

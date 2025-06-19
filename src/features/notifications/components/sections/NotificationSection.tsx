@@ -43,7 +43,7 @@ const NotificationSection = ({
   const [tenantDetails, setTenantDetails] = useState<any>(null);
   const [tenantLoading, setTenantLoading] = useState(false);
 
-  // console.log(isTenant)
+  // //console.log(isTenant)
 
   const fetchNotifications = async () => {
     setLoading(true);
@@ -53,16 +53,16 @@ const NotificationSection = ({
       ...(Tenant ? { tenantId: userId, audience: "tenant" } : {}),
       ...(Owner ? { ownerId: userId, audience: "owner" } : {}),
     };
-    console.log("Fetching notifications with params:", params);
+    // //console.log("Fetching notifications with params:", params);
     try {
       const res = await getNotifications(params);
-      console.log(res);
+      // //console.log(res);
       setNotifications(res.data || []);
       // Calculate unread count and update parent
       const unread = (res.data || []).filter((n: any) => !n.isRead).length;
       setUnreadCount(unread);
     } catch (err: any) {
-      console.log(err);
+      //console.log(err);
       setNotifications([]);
       setUnreadCount(0);
     } finally {
@@ -84,16 +84,16 @@ const NotificationSection = ({
       ...(Tenant ? { tenantId: userId, audience: "tenant" } : {}),
       ...(Owner ? { ownerId: userId, audience: "owner" } : {}),
     };
-    console.log(params);
+    //console.log(params);
     try {
       setLoading(true);
       const res = await markAllNotificationsAsRead(params);
-      console.log(res);
+      //console.log(res);
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
     }
     const res = await markAllNotificationsAsRead(params);
-    console.log(res);
+    //console.log(res);
     await fetchNotifications();
   };
 
@@ -119,13 +119,13 @@ const NotificationSection = ({
       ...(Tenant ? { tenantId: userId } : {}),
       ...(Owner ? { ownerId: userId } : {}),
     };
-    console.log(params);
+    //console.log(params);
     try {
       const res = await deleteAllNotifications(params);
-      console.log(res);
+      //console.log(res);
       await fetchNotifications();
     } catch (error) {
-      console.log(error);
+      //console.log(error);
       console.error("Error deleting all notifications:", error);
     }
   };
@@ -153,7 +153,7 @@ const NotificationSection = ({
   };
 
   const handleConfirmAttendance = async (title: string, message: string) => {
-    console.log("title:", title, "\nmessage:", message);
+    //console.log("title:", title, "\nmessage:", message);
 
     const msg = message.split(" ");
 
@@ -168,7 +168,7 @@ const NotificationSection = ({
       meal = date.slice(0, -1);
     }
 
-    console.log(`Meal ${meal}, date ${date}`);
+    //console.log(`Meal ${meal}, date ${date}`);
 
     try {
       const response = await axiosInstance.put(
@@ -186,7 +186,7 @@ const NotificationSection = ({
         throw new Error("Failed to confirm attendance");
       }
 
-      console.log("Attendance confirmed successfully");
+      //console.log("Attendance confirmed successfully");
       await fetchNotifications(); // Refresh notifications after confirmation
     } catch (error) {
       console.error("Error confirming attendance:", error);
@@ -199,17 +199,17 @@ const NotificationSection = ({
     date: string
   ) => {
     try {
-      // console.log(meal, date);
+      // //console.log(meal, date);
 
       const response = await axiosInstance.get(
         `/kitchen-service/meal/attendance?propertyPpid=${propertyPpid}&meal=${meal}&date=${date}`
       );
 
-      // console.log(response)
+      // //console.log(response)
 
       if (response.status === 200 && response.data.attendance) {
         const attendance = response.data.attendance;
-        // console.log(attendance)
+        // //console.log(attendance)
         const userAttendance = attendance.find(
           (a: any) => a.tenantPpid === userId && a.confirmed
         );
@@ -225,7 +225,7 @@ const NotificationSection = ({
     const fetchAttendanceStatus = async () => {
       if (modal.notification?.type === "meal-attendance-reminder") {
         const msg = modal.notification.title.split(" ");
-        // console.log(modal.notification)
+        // //console.log(modal.notification)
 
         let meal = msg[msg.length - 1];
         if (meal.endsWith(".")) {
@@ -236,7 +236,7 @@ const NotificationSection = ({
             modal.notification.message.split(" ").length - 1
           ];
 
-        // console.log("Checking attendance for meal:", meal, "on date:", date);
+        // //console.log("Checking attendance for meal:", meal, "on date:", date);
 
         const isConfirmed = await checkAttendanceStatus(property, meal, date);
 
@@ -255,7 +255,7 @@ const NotificationSection = ({
     }
   }, [modal.open, modal.notification, property]);
 
-  // console.log(modal.notification);
+  // //console.log(modal.notification);
 
   return open ? (
     <div className="fixed inset-0 z-30 flex justify-end">

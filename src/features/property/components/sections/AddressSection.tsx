@@ -232,7 +232,7 @@ const AddressSection = ({
       }
       setShowMap(false);
     } catch (err: any) {
-      console.log(err, location);
+      //console.log(err, location);
     } finally {
       setSaving(false);
     }

@@ -83,11 +83,11 @@ const AmenitiesSection = ({ propertyId }: { propertyId: string }) => {
           amenities: selected,
         }
       );
-      console.log(res);
+      //console.log(res);
       setAlert({ message: "Amenities added!", type: "success" });
       fetchAmenities();
     } catch (err: any) {
-      console.log(err.response.data.error);
+      //console.log(err.response.data.error);
       setAlert({ message: "Failed to add amenities", type: "error" });
     }
   };

@@ -39,10 +39,10 @@ const TenantLandingPage = () => {
                 headers: { "x-internal-service": "true" },
               }
             );
-            console.log(res);
-            console.log(`my location: ${latitude}, ${longitude}
-              /property-service/properties/nearby?latitude=${latitude}&longitude=${longitude}&maxDistance=5000
-            `);
+            //console.log(res);
+            //console.log(`my location: ${latitude}, ${longitude}
+            // /property-service/properties/nearby?latitude=${latitude}&longitude=${longitude}&maxDistance=5000
+            // `);
             setNearbyPGs(res.data || []);
           } catch (error) {
             console.error(
@@ -122,10 +122,11 @@ const TenantLandingPage = () => {
     setHasSearched(true);
     try {
       const params = new URLSearchParams();
-      params.append("query", searchLocation.trim());
+      params.append("city", searchLocation.trim());
 
+      //console.log('params:', params.toString());
       const response = await axiosInstance.get(
-        `/property-service/search?${params.toString()}`
+        `property-service/search?${params.toString()}`
       );
       const results = response.data || [];
 
@@ -148,8 +149,8 @@ const TenantLandingPage = () => {
             });
 
       setSearchResults(filteredResults);
-    } catch (error) {
-      console.error("Search failed:", error);
+    } catch (error: any) {
+      //console.log("Search failed:", error.config);
       alert("Search failed. Please try again.");
       setSearchResults([]);
     } finally {
@@ -174,7 +175,7 @@ const TenantLandingPage = () => {
           `/property-service/search?${params.toString()}`,
           { headers: { "x-internal-service": "true" } }
         );
-        console.log(response.data);
+        //console.log(response.data);
         const results = response.data || [];
         setSearchResults(results);
       } catch (error) {

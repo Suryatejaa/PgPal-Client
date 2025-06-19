@@ -205,10 +205,10 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
 
     setErrors(temp);
     const isValid = Object.keys(temp).length === 0;
-    console.log("Validation errors:", temp);
-    console.log("Form is valid:", isValid);
-    console.log("Current location:", fieldValues.location);
-    console.log("Initial location:", initial?.location);
+    //console.log("Validation errors:", temp);
+    //console.log("Form is valid:", isValid);
+    //console.log("Current location:", fieldValues.location);
+    //console.log("Initial location:", initial?.location);
     setIsFormValid(isValid);
     return isValid;
   };
@@ -627,9 +627,9 @@ const PropertyForm: React.FC<PropertyFormProps> = ({
           type="submit"
           className="bg-purple-600 text-white px-4 py-2 rounded disabled:opacity-50"
           disabled={!isFormValid} // Fixed: now properly enables when form is valid
-          onClick={() =>
-            console.log("Button clicked, isFormValid:", isFormValid)
-          }
+          // onClick={() =>
+          //   console.log("Button clicked, isFormValid:", isFormValid)
+          // }
         >
           Save
         </button>

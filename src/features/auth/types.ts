@@ -19,4 +19,5 @@ export interface AuthState {
     loading: boolean;
     error: string | null;
     loadingFromCookies: boolean;
+    isInitialized: boolean;
 }

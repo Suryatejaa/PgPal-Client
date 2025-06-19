@@ -12,7 +12,7 @@ const Dashboard = () => {
     useAppSelector((state) => state.auth.user) ||
     JSON.parse(localStorage.getItem("user") || "null");
 
-  console.log(user);
+  // console.log(user.role);
   useNotificationSocket(user._id, user.role);
 
   if (user?.role === "owner")

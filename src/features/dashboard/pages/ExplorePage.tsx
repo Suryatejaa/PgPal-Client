@@ -130,9 +130,9 @@ const ExplorePage = () => {
           const res = await axiosInstance.get(
             `/property-service/properties/nearby?latitude=${latitude}&longitude=${longitude}&maxDistance=5000`
           );
-          console.log(`my location: ${latitude}, ${longitude}
-            /property-service/properties/nearby?latitude=${latitude}&longitude=${longitude}&maxDistance=5000
-          `);
+          // console.log(`my location: ${latitude}, ${longitude}
+          //   /property-service/properties/nearby?latitude=${latitude}&longitude=${longitude}&maxDistance=5000
+          // `);
           setNearbyPGs(res.data || []);
         },
         () => {

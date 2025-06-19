@@ -67,7 +67,7 @@ const RoomsSection = ({
 
   const filterOptions = [...staticFilterOptions, ...typeOptions];
 
-  // console.log(requestedUsers)
+  // //console.log(requestedUsers)
 
   const filteredRooms = React.useMemo(() => {
     let filtered = rooms;
@@ -121,7 +121,7 @@ const RoomsSection = ({
 
     if (property?._id) {
       try {
-        console.log("Fetching rooms for property:", property._id);
+        //console.log("Fetching rooms for property:", property._id);
         const res = await axiosInstance.get(
           `/room-service/${property._id}/rooms`,
           {
@@ -131,7 +131,7 @@ const RoomsSection = ({
             },
           }
         );
-        console.log("Fresh room data received:", res.data);
+        //console.log("Fresh room data received:", res.data);
         setRooms(res.data.rooms || []);
       } catch (err: any) {
         const expected = "No rooms found";
@@ -166,13 +166,13 @@ const RoomsSection = ({
         rooms: [roomData],
       });
       setLoading(false);
-      console.log(res);
+      //console.log(res);
       setShowForm(false);
       fetchProperties?.();
       setAlert({ message: "Room added successfully!", type: "success" });
       await fetchRooms();
     } catch (err: any) {
-      console.log(err.response.data.error);
+      //console.log(err.response.data.error);
       setLoading(false);
       setError(
         err?.response?.data?.error || err?.message || "Failed to add room."

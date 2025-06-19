@@ -154,7 +154,7 @@ const PricingSection = () => {
           },
         }
       );
-      console.log(response);
+      //console.log(response);
       if (response.data.message === "Current plan updated successfully.") {
         alert(`Plan ${actionText}d successfully! Refreshing...`);
         navigate("/dashboard");
@@ -191,7 +191,7 @@ const PricingSection = () => {
           },
         }
       );
-      console.log(response);
+      //console.log(response);
       if (response.status === 200) {
         alert("Subscription cancelled successfully! Refreshing...");
         navigate("/dashboard");

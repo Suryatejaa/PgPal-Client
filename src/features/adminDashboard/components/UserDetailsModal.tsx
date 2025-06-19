@@ -25,6 +25,7 @@ const mockUserDetails: { [key: string]: UserDetails } = {
     role: "owner",
     isVerified: true,
     isActive: true,
+    isSuspended: false,    
     pgpalId: "PGP001",
     createdAt: "2024-01-15T10:30:00Z",
     updatedAt: "2024-06-10T15:45:00Z",
@@ -52,6 +53,7 @@ const mockUserDetails: { [key: string]: UserDetails } = {
     role: "tenant",
     isVerified: true,
     isActive: true,
+    isSuspended: false,
     pgpalId: "PGP002",
     createdAt: "2024-02-20T14:15:00Z",
     updatedAt: "2024-06-11T09:30:00Z",
@@ -74,6 +76,7 @@ const mockUserDetails: { [key: string]: UserDetails } = {
     phoneNumber: "+1234567892",
     role: "admin",
     isVerified: true,
+    isSuspended: false,
     isActive: true,
     pgpalId: "PGP003",
     createdAt: "2024-01-01T00:00:00Z",
@@ -149,7 +152,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
         }
       } else {
         const response = await getUserDetails(userId);
-        console.log(response);
+        // console.log(response);
         setUser(response.data.data);
       }
     } catch (err: any) {

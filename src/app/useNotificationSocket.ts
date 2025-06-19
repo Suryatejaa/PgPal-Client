@@ -20,7 +20,7 @@ function useNotificationSocket(userId: string, role: string) {
 
     socket.on("notifications", (data: NotificationData) => {
         // dispatch(addNotification(data)); // Update your redux state here
-        console.log("Received notification:", data);
+        // console.log("Received notification:", data);
     });
 
     return () => {

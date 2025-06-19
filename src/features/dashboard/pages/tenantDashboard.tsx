@@ -61,7 +61,7 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
   const currentStayAndNearByPGs = () => {
     getCurrentStay()
       .then((res) => {
-        console.log(res.data?.currentStay);
+        // console.log(res.data?.currentStay);
         const stay = res.data?.currentStay;
         setCurrentStay(stay);
         setLoading(false);
@@ -180,8 +180,11 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
       import("../../../services/axiosInstance").then(
         ({ default: axiosInstance }) => {
           axiosInstance
-            .get(`/property-service/${overview._id}/rules`)
-            .then((res) => setRules(res.data))
+            .get(`/property-service/${overview?._id}/rules`)
+            .then((res) => {
+              
+              setRules(res.data)
+            })
             .catch(() => setRules(null));
         }
       );

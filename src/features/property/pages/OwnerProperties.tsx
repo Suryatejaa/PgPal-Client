@@ -67,7 +67,7 @@ const OwnerProperties: React.FC<{
     fetchApprovals(); // re-fetch approvals after an action
   };
 
-  // console.log("limits:", limits.maxProperties === -1);
+  // //console.log("limits:", limits.maxProperties === -1);
 
   useEffect(() => {
     sessionStorage.setItem("selectTab", selectTab);
@@ -98,19 +98,19 @@ const OwnerProperties: React.FC<{
       const res = await axiosInstance.get(
         `/tenant-service/vacateHistory/${selectedProperty?.pgpalId}` || ""
       );
-      console.log(selectedProperty?.pgpalId);
+      //console.log(selectedProperty?.pgpalId);
       const reqsForApprovals = res.data.vacateHistory.filter(
         (req: any) => req.status === "pending_owner_approval"
       );
-      console.log(reqsForApprovals[0]?.previousSnapshot);
+      //console.log(reqsForApprovals[0]?.previousSnapshot);
       const requestedUserIds = reqsForApprovals.map((req: any) => req.tenantId);
-      console.log(requestedUserIds.length);
+      //console.log(requestedUserIds.length);
       setRequestedUsers(requestedUserIds || []);
-      console.log("Updated requestedUsers", requestedUserIds);
+      //console.log("Updated requestedUsers", requestedUserIds);
       setCount(reqsForApprovals.length || 0);
       setApprovals(reqsForApprovals || []);
     } catch (err: any) {
-      console.log(err);
+      //console.log(err);
       if (err?.response?.data?.error === "No vacate history found") {
         setCount(0);
       }
@@ -139,7 +139,7 @@ const OwnerProperties: React.FC<{
   useVacateRealtimeSync(fetchApprovals, userId, userRole);
 
   const handleDeleteProperty = async (propertyId: string) => {
-    console.log(propertyId);
+    //console.log(propertyId);
     try {
       const res = await axiosInstance.delete(`/property-service/${propertyId}`);
       setAlert({
@@ -174,8 +174,8 @@ const OwnerProperties: React.FC<{
   };
 
   const handleCardClick = (property: any) => {
-    console.log(property.ownerId);
-    console.log(userId);
+    //console.log(property.ownerId);
+    //console.log(userId);
     setSelectedProperty(property);
     sessionStorage.setItem("selectedProperty", JSON.stringify(property));
     setShowForm(false);
@@ -200,7 +200,7 @@ const OwnerProperties: React.FC<{
 
   // Handle form submit
   const handleFormSubmit = async (data: any) => {
-    console.log(data);
+    //console.log(data);
     await addProperty(data);
     setShowForm(false);
     await fetchProperties();

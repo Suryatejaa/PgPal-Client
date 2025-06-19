@@ -161,14 +161,14 @@ const ComplaintsSection = ({
     try {
       const res = await updateComplaint(actionComplaint.complaintId, data);
 
-      console.log(data, res);
+      //console.log(data, res);
       await fetchComplaints();
       setActionComplaint(null);
       setAlert({ message: "Complaint updated!", type: "success" });
       fetchMetrics();
     } catch (e: any) {
-      console.log(data);
-      console.log(e);
+      //console.log(data);
+      //console.log(e);
       setAlert({
         message: e?.response?.data?.error || "Failed to update complaint",
         type: "error",
