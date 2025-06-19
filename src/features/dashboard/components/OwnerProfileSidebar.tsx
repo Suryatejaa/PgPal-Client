@@ -12,7 +12,8 @@ const OwnerProfileSidebar = ({
   sidebarOpen,
   setSidebarOpen,
   profile,
-  // Username props...
+
+  // Username props
   editingUsername,
   setEditingUsername,
   newUsername,
@@ -24,6 +25,7 @@ const OwnerProfileSidebar = ({
   handleUsernameEdit,
   handleUsernameChange,
   handleUsernameSubmit,
+
   // Email & phone props
   editingEmailPhone,
   setEditingEmailPhone,
@@ -32,46 +34,54 @@ const OwnerProfileSidebar = ({
   newPhone,
   setNewPhone,
   updatingEmailPhone,
-  updatingPassword,
   emailPhoneError,
   setEmailPhoneError,
+  emailAvailable,
+  checkingEmail,
+  phoneAvailable,
+  checkingPhone,
+  handleEmailChange,
+  handlePhoneChange,
+  handleEmailPhoneEdit,
+  handleEmailPhoneChange,
+
+  // OTP props
   otpMode,
   setOtpMode,
   otp,
   setOtp,
-  updatingOtp,
   otpError,
   setOtpError,
-  handleEmailPhoneEdit,
-  handleEmailPhoneChange,
   handleOtpSubmit,
-  handleLogout,
-  handlePasswordEdit,
-  handlePasswordSubmit,
+
+  // Password props
   editingPassword,
   setEditingPassword,
+  oldPassword,
+  setOldPassword,
+  newPassword,
+  setNewPassword,
+  confirmPassword,
+  setConfirmPassword,
   passwordError,
   setPasswordError,
-  oldPassword,
-  newPassword,
-  confirmPassword,
-  setOldPassword,
-  setNewPassword,
-  setConfirmPassword,
+  updatingPassword,
+  handlePasswordEdit,
   handlePasswordChange,
-  setShowLogoutConfirm,
+  handlePasswordSubmit,
+
+  // Logout props
   showLogoutConfirm,
-  checkingEmail,
-  emailAvailable,
-  handleEmailChange,
-  checkingPhone,
-  phoneAvailable,
-  handlePhoneChange,
+  setShowLogoutConfirm,
+  handleLogout,
 }: any) => {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const Navigate = useNavigate();
+  const [showPhoneConfirm, setShowPhoneConfirm] = useState(false);
+  const [pendingPhoneUpdate, setPendingPhoneUpdate] = useState(false);
+
+  const navigate = useNavigate();
 
   const message = currentPlan; // Default to "Free" if not provided
 
@@ -96,15 +106,34 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
         {/* <b>With current plan:</b> */}
         <ul className="list-disc list-inside">
           <li>
-            Can manage {limits.maxProperties === 1 ? "" : limits.maxProperties < 0 ? "" : "up to"}{" "}
-            <b>{limits.maxProperties < 0 ? "Unlimited" : limits.maxProperties}</b>{" "}
+            Can manage{" "}
+            {limits.maxProperties === 1
+              ? ""
+              : limits.maxProperties < 0
+              ? ""
+              : "up to"}{" "}
+            <b>
+              {limits.maxProperties < 0 ? "Unlimited" : limits.maxProperties}
+            </b>{" "}
             {limits.maxProperties === 1 ? "property" : "properties"}
           </li>
           <li>
-            Can add {limits.maxBedsPerProperty < 0 ? "" : "up to"} <b>{limits.maxBedsPerProperty < 0 ? "Unlimited" : limits.maxBedsPerProperty}</b> beds per property
+            Can add {limits.maxBedsPerProperty < 0 ? "" : "up to"}{" "}
+            <b>
+              {limits.maxBedsPerProperty < 0
+                ? "Unlimited"
+                : limits.maxBedsPerProperty}
+            </b>{" "}
+            beds per property
           </li>
           <li>
-            Can add {limits.maxRoomsPerProperty < 0 ? "" : "up to"} <b>{limits.maxRoomsPerProperty < 0 ? "Unlimited" : limits.maxRoomsPerProperty}</b> rooms per property
+            Can add {limits.maxRoomsPerProperty < 0 ? "" : "up to"}{" "}
+            <b>
+              {limits.maxRoomsPerProperty < 0
+                ? "Unlimited"
+                : limits.maxRoomsPerProperty}
+            </b>{" "}
+            rooms per property
           </li>
         </ul>
         <p className="mt-2">
@@ -235,14 +264,14 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
                         placeholder="Enter OTP"
-                        disabled={updatingOtp}
+                        disabled={updatingEmailPhone}
                         autoFocus
                       />
                       <div className="flex gap-2">
                         <button
                           type="submit"
                           className="px-2 py-1 bg-purple-600 text-white rounded disabled:opacity-50"
-                          disabled={updatingOtp || !otp}
+                          disabled={updatingEmailPhone || !otp} // ✅ Use updatingEmailPhone instead of updatingOtp
                         >
                           Verify OTP
                         </button>
@@ -250,13 +279,15 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
                           type="button"
                           className="px-2 py-1 bg-gray-300 text-gray-700 rounded"
                           onClick={() => {
-                            setOtpMode(false);
-                            setOtp("");
                             setEditingEmailPhone(false);
                             setEmailPhoneError(null);
                             setOtpError(null);
+                            setNewEmail("");
+                            setNewPhone("");
+                            setOtp("");
+                            setOtpMode(false);
                           }}
-                          disabled={updatingOtp}
+                          disabled={updatingEmailPhone} // ✅ Use updatingEmailPhone instead of updatingOtp
                         >
                           Cancel
                         </button>
@@ -268,7 +299,23 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
                   ) : (
                     // ...existing code...
                     <form
-                      onSubmit={handleEmailPhoneChange}
+                      onSubmit={(e) => {
+                        e.preventDefault();
+
+                        // Check if only phone is being changed
+                        const isEmailChanged = newEmail !== profile?.email;
+                        const isPhoneChanged =
+                          newPhone !== profile?.phoneNumber;
+
+                        if (isPhoneChanged && !isEmailChanged) {
+                          // Show confirmation for phone-only update
+                          setShowPhoneConfirm(true);
+                          setPendingPhoneUpdate(true);
+                        } else {
+                          // Proceed with normal email/phone update (which will trigger OTP)
+                          handleEmailPhoneChange(e);
+                        }
+                      }}
                       className="flex flex-col gap-2 w-full"
                     >
                       <label className="text-xs text-gray-500">Email</label>
@@ -335,7 +382,13 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
                             newPhone.length < 10
                           }
                         >
-                          Save
+                          {/* FIX: Show different text based on what's being changed */}
+                          {newEmail !== profile?.email &&
+                          newPhone !== profile?.phoneNumber
+                            ? "Send OTP"
+                            : newEmail !== profile?.email
+                            ? "Send OTP"
+                            : "Save Phone"}
                         </button>
                         <button
                           type="button"
@@ -343,6 +396,8 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
                           onClick={() => {
                             setEditingEmailPhone(false);
                             setEmailPhoneError(null);
+                            setNewEmail(profile?.email || "");
+                            setNewPhone(profile?.phoneNumber || "");
                           }}
                           disabled={updatingEmailPhone}
                         >
@@ -380,7 +435,7 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
               </div>
               {editingPassword ? (
                 <form
-                  onSubmit={handleEmailPhoneChange}
+                  onSubmit={handlePasswordSubmit}
                   className="flex flex-col gap-2 w-full"
                 >
                   <label className="text-xs text-gray-500">
@@ -463,10 +518,11 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
                         oldPassword.length < 8 ||
                         newPassword.length < 8 ||
                         newPassword !== confirmPassword ||
-                        passwordError
+                        passwordError ||
+                        updatingPassword
                       }
-                      onChange={handlePasswordChange()}
-                      onClick={handlePasswordSubmit}
+                      // ✅ REMOVE: onChange={handlePasswordChange()} - this is wrong
+                      // ✅ REMOVE: onClick={handlePasswordSubmit} - this is wrong
                     >
                       Save
                     </button>
@@ -496,15 +552,21 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
               )}
 
               {role === "owner" && (
-                <div className={`text-gray-600 mt-2 w-full border-2 rounded-xl p-2 
-                ${currentPlan === "professional" ? "border-yellow-400" : "border-purple-700"}`}>
+                <div
+                  className={`text-gray-600 mt-2 w-full border-2 rounded-xl p-2 
+                ${
+                  currentPlan === "professional"
+                    ? "border-yellow-400"
+                    : "border-purple-700"
+                }`}
+                >
                   <b>Current Plan:</b> {message}
                   <br />
                   <b>Plan Details:</b> <PlanMessage />
                   <button
                     className="px-2 py-1 mt-2 bg-gradient-to-r from-yellow-400 to-yellow-100 w-full rounded-lg border-2 text-black border-yellow-400 hover:bg-yellow-600 hover:border-yellow-600 hover:text-black"
                     onClick={() =>
-                      Navigate("/pricing", {
+                      navigate("/pricing", {
                         state: {
                           from: "profileSidebar",
                           isTrialClaimed: isTrialClaimed,
@@ -530,6 +592,24 @@ restrictions: (4) ['no_analytics', 'no_bulk_operations', 'no_advanced_search', '
             </button>
           </div>
         </div>
+        <ConfirmDialog
+          open={showPhoneConfirm}
+          title="Update Phone Number"
+          message={`Are you sure you want to update your phone number from ${profile?.phoneNumber} to ${newPhone}?`}
+          onConfirm={() => {
+            setShowPhoneConfirm(false);
+            setPendingPhoneUpdate(false);
+            // Create a fake event and call the handler
+            const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+            handleEmailPhoneChange(fakeEvent);
+          }}
+          onCancel={() => {
+            setShowPhoneConfirm(false);
+            setPendingPhoneUpdate(false);
+          }}
+          confirmText="Update Phone"
+          cancelText="Cancel"
+        />
         <ConfirmDialog
           open={showLogoutConfirm}
           title="Logout"

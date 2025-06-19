@@ -5,7 +5,12 @@ import { logoutUser } from "../../auth/authSlice";
 import { useNavigate } from "react-router-dom";
 
 export default function useOwnerProfile() {
+  // Keep only the states that are actually used
+  const  dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const [profile, setProfile] = useState<any>(null);
+  // Username editing
   const [editingUsername, setEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
@@ -13,42 +18,41 @@ export default function useOwnerProfile() {
   const [updatingUsername, setUpdatingUsername] = useState(false);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const usernameCheckTimeout = useRef<any>(null);
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const [editingEmail, setEditingEmail] = useState(false);
-  const [newEmail, setNewEmail] = useState("");
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [updatingEmail, setUpdatingEmail] = useState(false);
-  const [otpMode, setOtpMode] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [otpError, setOtpError] = useState<string | null>(null);
-  const [emailPhoneError, setEmailPhoneError] = useState<string | null>(null);
+  
+  // Email & Phone editing (combined)
   const [editingEmailPhone, setEditingEmailPhone] = useState(false);
-
+  const [newEmail, setNewEmail] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [emailPhoneError, setEmailPhoneError] = useState<string | null>(null);
+  const [updatingEmailPhone, setUpdatingEmailPhone] = useState(false);
+  
+  // Availability checking
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [phoneAvailable, setPhoneAvailable] = useState<boolean | null>(null);
   const [checkingPhone, setCheckingPhone] = useState(false);
-
   const emailCheckTimeout = useRef<any>(null);
   const phoneCheckTimeout = useRef<any>(null);
-
-  const [editingPhone, setEditingPhone] = useState(false);
-  const [newPhone, setNewPhone] = useState("");
-  const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [updatingPhone, setUpdatingPhone] = useState(false);
-
+  
+  // OTP verification
+  const [otpMode, setOtpMode] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
+  
+  // Password editing
   const [editingPassword, setEditingPassword] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [updatingPassword, setUpdatingPassword] = useState(false);
+  
+  // Logout
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  // Regex patterns
   const usernameRegex = /^[A-Za-z0-9._]{4,18}$/;
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^[0-9]{10}$/;
 
@@ -173,9 +177,11 @@ export default function useOwnerProfile() {
 
   const handleEmailPhoneEdit = () => {
     setEditingEmailPhone(true);
-    setNewEmail(profile?.email || "");
-    setNewPhone(profile?.phoneNumber || "");
-    setEmailPhoneError(null);
+  setNewEmail(profile?.email || "");
+  setNewPhone(profile?.phoneNumber || "");
+  setEmailPhoneError(null);
+  setEmailAvailable(null);  // Reset availability states
+  setPhoneAvailable(null);  
   };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,54 +219,112 @@ export default function useOwnerProfile() {
 
   const handleEmailPhoneChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEmail || !newPhone) return;
-    setUpdatingEmail(true);
+    setUpdatingEmailPhone(true);
     setEmailPhoneError(null);
+  
     try {
-      const res = await axiosInstance.put("/auth-service/me", {
-        email: newEmail,
-        phoneNumber: newPhone,
-      }, { withCredentials: true });
-      setOtpMode(true);
-      setEditingEmailPhone(true);
-    } catch (err) {
-      //console.log(err)
-      setEmailPhoneError("Failed to update email and phone");
+      // Check what's being changed
+      const isEmailChanged = newEmail !== profile?.email;
+      const isPhoneChanged = newPhone !== profile?.phoneNumber;
+  
+      if (isEmailChanged) {
+        // If email is being changed, send OTP regardless of phone change
+        console.log("📧 Email change detected, sending OTP to:", newEmail);
+        
+        const res = await axiosInstance.put("/auth-service/me", {
+          email: newEmail,
+          phoneNumber: newPhone,
+        }, { withCredentials: true });
+        
+        console.log("✅ OTP sent for email verification");
+        setOtpMode(true);
+        
+      } else if (isPhoneChanged && !isEmailChanged) {
+        // If only phone is being changed, update directly without OTP
+        console.log("📱 Only phone change detected, updating directly");
+        
+        const res = await axiosInstance.put("/auth-service/me", {
+          phoneNumber: newPhone,
+        }, { withCredentials: true });
+        
+        console.log("✅ Phone number updated successfully", res.data);
+        
+        // Update the profile in state immediately
+        setProfile((prev: any) => ({
+          ...prev,
+          phoneNumber: newPhone // Use the newPhone value, not from response
+        }));
+        
+        // ✅ FIX: Close edit mode and reset states AFTER successful update
+        setEditingEmailPhone(false);
+        setNewEmail("");  // Clear the form
+        setNewPhone("");  // Clear the form
+        setEmailPhoneError(null);
+        
+        console.log("Phone number updated successfully!");
+        
+      } else {
+        // Neither field has changed
+        setEmailPhoneError("No changes detected");
+      }
+      
+    } catch (err: any) {
+      console.error("❌ Update failed:", err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to update. Please try again.";
+      setEmailPhoneError(errorMessage);
     } finally {
-      setUpdatingEmail(false);
+      setUpdatingEmailPhone(false);
     }
   };
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUpdatingEmail(true);
+    setUpdatingEmailPhone(true); // Use the same loading state
     setOtpError(null);
+    
     try {
+      console.log("🔢 Verifying OTP for email/phone update");
+      
       const res = await axiosInstance.post(
         "/auth-service/email-otp/verify",
         {
           email: newEmail,
-          otp,
-        }
+          otp: parseInt(otp, 10), // Ensure it's a number
+        },
+        { withCredentials: true }
       );
-      const updated = await res.data;
+      
+      const updated = res.data;
+      console.log("✅ OTP verified, profile updated");
+      
+      // Update the profile in state
       setProfile((prev: any) => ({
         ...prev,
-        email: updated.email,
-        phoneNumber: updated.phoneNumber,
+        email: updated.email || newEmail,
+        phoneNumber: updated.phoneNumber || newPhone,
       }));
+      
+      // Optionally fetch fresh profile data
       fetchProfile();
-      setEditingEmail(false);
-      setNewEmail("");
-      setNewPhone("");
-      setOtp("");
+      
+      // Reset all form states
       setOtpMode(false);
       setEditingEmailPhone(false);
+      setOtp("");
+      setNewEmail(profile?.email || "");
+      setNewPhone(profile?.phoneNumber || "");
       setEmailPhoneError(null);
-    } catch (err) {
-      setOtpError("Invalid OTP or failed to update email");
+      setOtpError(null);
+      
+      console.log("Email and phone updated successfully!");
+      
+    } catch (err: any) {
+      console.error("❌ OTP verification failed:", err);
+      setOtpError(
+        err.response?.data?.message || "Invalid OTP. Please try again."
+      );
     } finally {
-      setUpdatingEmail(false);
+      setUpdatingEmailPhone(false);
     }
   };
 
@@ -289,12 +353,22 @@ export default function useOwnerProfile() {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Call validation first
+    handlePasswordChange();
+    
     if (!oldPassword || !newPassword || newPassword !== confirmPassword) {
       setPasswordError("Passwords do not match or missing fields");
       return;
     }
+    
+    if (passwordError) {
+      return; // Don't submit if there are validation errors
+    }
+    
     setUpdatingPassword(true);
     setPasswordError(null);
+    
     try {
       const res = await axiosInstance.put(
         "/auth-service/me",
@@ -307,10 +381,18 @@ export default function useOwnerProfile() {
           withCredentials: true,
         }
       );
-      if (!res.data) throw new Error("Failed to update password");
+      
+      console.log("✅ Password updated successfully");
       setEditingPassword(false);
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordError(null);
+      
     } catch (err: any) {
-      setPasswordError("Failed to update password");
+      console.error("❌ Password update failed:", err);
+      const errorMessage = err.response?.data?.message || "Failed to update password";
+      setPasswordError(errorMessage);
     } finally {
       setUpdatingPassword(false);
     }
@@ -322,58 +404,54 @@ export default function useOwnerProfile() {
   };
 
   return {
+    // Profile data
     profile,
     setProfile,
+    fetchProfile,
+
+    // Username editing
     editingUsername,
     setEditingUsername,
     newUsername,
     setNewUsername,
     usernameAvailable,
-    setUsernameAvailable,
     checkingUsername,
-    setCheckingUsername,
     updatingUsername,
-    setUpdatingUsername,
     usernameError,
     setUsernameError,
-    usernameCheckTimeout,
-    fetchProfile,
-    editingEmail,
-    setEditingEmail,
+    handleUsernameEdit,
+    handleUsernameChange,
+    handleUsernameSubmit,
+
+    // Email & Phone editing
+    editingEmailPhone,
+    setEditingEmailPhone,
     newEmail,
     setNewEmail,
-    emailError,
-    setEmailError,
-    updatingEmail,
-    setUpdatingEmail,
+    newPhone,
+    setNewPhone,
+    emailPhoneError,
+    setEmailPhoneError,
+    updatingEmailPhone,
+    emailAvailable,
+    checkingEmail,
+    phoneAvailable,
+    checkingPhone,
+    handleEmailChange,
+    handlePhoneChange,
+    handleEmailPhoneEdit,
+    handleEmailPhoneChange,
+
+    // OTP
     otpMode,
     setOtpMode,
     otp,
     setOtp,
     otpError,
     setOtpError,
-    emailPhoneError,
-    setEmailPhoneError,
-    editingEmailPhone,
-    setEditingEmailPhone,
-    emailAvailable,
-    setEmailAvailable,
-    checkingEmail,
-    setCheckingEmail,
-    phoneAvailable,
-    setPhoneAvailable,
-    checkingPhone,
-    setCheckingPhone,
-    emailCheckTimeout,
-    phoneCheckTimeout,
-    editingPhone,
-    setEditingPhone,
-    newPhone,
-    setNewPhone,
-    phoneError,
-    setPhoneError,
-    updatingPhone,
-    setUpdatingPhone,
+    handleOtpSubmit,
+
+    // Password
     editingPassword,
     setEditingPassword,
     oldPassword,
@@ -385,23 +463,13 @@ export default function useOwnerProfile() {
     passwordError,
     setPasswordError,
     updatingPassword,
-    setUpdatingPassword,
-    showLogoutConfirm,
-    setShowLogoutConfirm,
-    checkUsername,
-    handleUsernameEdit,
-    handleUsernameChange,
-    handleUsernameSubmit,
-    checkEmail,
-    checkPhone,
-    handleEmailChange,
-    handlePhoneChange,
-    handleEmailPhoneEdit,
-    handleEmailPhoneChange,
-    handleOtpSubmit,
     handlePasswordEdit,
     handlePasswordChange,
     handlePasswordSubmit,
-    handleLogout
+
+    // Logout
+    showLogoutConfirm,
+    setShowLogoutConfirm,
+    handleLogout,
   };
 }

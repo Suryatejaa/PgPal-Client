@@ -187,7 +187,7 @@ const TenantRegister = () => {
         setErrors((prev) => ({ ...prev, password: "" }));
       }
     }
-    if(name === "confirmPassword") {
+    if (name === "confirmPassword") {
       if (value && value !== form.password) {
         setErrors((prev) => ({
           ...prev,
@@ -275,7 +275,6 @@ const TenantRegister = () => {
       <div>
         {!otpMode ? (
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <UserIcon className="h-4 w-4 text-gray-500" />
@@ -288,7 +287,7 @@ const TenantRegister = () => {
                   value={form.username}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white ${
-                    usernameAvailable === false
+                    errors.username || usernameAvailable === false
                       ? "border-red-500 focus:ring-red-500"
                       : usernameAvailable === true
                       ? "border-green-500 focus:ring-green-500"
@@ -296,8 +295,10 @@ const TenantRegister = () => {
                   }`}
                   autoComplete="off"
                 />
+                {/* ADD: Visual indicator icons */}
                 {!errors.username &&
                   form.username.trim() !== "" &&
+                  usernameRegex.test(form.username) &&
                   usernameAvailable !== null && (
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       {usernameAvailable ? (
@@ -308,11 +309,14 @@ const TenantRegister = () => {
                     </span>
                   )}
               </div>
+              {/* FIX: Add text feedback for username */}
               {errors.username ? (
                 <p className="text-red-500 text-sm font-medium">
                   {errors.username}
                 </p>
-              ) : !usernameAvailable && form.username.trim() !== "" ? (
+              ) : usernameAvailable === false &&
+                form.username.trim() !== "" &&
+                usernameRegex.test(form.username) ? (
                 <p className="text-red-500 text-sm font-medium">
                   Username already taken.
                 </p>
@@ -332,7 +336,7 @@ const TenantRegister = () => {
                   value={form.email}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white ${
-                    emailAvailable === false
+                    errors.email || emailAvailable === false
                       ? "border-red-500 focus:ring-red-500"
                       : emailAvailable === true
                       ? "border-green-500 focus:ring-green-500"
@@ -340,6 +344,7 @@ const TenantRegister = () => {
                   }`}
                   autoComplete="off"
                 />
+                {/* ADD: Visual indicator icons */}
                 {!errors.email &&
                   form.email.trim() !== "" &&
                   emailRegex.test(form.email) &&
@@ -353,11 +358,14 @@ const TenantRegister = () => {
                     </span>
                   )}
               </div>
+              {/* FIX: Add proper text feedback for email */}
               {errors.email ? (
                 <p className="text-red-500 text-sm font-medium">
                   {errors.email}
                 </p>
-              ) : !emailAvailable && form.email.trim() !== "" ? (
+              ) : emailAvailable === false &&
+                form.email.trim() !== "" &&
+                emailRegex.test(form.email) ? (
                 <p className="text-red-500 text-sm font-medium">
                   Email already taken.
                 </p>
@@ -377,7 +385,7 @@ const TenantRegister = () => {
                   value={form.phoneNumber}
                   onChange={handleChange}
                   className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white ${
-                    phoneAvailable === false
+                    errors.phoneNumber || phoneAvailable === false
                       ? "border-red-500 focus:ring-red-500"
                       : phoneAvailable === true
                       ? "border-green-500 focus:ring-green-500"
@@ -386,6 +394,7 @@ const TenantRegister = () => {
                   autoComplete="off"
                   maxLength={10}
                 />
+                {/* ADD: Visual indicator icons */}
                 {!errors.phoneNumber &&
                   form.phoneNumber.trim() !== "" &&
                   phoneRegex.test(form.phoneNumber) &&
@@ -399,18 +408,20 @@ const TenantRegister = () => {
                     </span>
                   )}
               </div>
+              {/* FIX: Add proper text feedback for phone */}
               {errors.phoneNumber ? (
                 <p className="text-red-500 text-sm font-medium">
                   {errors.phoneNumber}
                 </p>
-              ) : !phoneAvailable && form.phoneNumber.trim() !== "" ? (
+              ) : phoneAvailable === false &&
+                form.phoneNumber.trim() !== "" &&
+                phoneRegex.test(form.phoneNumber) ? (
                 <p className="text-red-500 text-sm font-medium">
                   Phone number already taken.
                 </p>
               ) : null}
             </div>
 
-            {/* Password Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <LockClosedIcon className="h-4 w-4 text-gray-500" />
@@ -443,7 +454,6 @@ const TenantRegister = () => {
                 </p>
               )}
             </div>
-
             {/* Confirm Password Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
@@ -477,7 +487,6 @@ const TenantRegister = () => {
                 </p>
               )}
             </div>
-
             {/* Gender Selection */}
             <div className="space-y-3">
               <label className="text-sm font-medium text-gray-700">
@@ -508,7 +517,6 @@ const TenantRegister = () => {
                 </button>
               </div>
             </div>
-
             {/* Submit Button */}
             <button
               type="submit"
@@ -524,7 +532,6 @@ const TenantRegister = () => {
                 "Create Account"
               )}
             </button>
-
             {/* Login Link */}
             <div className="text-center pt-4 border-t border-gray-200">
               <span className="text-gray-600 text-sm">

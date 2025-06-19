@@ -23,7 +23,7 @@ const NotificationSection = ({
   userId: string;
   setUnreadCount: (count: number) => void;
   isTenant: boolean;
-  property: string;
+  property?: string;
 }) => {
   // Updated parameter types for better type safety
   const [notifications, setNotifications] = useState<
