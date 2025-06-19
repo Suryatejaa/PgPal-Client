@@ -28,7 +28,6 @@ export function getSocket(): Socket {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      // maxReconnectionAttempts: 5
     });
 
     socket.on('connect', () => {
