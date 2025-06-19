@@ -204,7 +204,7 @@ const PricingSection = () => {
       alert("Cancellation failed. Please try again.");
     }
   };
-
+//
   return (
     <section className="py-20 px-4 bg-white">
       <div className="max-w-6xl mx-auto">
