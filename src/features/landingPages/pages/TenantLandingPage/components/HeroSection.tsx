@@ -38,7 +38,7 @@ const HeroSection = ({
       </p>
 
       {/* Search Section */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 max-w-4xl mx-auto">
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 mb-8 max-w-4xl mx-auto">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-400" />
@@ -48,13 +48,13 @@ const HeroSection = ({
               value={searchLocation}
               onChange={(e) => setSearchLocation(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              className="w-full pl-10 pr-4 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full pl-10 pr-2 py-4 rounded-xl border-2 text-black bg-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
             />
           </div>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-4 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="px-4 py-1 rounded-lg bg-gray-100 border-2 text-black focus:outline-none focus:ring-2 focus:ring-yellow-400"
           >
             <option value="all">All PGs</option>
             <option value="boys">Boys PG</option>
