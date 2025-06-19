@@ -273,6 +273,7 @@ const OwnerProperties: React.FC<{
           <PropertyCard
             key={property._id}
             property={property}
+            fromTenantLandingPage={false}
             onClick={() => handleCardClick(property)}
             isSelected={selectedProperty?._id === property._id}
           />
@@ -383,11 +384,11 @@ const OwnerProperties: React.FC<{
             <h3 className="text-xl font-semibold text-purple-900 mb-2 ms-2 flex items-center gap-2">
               {selectedProperty.name} Dashboard
               <button
-                className="ml-1 p-1 mt-1 rounded hover:bg-purple-200"
+                className="bg-purple-300 px-1 py-1 text-xs rounded hover:bg-purple-200"
                 onClick={() => setEditMode(true)}
                 title="Edit Property"
               >
-                <PencilSquareIcon className="w-5 h-4 text-purple-700" />
+                ✏️Edit
               </button>
             </h3>
             <div className="flex space-x-2 overflow-x-auto">
