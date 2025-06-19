@@ -212,7 +212,7 @@ const PricingSection = () => {
           {/* Skip button */}
           {from === "register" ? (
             <button
-              className="absolute top-4 bg-gray-300 right-4 text-gray-900 hover:text-gray-700"
+              className="absolute top-4 px-1 rounded-md bg-gray-300 right-4 text-gray-900 hover:text-gray-700"
               onClick={() => handleUpgrade("free")}
             >
               Skip

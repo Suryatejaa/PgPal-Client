@@ -12,6 +12,8 @@ import type {
 } from "../services/propertyService";
 import { roomService } from "../services/roomService";
 import type { Room, RoomAnalytics } from "../services/roomService";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import { setCache } from "../../auth/cacheSlice";
 
 // Custom styles for mobile responsiveness
 const injectCustomStyles = () => {
@@ -59,6 +61,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const dispatch = useAppDispatch();
+  const DASHBOARD_CACHE_KEY = "adminDashboardData";
+  const cachedData = useAppSelector(
+    (state) => state.cache[DASHBOARD_CACHE_KEY]
+  );
+
   // Property Service Data
   const [propertyOverview, setPropertyOverview] =
     useState<PropertyOverview | null>(null);
@@ -190,18 +199,36 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
       ),
     },
   ];
+
+ 
   useEffect(() => {
-    // Inject custom styles for mobile responsiveness
     injectCustomStyles();
-    loadDashboardData();
+    if (cachedData?.data) {
+      const {
+        propertyOverviewData,
+        roomAnalyticsData,
+        propertiesData,
+        roomsData,
+      } = cachedData.data;
+      setPropertyOverview(propertyOverviewData);
+      setRoomAnalytics(roomAnalyticsData);
+      setProperties(propertiesData.properties || []);
+      setRooms(roomsData.rooms || []);
+      setLoading(false); // We have data to show, so we are not "loading"
+    } else {
+      console.log("No cached data found, fetching fresh data.");
+      setLoading(true); // If no cached data, we are loading
+    }
+
+    loadDashboardData(); // Always fetch fresh data in the background.
   }, []);
 
   // Update the loadDashboardData function to handle the correct data structure
   const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    
+    setError(null);
 
+    try {     
       // Default fallback data
       const defaultPropertyOverview = {
         summary: {
@@ -251,7 +278,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
         totalProperties: 0,
       };
 
-      // Load data from both services
       const [
         propertyOverviewData,
         roomAnalyticsResponse,
@@ -306,6 +332,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
           totalRent / roomsData.rooms.length
         );
       }
+
+      dispatch(
+        setCache({
+          key: DASHBOARD_CACHE_KEY,
+          data: {
+            propertyOverviewData,
+            roomAnalyticsData: processedRoomAnalytics,
+            propertiesData,
+            roomsData,
+          },
+        })
+      );
 
       setPropertyOverview(propertyOverviewData || defaultPropertyOverview);
       setRoomAnalytics(processedRoomAnalytics);

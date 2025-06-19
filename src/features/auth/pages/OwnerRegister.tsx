@@ -187,6 +187,16 @@ const OwnerRegister = () => {
         setErrors((prev) => ({ ...prev, password: "" }));
       }
     }
+    if (name === "confirmPassword") {
+      if (value && value !== form.password) {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: "Passwords do not match",
+        }));
+      } else {
+        setErrors((prev) => ({ ...prev, confirmPassword: "" }));
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -231,9 +241,8 @@ const OwnerRegister = () => {
         state: {
           from: "register",
           isTrialClaimed: false,
-          currentPlan: "free"
+          currentPlan: "free",
         },
-
       }); // Redirect to pricing on success
     } catch (err: any) {
       console.error("OTP verification failed:", err);
@@ -282,11 +291,15 @@ const OwnerRegister = () => {
                     </span>
                   )}
               </div>
-              {errors.username && (
+              {errors.username ? (
                 <p className="text-red-500 text-sm font-medium">
                   {errors.username}
                 </p>
-              )}
+              ) : !usernameAvailable && form.username.trim() !== "" ? (
+                <p className="text-red-500 text-sm font-medium">
+                  Username already taken.
+                </p>
+              ) : null}
             </div>
 
             {/* Email Input */}
@@ -322,12 +335,16 @@ const OwnerRegister = () => {
                       )}
                     </span>
                   )}
-              </div>
-              {errors.email && (
+              </div>              
+              {errors.email ? (
                 <p className="text-red-500 text-sm font-medium">
                   {errors.email}
                 </p>
-              )}
+              ) : !emailAvailable && form.email.trim() !== "" ? (
+                <p className="text-red-500 text-sm font-medium">
+                  Email already taken.
+                </p>
+              ) : null}
             </div>
 
             {/* Phone Input */}
@@ -365,11 +382,15 @@ const OwnerRegister = () => {
                     </span>
                   )}
               </div>
-              {errors.phoneNumber && (
+              {errors.phoneNumber ? (
                 <p className="text-red-500 text-sm font-medium">
                   {errors.phoneNumber}
                 </p>
-              )}
+              ) : !phoneAvailable && form.phoneNumber.trim() !== "" ? (
+                <p className="text-red-500 text-sm font-medium">
+                  Phone number already taken.
+                </p>
+              ) : null}
             </div>
 
             {/* Password Input */}

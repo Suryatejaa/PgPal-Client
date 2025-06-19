@@ -138,18 +138,15 @@ export const registerUser = createAsyncThunk<
     console.error("❌ Registration error:", err.response?.data || err.message);
     
     // Extract proper error message
-    let message = "Registration failed";
-    if (err.response?.data?.message) {
-      message = err.response.data.message;
-    } else if (err.response?.status === 400) {
-      message = "Please check your input";
-    } else if (err.response?.status === 409) {
-      message = "User already exists";
-    } else if (err.message) {
-      message = err.message;
+    if (err.response?.data) {
+      // Return the entire error object from server
+      return thunkAPI.rejectWithValue(err.response.data);
     }
     
-    return thunkAPI.rejectWithValue(message);
+    return thunkAPI.rejectWithValue({
+      message: "Registration failed. Please try again.",
+      errors: []
+    });
   }
 });
 
@@ -180,7 +177,7 @@ export const logoutUser = createAsyncThunk(
 export const verifyOtp = createAsyncThunk<
   any,
   { otp: number; email: string },
-  { rejectValue: string }
+  { rejectValue: any }
 >("auth/verifyOtp", async ({ otp, email }, thunkAPI) => {
   try {
     console.log("🔢 Attempting OTP verification for:", email);
@@ -210,16 +207,13 @@ export const verifyOtp = createAsyncThunk<
   } catch (err: any) {
     console.error("❌ OTP verification error:", err.response?.data || err.message);
     
-    let message = "OTP verification failed";
-    if (err.response?.data?.message) {
-      message = err.response.data.message;
-    } else if (err.response?.status === 400) {
-      message = "Invalid OTP";
-    } else if (err.response?.status === 401) {
-      message = "OTP expired or invalid";
+    if (err.response?.data) {
+      return thunkAPI.rejectWithValue(err.response.data);
     }
     
-    return thunkAPI.rejectWithValue(message);
+    return thunkAPI.rejectWithValue({
+      message: "OTP verification failed. Please try again.",
+    });
   }
 });
 

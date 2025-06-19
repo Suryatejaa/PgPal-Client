@@ -41,6 +41,7 @@ const TenantRegister = () => {
   const [otpMode, setOtpMode] = useState(false); // Toggle OTP input
   const [otp, setOtp] = useState(""); // OTP input field
   const [loading, setLoading] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null); // Add OTP error state
   const [showPassword, setShowPassword] = useState(false); // Toggle for password visibility
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Toggle for confirm password visibility
   const [usernameAvailable, setUsernameAvailable] = useState<null | boolean>(
@@ -108,6 +109,7 @@ const TenantRegister = () => {
     emailCheckTimeout.current = setTimeout(async () => {
       try {
         const data = await checkEmailAvailability(email);
+        console.log(data.availabile);
         setEmailAvailable(data.available);
       } catch {
         setEmailAvailable(null);
@@ -136,8 +138,6 @@ const TenantRegister = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-
-    // Convert username to lowercase automatically
     const processedValue = name === "username" ? value.toLowerCase() : value;
 
     setForm({ ...form, [name]: processedValue });
@@ -156,8 +156,6 @@ const TenantRegister = () => {
         if (processedValue) checkUsername(processedValue);
       }
     }
-    if (name === "email") checkEmail(value);
-    if (name === "phoneNumber") checkPhone(value);
 
     if (name === "email") {
       if (value && !emailRegex.test(value)) {
@@ -189,12 +187,22 @@ const TenantRegister = () => {
         setErrors((prev) => ({ ...prev, password: "" }));
       }
     }
+    if(name === "confirmPassword") {
+      if (value && value !== form.password) {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: "Passwords do not match",
+        }));
+      } else {
+        setErrors((prev) => ({ ...prev, confirmPassword: "" }));
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setErrors({}); // Clear previous errors
+    setErrors({}); // Clear all previous errors
 
     if (form.password !== form.confirmPassword) {
       setErrors({ confirmPassword: "Passwords do not match" });
@@ -203,18 +211,32 @@ const TenantRegister = () => {
     }
 
     try {
-      const res = await dispatch(registerUser(form)).unwrap();
-      // console.log("otp mode enabled");
-      // console.log(res);
-      setOtpMode(true); // Enable OTP input mode
+      await dispatch(registerUser(form)).unwrap();
+      console.log("✅ Registration successful, switching to OTP mode");
+      setOtpMode(true);
     } catch (err: any) {
-      if (err.errors) {
-        // Map server errors to form fields
+      console.error("❌ Registration failed:", err);
+
+      // IMPROVED ERROR HANDLING
+      if (err && err.errors && Array.isArray(err.errors)) {
+        // Handle field-specific validation errors (like "username already taken")
         const fieldErrors: Record<string, string> = {};
         err.errors.forEach((error: any) => {
-          fieldErrors[error.path] = error.msg;
+          if (error.path && error.msg) {
+            fieldErrors[error.path] = error.msg;
+          }
         });
         setErrors(fieldErrors);
+        console.log("📝 Field errors set:", fieldErrors);
+      } else if (err && err.message) {
+        // Handle general errors
+        setErrors({ form: err.message });
+        console.log("📝 General error set:", err.message);
+      } else if (typeof err === "string") {
+        // Handle string errors
+        setErrors({ form: err });
+      } else {
+        setErrors({ form: "Registration failed. Please try again." });
       }
     } finally {
       setLoading(false);
@@ -224,15 +246,24 @@ const TenantRegister = () => {
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setOtpError(null); // Clear previous OTP errors
 
     try {
       await dispatch(
         verifyOtp({ otp: parseInt(otp, 10), email: form.email })
       ).unwrap();
-      navigate("/dashboard"); // Redirect to dashboard on success
+      navigate("/dashboard");
     } catch (err: any) {
-      console.error("OTP verification failed:", err);
-      alert(err || "Invalid OTP. Please try again.");
+      console.error("❌ OTP verification failed:", err);
+
+      // IMPROVED OTP ERROR HANDLING
+      if (err && err.message) {
+        setOtpError(err.message);
+      } else if (typeof err === "string") {
+        setOtpError(err);
+      } else {
+        setOtpError("Invalid OTP. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -277,11 +308,15 @@ const TenantRegister = () => {
                     </span>
                   )}
               </div>
-              {errors.username && (
+              {errors.username ? (
                 <p className="text-red-500 text-sm font-medium">
                   {errors.username}
                 </p>
-              )}
+              ) : !usernameAvailable && form.username.trim() !== "" ? (
+                <p className="text-red-500 text-sm font-medium">
+                  Username already taken.
+                </p>
+              ) : null}
             </div>
 
             {/* Email Input */}
@@ -318,11 +353,15 @@ const TenantRegister = () => {
                     </span>
                   )}
               </div>
-              {errors.email && (
+              {errors.email ? (
                 <p className="text-red-500 text-sm font-medium">
                   {errors.email}
                 </p>
-              )}
+              ) : !emailAvailable && form.email.trim() !== "" ? (
+                <p className="text-red-500 text-sm font-medium">
+                  Email already taken.
+                </p>
+              ) : null}
             </div>
 
             {/* Phone Input */}
@@ -360,11 +399,15 @@ const TenantRegister = () => {
                     </span>
                   )}
               </div>
-              {errors.phoneNumber && (
+              {errors.phoneNumber ? (
                 <p className="text-red-500 text-sm font-medium">
                   {errors.phoneNumber}
                 </p>
-              )}
+              ) : !phoneAvailable && form.phoneNumber.trim() !== "" ? (
+                <p className="text-red-500 text-sm font-medium">
+                  Phone number already taken.
+                </p>
+              ) : null}
             </div>
 
             {/* Password Input */}
