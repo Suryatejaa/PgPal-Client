@@ -19,6 +19,7 @@ import GlobalAlert from "../../../components/GlobalAlert"; // adjust path as nee
 import axiosInstance from "../../../services/axiosInstance";
 import { useVacateRealtimeSync } from "../../../app/useNotificationSocket";
 import useSubscriptionLimits from "../../../app/useSubscriptionLimits";
+import { useSwipeGesture } from "../../../app/useSwipeGesture";
 
 const SECTION_LIST = [
   { key: "overview", label: "Overview" },
@@ -68,6 +69,36 @@ const OwnerProperties: React.FC<{
   };
 
   // //console.log("limits:", limits.maxProperties === -1);
+
+  const navigateToSection = (direction: "next" | "prev") => {
+    const currentIndex = SECTION_LIST.findIndex(
+      (section) => section.key === selectedSection
+    );
+    let newIndex;
+
+    if (direction === "next") {
+      newIndex = currentIndex < SECTION_LIST.length - 1 ? currentIndex + 1 : 0;
+    } else {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : SECTION_LIST.length - 1;
+    }
+
+    setSelectedSection(SECTION_LIST[newIndex].key);
+  };
+
+  const swipeGesture = useSwipeGesture({
+    onSwipeLeft: () => navigateToSection("next"),
+    onSwipeRight: () => navigateToSection("prev"),
+    minSwipeDistance: 75, // Adjust as needed
+    maxSwipeTime: 400,
+  });
+
+  // Adapter functions to convert React synthetic events to native events for swipeGesture
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    swipeGesture.onTouchStart(e.nativeEvent);
+  };
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    swipeGesture.onTouchEnd(e.nativeEvent);
+  };
 
   useEffect(() => {
     sessionStorage.setItem("selectTab", selectTab);
@@ -409,62 +440,68 @@ const OwnerProperties: React.FC<{
             </div>
           </div>
           {/* Section content */}
-          {selectedSection === "overview" && (
-            <OverviewSection
-              property={selectedProperty}
-              userId={userId}
-              userName={userName}
-              userRole={userRole}
-              isOwner={selectedProperty?.ownerId === userId}
-              requestedUsers={requestedUsers}
-              approvals={approvals}
-              count={count}
-              loading={loading}
-              selectTab={selectTab}
-              setSelectTab={setSelectTab}
-              onApprovalAction={handleApprovalAction}
-              userPlan={currentPlan}
-              isTrialClaimed={isTrialClaimed}
-            />
-          )}
-          {selectedSection === "rooms" && (
-            <RoomsSection
-              property={selectedProperty}
-              requestedUsers={requestedUsers}
-              goToApprovals={() => {
-                setSelectedSection("overview");
-                setSelectTab("approvals");
-              }}
-              fetchProperties={fetchProperties}
-            />
-          )}
-          {selectedSection === "tenants" && (
-            <TenantsSection
-              property={selectedProperty}
-              userId={userId}
-              requestedUsers={requestedUsers}
-              goToApprovals={() => {
-                setSelectedSection("overview");
-                setSelectTab("approvals");
-              }}
-            />
-          )}
-          {selectedSection === "kitchen" && (
-            <KitchenSection property={selectedProperty} />
-          )}
-          {selectedSection === "complaints" && (
-            <ComplaintsSection
-              property={selectedProperty}
-              isOwner={selectedProperty?.ownerId === userId}
-              userPpid={userPpid}
-            />
-          )}
-          {selectedSection === "address" && (
-            <AddressSection
-              property={selectedProperty}
-              isOwner={selectedProperty?.ownerId === userId}
-            />
-          )}
+          <div
+            className="touch-pan-y" // Allow vertical scrolling
+            onTouchStart={(e) => swipeGesture.onTouchStart(e.nativeEvent)}
+            onTouchEnd={(e) => swipeGesture.onTouchEnd(e.nativeEvent)}
+          >
+            {selectedSection === "overview" && (
+              <OverviewSection
+                property={selectedProperty}
+                userId={userId}
+                userName={userName}
+                userRole={userRole}
+                isOwner={selectedProperty?.ownerId === userId}
+                requestedUsers={requestedUsers}
+                approvals={approvals}
+                count={count}
+                loading={loading}
+                selectTab={selectTab}
+                setSelectTab={setSelectTab}
+                onApprovalAction={handleApprovalAction}
+                userPlan={currentPlan}
+                isTrialClaimed={isTrialClaimed}
+              />
+            )}
+            {selectedSection === "rooms" && (
+              <RoomsSection
+                property={selectedProperty}
+                requestedUsers={requestedUsers}
+                goToApprovals={() => {
+                  setSelectedSection("overview");
+                  setSelectTab("approvals");
+                }}
+                fetchProperties={fetchProperties}
+              />
+            )}
+            {selectedSection === "tenants" && (
+              <TenantsSection
+                property={selectedProperty}
+                userId={userId}
+                requestedUsers={requestedUsers}
+                goToApprovals={() => {
+                  setSelectedSection("overview");
+                  setSelectTab("approvals");
+                }}
+              />
+            )}
+            {selectedSection === "kitchen" && (
+              <KitchenSection property={selectedProperty} />
+            )}
+            {selectedSection === "complaints" && (
+              <ComplaintsSection
+                property={selectedProperty}
+                isOwner={selectedProperty?.ownerId === userId}
+                userPpid={userPpid}
+              />
+            )}
+            {selectedSection === "address" && (
+              <AddressSection
+                property={selectedProperty}
+                isOwner={selectedProperty?.ownerId === userId}
+              />
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -42,12 +42,17 @@ const SearchResultsSection = ({
         </div>
 
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Search Results{" "}
-            {searchLocation && (
-              <span className="text-purple-600">in {searchLocation}</span>
-            )}
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+            Search Results
           </h2>
+          {searchLocation && (
+            <div className="text-2xl md:text-3xl font-semibold text-purple-600 break-words px-4">
+              in{" "}
+              {searchLocation.length > 50
+                ? `${searchLocation.substring(0, 50)}...`
+                : searchLocation}
+            </div>
+          )}
           {isSearching ? (
             <div className="flex items-center justify-center gap-3">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>

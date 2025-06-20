@@ -17,6 +17,7 @@ import NearbyPGsSection from "../../property/components/sections/NearBySection";
 import axiosInstance from "../../../services/axiosInstance";
 import TenantLandingPage from "../../tenant/components/sections/TenantLandingPage";
 import TenantProfileSidebar from "../components/TenantProfileSidebar";
+import { useSwipeGesture } from "../../../app/useSwipeGesture";
 
 const SECTION_LIST = [
   { key: "overview", label: "Property" },
@@ -57,6 +58,30 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
   const [refreshStayKey, setRefreshStayKey] = useState(0);
 
   // Fetch current stay and nearby PGs
+
+  const navigateToSection = (direction: "next" | "prev") => {
+    const currentIndex = SECTION_LIST.findIndex(
+      (section) => section.key === selectedSection
+    );
+    let newIndex;
+
+    if (direction === "next") {
+      newIndex = currentIndex < SECTION_LIST.length - 1 ? currentIndex + 1 : 0;
+    } else {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : SECTION_LIST.length - 1;
+    }
+
+    setSelectedSection(SECTION_LIST[newIndex].key);
+  };
+
+
+  const swipeGesture = useSwipeGesture({
+    onSwipeLeft: () => navigateToSection("next"),
+    onSwipeRight: () => navigateToSection("prev"),
+    minSwipeDistance: 75,
+    maxSwipeTime: 400,
+  });
+
 
   const currentStayAndNearByPGs = () => {
     getCurrentStay()
@@ -252,7 +277,11 @@ const TenantDashboard: React.FC<TenantDashboardProps> = ({
               setSelectedSection={setSelectedSection}
               isSticky={isSticky}
             />
-            <div className="mt-1">
+            <div
+              className="mt-1 touch-pan-y"
+              onTouchStart={(e) => swipeGesture.onTouchStart(e.nativeEvent)}
+              onTouchEnd={(e) => swipeGesture.onTouchEnd(e.nativeEvent)}
+            >
               {selectedSection === "overview" && overview && (
                 <PropertyOverview
                   overview={overview}
