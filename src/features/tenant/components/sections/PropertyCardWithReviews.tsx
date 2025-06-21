@@ -37,7 +37,7 @@ const PropertyCardWithReviews = ({
     </div>
     {openReviewsPropertyId === property._id && (
       <div className="w-full mb-4 -mt-1">
-        <PropertyReviews propertyId={property._id} />
+        <PropertyReviews propertyId={property._id} userPgPalId={property.userPgPalId} />
       </div>
     )}
   </React.Fragment>

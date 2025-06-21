@@ -20,7 +20,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     className={`
       ${
         fromTenantLandingPage
-          ? "w-full min-w-10 mb-2 rounded-none items-start"
+          ? "w-full min-w-10 mb-2 p-2 rounded-xl items-start"
           : "items-center ms-2 ps-1 rounded-xl min-w-[220px] w-56 mb-2"
       }
       h-40 bg-white/80  mt-1 shadow-lg flex flex-col justify-center transition

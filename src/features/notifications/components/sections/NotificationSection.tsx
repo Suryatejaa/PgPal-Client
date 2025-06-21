@@ -238,7 +238,7 @@ const NotificationSection = ({
 
         // //console.log("Checking attendance for meal:", meal, "on date:", date);
 
-        const isConfirmed = await checkAttendanceStatus(property, meal, date);
+        const isConfirmed = await checkAttendanceStatus(property ?? "", meal, date);
 
         setModal((prev) => ({
           ...prev,
@@ -409,14 +409,15 @@ const NotificationSection = ({
                 >
                   Confirm
                 </button>
-              ) : (
+              ) : modal.notification.type === "meal-attendance-reminder" &&
+                modal.notification.confirmed ? (
                 <button
                   disabled
                   className="text-green-600 bg-gray-300 mr-1 px-3 py-1 rounded"
                 >
-                  Confirmed
+                  Confirmed {modal.notification.type.split(" ")}
                 </button>
-              )}
+              ) : null}
 
               {!modal.notification.isRead && (
                 <button

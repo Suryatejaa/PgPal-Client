@@ -12,7 +12,6 @@ export const SERVICES = [
   'property-service',
   'room-service',
   'tenant-service',
-  'payment-service',
   'auth-service'
 ] as const;
 
@@ -330,7 +329,7 @@ class MonitoringService {
     const results: Record<string, InternalApiStats> = {};
     
     // Filter services that have internal API monitoring (excluding kitchen-service for now)
-    const servicesWithInternalApi = SERVICES.filter(s => s !== 'kitchen-service' && s !== 'payment-service' && s !== 'auth-service');
+    const servicesWithInternalApi = SERVICES.filter(s => s !== 'kitchen-service' && s !== 'auth-service');
     
     await Promise.allSettled(
       servicesWithInternalApi.map(async (service) => {
@@ -377,7 +376,7 @@ class MonitoringService {
   }): Promise<Record<string, InternalApiError[]>> {
     const results: Record<string, InternalApiError[]> = {};
     
-    const servicesWithInternalApi = SERVICES.filter(s => s !== 'kitchen-service' && s !== 'payment-service' && s !== 'auth-service');
+    const servicesWithInternalApi = SERVICES.filter(s => s !== 'kitchen-service' && s !== 'auth-service');
     
     await Promise.allSettled(
       servicesWithInternalApi.map(async (service) => {
@@ -416,7 +415,7 @@ class MonitoringService {
   async getAllServiceDependencies(): Promise<Record<string, ServiceHealthStatus>> {
     const results: Record<string, ServiceHealthStatus> = {};
     
-    const servicesWithDependencies = SERVICES.filter(s => s !== 'kitchen-service' && s !== 'payment-service' && s !== 'auth-service');
+    const servicesWithDependencies = SERVICES.filter(s => s !== 'kitchen-service' && s !== 'auth-service');
     
     await Promise.allSettled(
       servicesWithDependencies.map(async (service) => {
@@ -540,7 +539,7 @@ class MonitoringService {
     let dependencyHealth = null;
 
     // Get internal API stats for services that support it
-    if (!['kitchen-service', 'payment-service', 'auth-service'].includes(serviceName)) {
+    if (!['kitchen-service',  'auth-service'].includes(serviceName)) {
       internalApiStats = await this.getInternalApiStats(serviceName as ServiceName).catch(() => null);
       dependencyHealth = await this.getServiceDependencyHealth(serviceName as ServiceName).catch(() => null);
     }

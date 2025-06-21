@@ -36,7 +36,9 @@ interface SystemOverview {
 const ErrorMonitoring: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshInterval, setRefreshInterval] = useState<number | null>(null);
+  const [refreshInterval, setRefreshInterval] = useState<ReturnType<
+    typeof setInterval
+  > | null>(null);
 
   // Core data states
   const [gatewayHealth, setGatewayHealth] = useState<GatewayHealth | null>(
@@ -95,7 +97,7 @@ const ErrorMonitoring: React.FC = () => {
         // Load system overview data
         const systemData = await monitoringService.getSystemOverview();
 
-        setSystemOverview(systemData);
+        // setSystemOverview(systemData);
         setGatewayHealth(systemData.gateway);
         setServices(systemData.services as Record<string, ServiceInfo>);
         setRecentErrors(systemData.gateway.errorStats.recentErrors || []);
